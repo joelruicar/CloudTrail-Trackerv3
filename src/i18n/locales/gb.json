@@ -1,15 +1,10 @@
 {
   "auth": {
-    "agree": "I agree to",
-    "createAccount": "Create account",
-    "createNewAccount": "Create New Account",
     "email": "Email",
     "login": "Login",
     "password": "Password",
     "recover_password": "Recover password",
     "sign_up": "Sign Up",
-    "keep_logged_in": "Keep me logged in",
-    "termsOfUse": "Terms of Use.",
     "reset_password": "Reset password"
   },
   "404": {
@@ -17,61 +12,28 @@
     "text": "If you feel that it’s not right, please send us a message at ",
     "back_button": "Back to dashboard"
   },
-  "typography": {
-    "primary": "Primary text styles",
-    "secondary": "Secondary text styles"
-  },
   "dashboard": {
     "versions": "Versions",
-    "setupRemoteConnections": "Setup Remote Connections",
-    "currentVisitors": "Current Visitors",
     "navigationLayout": "navigation layout",
     "topBarButton": "Top Bar",
     "sideBarButton": "Side Bar"
   },
   "language": {
-    "brazilian_portuguese": "Português",
     "english": "English",
-    "spanish": "Spanish",
-    "simplified_chinese": "Simplified Chinese",
-    "persian": "Persian"
+    "spanish": "Spanish"
   },
   "menu": {
     "auth": "Auth",
     "buttons": "Buttons",
     "timelines": "Timelines",
     "dashboard": "Dashboard",
-    "billing": "Billing",
     "login": "Login",
     "preferences": "Account preferences",
-    "payments": "Payments",
-    "settings": "Application settings",
-    "pricing-plans": "Pricing plans",
-    "payment-methods": "Payment methods",
     "signup": "Signup",
     "recover-password": "Recover password",
     "recover-password-email": "Recover password email",
     "404": "404",
-    "faq": "FAQ",
-    "users": "Users",
-    "projects": "Projects"
-  },
-  "messages": {
-    "all": "See all messages",
-    "new": "New messages from {name}",
-    "mark_as_read": "Mark As Read"
-  },
-  "navbar": {
-    "messageUs": "Web development inquiries:",
-    "repository": "GitHub Repo"
-  },
-  "notifications": {
-    "all": "See all notifications",
-    "less": "See less notifications",
-    "mark_as_read": "Mark as read",
-    "sentMessage": "sent you a message",
-    "uploadedZip": "uploaded a new Zip file with {type}",
-    "startedTopic": "started a new topic"
+    "users": "Users"
   },
   "user": {
     "language": "Change language",
@@ -91,10 +53,6 @@
     "selectable": "Selectable",
     "editable": "Editable",
     "advanced": "Advanced"
-  },
-  "chat": {
-    "title": "Chat",
-    "sendButton": "Send"
   },
   "spacingPlayground": {
     "value": "Value",

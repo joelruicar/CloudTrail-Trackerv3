@@ -19,9 +19,7 @@ import NotFoundImage from '../components/NotFoundImage.vue'
 
       <div class="flex flex-col sm:flex-row gap-4">
         <VaButton to="/">Go to homepage</VaButton>
-        <VaButton href="https://github.com/epicmaxco/vuestic-admin/issues/new" preset="secondary" target="_blank"
-          >Create a GitHub issue
-        </VaButton>
+       
       </div>
     </div>
 

@@ -8,7 +8,7 @@ export default {
 
 export const Default = () => ({
   components: { VuesticLogo },
-  template: `<VuesticLogo start="#6B7AFE" end="#083CC6" />`,
+  template: `<VuesticLogo start="#6bfeadff" end="#08c677ff" />`,
 })
 
 export const White = () => ({
@@ -20,10 +20,10 @@ export const White = () => ({
 
 export const Blue = () => ({
   components: { VuesticLogo },
-  template: `<VuesticLogo start="#0E41C9"/>`,
+  template: `<VuesticLogo start="#11b38aff"/>`,
 })
 
 export const Height = () => ({
   components: { VuesticLogo },
-  template: `<VuesticLogo start="#6B7AFE" end="#083CC6" :height="48"/>`,
+  template: `<VuesticLogo start="#8dfe6bff" end="#08c667ff" :height="48"/>`,
 })

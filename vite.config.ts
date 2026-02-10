@@ -4,13 +4,22 @@ import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'url'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
 import { vuestic } from '@vuestic/compiler/vite'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   build: {
     sourcemap: true,
   },
   plugins: [
+    nodePolyfills({
+      globals: {
+        Buffer: true, 
+        global: true,
+        process: true,
+      },
+      //opcional
+      protocolImports: true,
+    }),
     vuestic(),
     vue(),
     VueI18nPlugin({
