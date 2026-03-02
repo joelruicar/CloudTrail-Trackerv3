@@ -14,7 +14,6 @@
         :style="{ '--hover-color': hoverColor }"
       >
         <VaList v-for="group in options" :key="group.name">
-         
           <VaListItem
             v-for="item in group.list"
             :key="item.name"
@@ -61,7 +60,6 @@ withDefaults(
   }>(),
   {
     options: () => [
-      
       {
         name: '',
         separator: false,
@@ -70,7 +68,7 @@ withDefaults(
             name: 'logout',
             to: 'login',
             icon: 'mso-logout',
-          },  
+          },
           {
             name: 'settings',
             to: 'settings',
@@ -93,9 +91,9 @@ const handleItemClick = (item: ProfileListItem) => {
   isShown.value = false
 }
 
-const resolveLinkAttribute = (item: ProfileListItem) => {
-  return item.to ? { to: { name: item.to } } : item.href ? { href: item.href, target: '_blank' } : {}
-}
+// const resolveLinkAttribute = (item: ProfileListItem) => {
+//   return item.to ? { to: { name: item.to } } : item.href ? { href: item.href, target: '_blank' } : {}
+// }
 </script>
 
 <style lang="scss">

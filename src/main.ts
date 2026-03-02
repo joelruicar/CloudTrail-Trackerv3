@@ -9,7 +9,10 @@ import { createGtm } from '@gtm-support/vue-gtm'
 import { createPinia } from 'pinia'
 import router from './router'
 import vuesticGlobalConfig from './services/vuestic-ui/global-config'
+import { Amplify } from 'aws-amplify'
+import { amplifyConfig } from './amplifyConfig'
 
+Amplify.configure(amplifyConfig)
 const app = createApp(App)
 
 app.use(createPinia())
@@ -28,4 +31,3 @@ if (import.meta.env.VITE_APP_GTM_ENABLED) {
 }
 
 app.mount('#app')
-

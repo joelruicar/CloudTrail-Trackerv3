@@ -19,7 +19,6 @@ import NotFoundImage from '../components/NotFoundImage.vue'
 
       <div class="flex flex-col sm:flex-row gap-4">
         <VaButton to="/">Go to homepage</VaButton>
-       
       </div>
     </div>
 

@@ -10,10 +10,17 @@ export default defineConfig({
   build: {
     sourcemap: true,
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler', // or "modern"
+      },
+    },
+  },
   plugins: [
     nodePolyfills({
       globals: {
-        Buffer: true, 
+        Buffer: true,
         global: true,
         process: true,
       },

@@ -1,8 +1,25 @@
 import { Ref, ref, unref, watch, computed } from 'vue'
-import { v4 as uuid } from 'uuid'
-import type { Filters, Pagination, Sorting } from '../../../data/pages/users'
 import { User } from '../types'
 import { useUsersStore } from '../../../stores/users'
+
+export interface Filters {
+  search: string
+  from: string
+  to: string
+  eventName?: string
+  isActive: boolean
+}
+
+export interface Pagination {
+  page: number
+  perPage: number
+  total: number
+}
+
+export interface Sorting {
+  sortBy: keyof User | undefined
+  sortingOrder: 'asc' | 'desc' | null
+}
 
 const makePaginationRef = () => ref<Pagination>({ page: 1, perPage: 10, total: 0 })
 const makeSortingRef = () => ref<Sorting>({ sortBy: 'fullname', sortingOrder: null })
@@ -27,53 +44,20 @@ export const useUsers = (options?: {
         sorting: unref(sorting),
         pagination: unref(pagination),
       })
-      pagination.value = usersStore.pagination
+
+      pagination.value.total = usersStore.pagination.total
+    } catch (e) {
+      error.value = e
     } finally {
       isLoading.value = false
     }
   }
 
-  watch(
-    filters,
-    () => {
-      // Reset pagination to first page when filters changed
-      pagination.value.page = 1
-      fetch()
-    },
-    { deep: true },
-  )
+  watch([filters, sorting, pagination], () => fetch(), { deep: true })
 
   fetch()
 
-  const users = computed(() => {
-    const getSortItem = (obj: any, sortBy: string) => {
-      if (sortBy === 'projects') {
-        return obj.projects.map((project: any) => project).join(', ')
-      }
-
-      return obj[sortBy]
-    }
-
-    const paginated = usersStore.items.slice(
-      (pagination.value.page - 1) * pagination.value.perPage,
-      pagination.value.page * pagination.value.perPage,
-    )
-
-    if (sorting.value.sortBy && sorting.value.sortingOrder) {
-      paginated.sort((a, b) => {
-        const first = getSortItem(a, sorting.value.sortBy!)
-        const second = getSortItem(b, sorting.value.sortBy!)
-        if (first > second) {
-          return sorting.value.sortingOrder === 'asc' ? 1 : -1
-        }
-        if (first < second) {
-          return sorting.value.sortingOrder === 'asc' ? -1 : 1
-        }
-        return 0
-      })
-    }
-    return paginated
-  })
+  const users = computed(() => usersStore.items)
 
   return {
     error,
@@ -81,50 +65,7 @@ export const useUsers = (options?: {
     filters,
     sorting,
     pagination,
-
     users,
-
     fetch,
-
-    async add(user: User) {
-      isLoading.value = true
-      try {
-        return await usersStore.add(user)
-      } catch (e) {
-        error.value = e
-      } finally {
-        isLoading.value = false
-      }
-    },
-
-    async update(user: User) {
-      isLoading.value = true
-      try {
-        return await usersStore.update(user)
-      } catch (e) {
-        error.value = e
-      } finally {
-        isLoading.value = false
-      }
-    },
-
-    async remove(user: User) {
-      isLoading.value = true
-      try {
-        return await usersStore.remove(user)
-      } catch (e) {
-        error.value = e
-      } finally {
-        isLoading.value = false
-      }
-    },
-
-    async uploadAvatar(avatar: Blob) {
-      const formData = new FormData()
-      formData.append('avatar', avatar)
-      formData.append('id', uuid())
-
-      return usersStore.uploadAvatar(formData)
-    },
   }
 }

@@ -6,11 +6,11 @@
       <RouterLink :to="{ name: 'signup' }" class="font-semibold text-primary">Sign up</RouterLink>
     </p>
     <VaInput
-      v-model="formData.email"
-      :rules="[validators.required, validators.email]"
+      v-model="formData.username"
+      :rules="[validators.required]"
       class="mb-4"
-      label="Email"
-      type="email"
+      label="Username"
+      type="username"
     />
     <VaValue v-slot="isPasswordVisible" :default-value="false">
       <VaInput
@@ -49,21 +49,28 @@ import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm, useToast } from 'vuestic-ui'
 import { validators } from '../../services/utils'
+import { useAuthStore } from '../../stores/auth'
 
 const { validate } = useForm('form')
 const { push } = useRouter()
 const { init } = useToast()
+const authStore = useAuthStore()
 
 const formData = reactive({
-  email: '',
+  username: '',
   password: '',
   keepLoggedIn: false,
 })
 
-const submit = () => {
+const submit = async () => {
   if (validate()) {
-    init({ message: "You've successfully logged in", color: 'success' })
-    push({ name: 'dashboard' })
+   try {
+      await authStore.login(formData.username, formData.password)
+      init({ message: "Inicio de sesión exitoso", color: 'success' })
+      push({ name: 'dashboard' })
+    } catch (error: any) {
+      init({ message: "Error al iniciar sesión: " + error.message, color: 'danger' })
+    }
   }
 }
 </script>
