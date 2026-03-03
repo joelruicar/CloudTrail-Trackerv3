@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
-import { getCurrentUser, fetchAuthSession, signIn } from 'aws-amplify/auth';
+import { defineStore } from 'pinia'
+import { getCurrentUser, fetchAuthSession, signIn, signOut, updatePassword, confirmResetPassword, resetPassword } from 'aws-amplify/auth'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -10,40 +10,77 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isProfessor: (state) => state.user?.username?.toLowerCase().startsWith('gmolto'),
     isStudent: (state) => state.user?.username?.toLowerCase().startsWith('alucloud'),
-    roleName(): string  {
-      if (this.isProfessor) return 'Profesor';
-      if (this.isStudent) return 'Estudiante';
-      return 'undefined';
+    roleName(): string {
+      if (this.isProfessor) return 'Profesor'
+      if (this.isStudent) return 'Estudiante'
+      return 'undefined'
     },
   },
 
   actions: {
     async refreshUser() {
       try {
-        const currentUser = await getCurrentUser();
-        const session = await fetchAuthSession();
-        
-        this.user = currentUser;
-        this.accessToken = session.tokens?.accessToken?.toString() || null;
+        const currentUser = await getCurrentUser()
+        const session = await fetchAuthSession()
+
+        this.user = currentUser
+        this.accessToken = session.tokens?.accessToken?.toString() || null
       } catch (error) {
-        this.user = null;
-        this.accessToken = null;
+        this.user = null
+        this.accessToken = null
       }
     },
     async login(email: string, password: string) {
       try {
-        await signIn({ username: email, password });
-        await this.refreshUser(); 
-        return true;
+        await signIn({ username: email, password })
+        await this.refreshUser()
+        return true
       } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login error:', error)
+        throw error
+      }
+    },
+    async logout() {
+      try {
+        await signOut()
+      } catch (error) {
+        console.error('Error al cerrar sesión en Amplify:', error)
+      } finally {
+        this.user = null
+        this.accessToken = null
+      }
+    },
+    async changePassword(oldPass: string, newPass: string) {
+      try {
+        await updatePassword({ 
+          oldPassword: oldPass, 
+          newPassword: newPass 
+        });
+        return { success: true };
+      } catch (error: any) {
+        console.error("Error al actualizar la contraseña:", error);
         throw error; 
       }
     },
-    logout() {
-      this.user = null;
-      this.accessToken = null;
-      // Aquí invocarías signOut() de amplify
-    }
-  },
-});
+    async confirmResetPassword(username: string, code: string, newPass: string) {
+      try {
+        await confirmResetPassword({ 
+          username, 
+          confirmationCode: code, 
+          newPassword: newPass 
+        });
+        return { success: true };
+      } catch (error) {
+        throw error;
+      }
+    },
+    async resetPassword(username: string) {
+      try {
+        await resetPassword({ username });
+        return { success: true };
+      } catch (error) {
+        throw error;
+      }
+    },
+  }
+})

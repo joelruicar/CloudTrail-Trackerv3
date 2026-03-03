@@ -10,7 +10,8 @@
     "sign_up": "Registrar",
     "keep_logged_in": "Mantenerme conectado",
     "termsOfUse": "Términos de uso",
-    "reset_password": "Restablecer contraseña"
+    "reset_password": "Restablecer contraseña",
+    "change-password": "Cambiar contraseña"
   },
   "404": {
     "title": "Esta página se ha ido a pescar",

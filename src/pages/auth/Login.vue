@@ -1,17 +1,7 @@
 <template>
   <VaForm ref="form" @submit.prevent="submit">
     <h1 class="font-semibold text-4xl mb-4">Log in</h1>
-    <p class="text-base mb-4 leading-5">
-      New to Vuestic?
-      <RouterLink :to="{ name: 'signup' }" class="font-semibold text-primary">Sign up</RouterLink>
-    </p>
-    <VaInput
-      v-model="formData.username"
-      :rules="[validators.required]"
-      class="mb-4"
-      label="Username"
-      type="username"
-    />
+    <VaInput v-model="formData.username" :rules="[validators.required]" class="mb-4" label="Username" type="username" />
     <VaValue v-slot="isPasswordVisible" :default-value="false">
       <VaInput
         v-model="formData.password"
@@ -64,12 +54,12 @@ const formData = reactive({
 
 const submit = async () => {
   if (validate()) {
-   try {
+    try {
       await authStore.login(formData.username, formData.password)
-      init({ message: "Inicio de sesión exitoso", color: 'success' })
+      // init({ message: 'Inicio de sesión exitoso', color: 'success' })
       push({ name: 'dashboard' })
     } catch (error: any) {
-      init({ message: "Error al iniciar sesión: " + error.message, color: 'danger' })
+      init({ message: 'Error al iniciar sesión: ' + error.message, color: 'danger' })
     }
   }
 }

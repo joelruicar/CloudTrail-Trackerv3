@@ -34,13 +34,13 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useColors } from 'vuestic-ui'
-
+import { useAuthStore } from '../../../../stores/auth'
 const { colors, setHSLAColor } = useColors()
 const hoverColor = computed(() => setHSLAColor(colors.focus, { a: 0.1 }))
 
 const { t } = useI18n()
 const router = useRouter()
-
+const authStore = useAuthStore()
 type ProfileListItem = {
   name: string
   to?: string
@@ -65,29 +65,41 @@ withDefaults(
         separator: false,
         list: [
           {
-            name: 'logout',
-            to: 'login',
-            icon: 'mso-logout',
-          },
-          {
             name: 'settings',
             to: 'settings',
             icon: 'mso-settings',
+          },
+          {
+            name: 'change-password',
+            to: "change-password",
+            icon: 'mso-password'
+          },  
+          {
+            name: 'logout',
+            to: 'login',
+            icon: 'mso-logout',
           },
         ],
       },
     ],
   },
 )
-
 const isShown = ref(false)
-
-const handleItemClick = (item: ProfileListItem) => {
-  if (item.to) {
+const handleItemClick = async (item: ProfileListItem) => {
+  if (item.name === 'logout') {
+    try {
+      await authStore.logout()
+      router.push({ name: 'login' })
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error)
+    }
+  }
+  else if (item.to) {
     router.push({ name: item.to })
   } else if (item.href) {
     window.open(item.href, '_blank')
   }
+
   isShown.value = false
 }
 

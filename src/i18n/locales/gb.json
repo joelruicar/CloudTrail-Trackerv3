@@ -44,7 +44,8 @@
     "faq": "FAQ",
     "helpAndSupport": "Help & support",
     "account": "Account",
-    "explore": "Explore"
+    "explore": "Explore",
+    "change-password": "Change password"
   },
   "treeView": {
     "basic": "Basic",

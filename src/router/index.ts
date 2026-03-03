@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-
+import { useAuthStore } from '../stores/auth'
 import AuthLayout from '../layouts/AuthLayout.vue'
 import AppLayout from '../layouts/AppLayout.vue'
 
@@ -14,6 +14,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'admin',
     path: '/',
     component: AppLayout,
+    meta: { requiresAuth: true },
     redirect: { name: 'dashboard' },
     children: [
       {
@@ -21,11 +22,18 @@ const routes: Array<RouteRecordRaw> = [
         path: 'dashboard',
         component: () => import('../pages/admin/dashboard/Dashboard.vue'),
       },
+       {
+        name: 'change-password',
+        path: 'change-password',
+        component: () => import('../pages/auth/Changepassword.vue'),
+      }, 
+    
     ],
   },
   {
-    path: '/auth',
+    path: '/',
     component: AuthLayout,
+    meta: { requiresGuest: true },
     children: [
       {
         name: 'login',
@@ -33,19 +41,19 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/auth/Login.vue'),
       },
       {
-        name: 'signup',
-        path: 'signup',
-        component: () => import('../pages/auth/Signup.vue'),
-      },
-      {
         name: 'recover-password',
         path: 'recover-password',
-        component: () => import('../pages/auth/RecoverPassword.vue'),
+        component: () => import('../pages/auth/PasswordReset.vue'),
       },
       {
-        name: 'recover-password-email',
-        path: 'recover-password-email',
+        name: 'recover-password-username',
+        path: 'recover-password-username',
         component: () => import('../pages/auth/CheckTheEmail.vue'),
+      },
+        {
+        name: 'password-reset-confirm',
+        path: 'password-reset-confirm',
+        component: () => import('../pages/auth/PasswordResetConfirm.vue')
       },
       {
         path: '',
@@ -74,6 +82,25 @@ const router = createRouter({
     }
   },
   routes,
+})
+
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
+
+  if (!authStore.user) {
+    await authStore.refreshUser()
+  }
+
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const requiresGuest = to.matched.some((record) => record.meta.requiresGuest)
+
+  if (requiresGuest && authStore.user) {
+    next({ name: 'dashboard' })
+  } else if (requiresAuth && !authStore.user) {
+    next({ name: 'login' })
+  } else {
+    next()
+  }
 })
 
 export default router
