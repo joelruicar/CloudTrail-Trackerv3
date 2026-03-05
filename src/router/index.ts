@@ -27,7 +27,6 @@ const routes: Array<RouteRecordRaw> = [
         path: 'change-password',
         component: () => import('../pages/auth/Changepassword.vue'),
       }, 
-    
     ],
   },
   {

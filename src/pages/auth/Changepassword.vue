@@ -96,8 +96,8 @@ const handlePasswordChange = async () => {
 
 <style scoped>
 .password-change-container {
-  max-width: 400px; /* Ajusta este valor al ancho que prefieras */
-  margin: 0 auto;   /* Centra el contenedor horizontalmente */
+  max-width: 400px; 
+  margin: 0 auto;   
   padding: 2rem;
 }
 </style>

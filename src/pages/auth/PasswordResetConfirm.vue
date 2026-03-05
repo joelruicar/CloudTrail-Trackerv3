@@ -56,7 +56,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm, useToast } from 'vuestic-ui'
 import { useAuthStore } from '../../stores/auth'
-import { validators } from '../../services/utils' // Asumiendo que tienes tus validadores ahí
+import { validators } from '../../services/utils' 
 
 const authStore = useAuthStore()
 const router = useRouter()

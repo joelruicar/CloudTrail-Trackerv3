@@ -1,18 +1,17 @@
 import axios from 'axios'
 import { useAuthStore } from '../stores/auth'
 import { fetchAuthSession } from 'aws-amplify/auth'
+import { API_CONFIG } from './config'
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
-// Creamos la instancia de axios
 const apiClient = axios.create({
-  baseURL: apiBaseUrl,
+  baseURL: API_CONFIG.GENERAL,
 })
-
+console.log("Axios BaseURL configurado como:", API_CONFIG.GENERAL);
 // Interceptor para inyectar el token automáticamente
 apiClient.interceptors.request.use(async (config) => {
   const session = await fetchAuthSession()
-  const token = session.tokens?.accessToken?.toString()
+  const token = session.tokens?.idToken?.toString()
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
@@ -20,7 +19,6 @@ apiClient.interceptors.request.use(async (config) => {
   return config
 })
 
-// Exportamos el cliente y los endpoints
 export default {
   client: apiClient,
   endpoints: {

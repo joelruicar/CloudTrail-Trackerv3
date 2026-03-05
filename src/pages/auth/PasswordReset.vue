@@ -60,7 +60,6 @@ const handleReset = async () => {
   error.value = false
   
   try {
-    // Llamada al store (que internamente usa Amplify resetPassword)
     await authStore.resetPassword(username.value)
     
     init({ message: "Reset code sent to your email", color: 'success' })
