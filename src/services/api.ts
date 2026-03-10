@@ -1,13 +1,10 @@
 import axios from 'axios'
-import { useAuthStore } from '../stores/auth'
 import { fetchAuthSession } from 'aws-amplify/auth'
 import { API_CONFIG } from './config'
-
 
 const apiClient = axios.create({
   baseURL: API_CONFIG.GENERAL,
 })
-console.log("Axios BaseURL configurado como:", API_CONFIG.GENERAL);
 // Interceptor para inyectar el token automáticamente
 apiClient.interceptors.request.use(async (config) => {
   const session = await fetchAuthSession()

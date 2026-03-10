@@ -1,17 +1,35 @@
-// src/stores/aws.store.ts
-import { defineStore } from 'pinia';
-import { AwsEvent, AwsMetrics } from './interfaces/aws';
+import { defineStore } from 'pinia'
+import { AwsEvent, AwsMetrics } from './interfaces/aws'
 import { eventLinks } from '../pages/data/event-links'
-import { EventLinkItem } from './interfaces/types';
-import { API_CONFIG } from '@/services/config';
-import api from '../services/api';
+import { EventLinkItem } from './interfaces/types'
+import api from '../services/api'
 
+const formatLocal = (date: Date, includeTime: boolean) => {
+  const pad = (n: number) => n.toString().padStart(2, '0')
+
+  const yyyy = date.getFullYear()
+  const mm = pad(date.getMonth() + 1)
+  const dd = pad(date.getDate())
+  const dateStr = `${yyyy}-${mm}-${dd}`
+
+  if (!includeTime) return dateStr
+
+  const hh = pad(date.getHours())
+  const min = pad(date.getMinutes())
+  const ss = pad(date.getSeconds())
+
+  return `${dateStr}T${hh}:${min}:${ss}Z`
+}
 export const useAwsStore = defineStore('aws', {
   state: () => ({
     events: [] as AwsEvent[],
     services: [] as string[],
+    filters: {
+      eventName: '',
+      date: '',
+      searchQuery: '',
+    },
     metrics: {
-      total: 0,
       runInstances: 0,
       createDBInstance: 0,
       createFunction: 0,
@@ -22,13 +40,14 @@ export const useAwsStore = defineStore('aws', {
     startDate: '',
     endDate: '',
   }),
+
   getters: {
     chartDataServices: (state) => {
       const counts = state.events.reduce((acc: Record<string, number>, event) => {
-        const service = event.eventSource.split('.')[0]; 
-        acc[service] = (acc[service] || 0) + 1;
-        return acc;
-      }, {});
+        const service = event.eventSource.split('.')[0]
+        acc[service] = (acc[service] || 0) + 1
+        return acc
+      }, {})
 
       return {
         labels: Object.keys(counts),
@@ -41,96 +60,109 @@ export const useAwsStore = defineStore('aws', {
             data: Object.values(counts),
           },
         ],
-      };
+      }
     },
+
     formattedEvents: (state) => {
-    const lang = navigator.language === 'es-ES' ? 'es' : 'en';
+      const lang = navigator.language === 'es-ES' ? 'es' : 'en'
+      const linksMap = (eventLinks as EventLinkItem[]).reduce(
+        (acc, item) => {
+          acc[item.eventName] = item
+          return acc
+        },
+        {} as Record<string, EventLinkItem>,
+      )
 
-    const linksMap = (eventLinks as EventLinkItem[]).reduce((acc, item) => {
-        acc[item.eventName] = item;
-        return acc;
-    }, {} as Record<string, EventLinkItem>);
-
-    return state.events.map((event) => {
-        const linkConfig = linksMap[event.eventName] || linksMap['Empty'];
-        
+      return state.events.map((event) => {
+        const linkConfig = linksMap[event.Event] || linksMap['Empty']
         return {
-        ...event,
-        eventLink: linkConfig ? linkConfig.url : '#', 
-        description: linkConfig ? linkConfig.description[lang] : 'No description',
-        displayTime: new Date(event.eventTime).toLocaleString(),
-        };
-    });
+          ...event,
+          eventLink: linkConfig ? linkConfig.url : '#',
+          description: linkConfig ? linkConfig.description[lang] : 'No description',
+          displayTime: new Date(event.TimeStamp).toLocaleString(),
+        }
+      })
+    },
+    filteredEvents: (state) => {
+      let result = [...state.events]
+
+      if (state.filters.eventName) {
+        result = result.filter((e) => e.Event === state.filters.eventName)
+      }
+
+      if (state.filters.searchQuery) {
+        const query = state.filters.searchQuery.toLowerCase()
+        result = result.filter((e) => e.eventID.toLowerCase().includes(query))
+      }
+
+      return result
     },
   },
   actions: {
     async fetchDashboardData(range: string) {
-  this.loading = true;
-  this.selectedRange = range;
+      this.loading = true
+      this.selectedRange = range
+      const now = new Date()
+      let start: string
+      let end: string
 
-  try {
-    const now = new Date();
-    let startIso: string;
-    let endIso: string;
-    const formatForBackend = (date: Date) => {
-        return date.toISOString().split('.')[0] + 'Z';
-        };
-    if (range === 'last hour') {
-      const end = new Date(now.getTime() - 2 * 60 * 60 * 1000)
-      const start = new Date(now.getTime() - 3 * 60 * 60 * 1000)
-      endIso = formatForBackend(end)
-      startIso = formatForBackend(start)
-    } else if (range === 'last six hours') {
-      const end = new Date(now.getTime() - 2 * 60 * 60 * 1000)
-      const start = new Date(now.getTime() - 10 * 60 * 60 * 1000)
-      endIso = formatForBackend(end)
-      startIso = formatForBackend(start)
-    } else if (range === 'last day') {
-      const end = new Date()
-      const start = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-      endIso = formatForBackend(end)
-      startIso = formatForBackend(start)
-    } else if (range === 'last week') {
-      const end = new Date()
-      const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-      endIso = formatForBackend(end)
-      startIso = formatForBackend(start)
-    } else { //default 1 hora
-    const end = new Date(now.getTime() - 2 * 60 * 60 * 1000)
-      const start = new Date(now.getTime() - 3 * 60 * 60 * 1000)
-      endIso = formatForBackend(end)
-      startIso = formatForBackend(start)
-    }
+      try {
+        if (range === 'last hour') {
+          const endDate = new Date(now.getTime() - 2 * 60 * 60 * 1000)
+          const startDate = new Date(now.getTime() - 3 * 60 * 60 * 1000)
+          end = formatLocal(endDate, true)
+          start = formatLocal(startDate, true)
+        } else if (range === 'last six hours') {
+          const endDate = new Date(now.getTime() - 2 * 60 * 60 * 1000)
+          const startDate = new Date(now.getTime() - 10 * 60 * 60 * 1000)
+          end = formatLocal(endDate, true)
+          start = formatLocal(startDate, true)
+        } else {
+          const daysMap: Record<string, number> = {
+            'last day': 1,
+            'last week': 7,
+          }
+          const daysToSubtract = daysMap[range] || 1
+          const startDate = new Date(now.getTime() - daysToSubtract * 24 * 60 * 60 * 1000)
+          end = formatLocal(now, false)
+          start = formatLocal(startDate, false)
+        }
 
-    this.startDate = startIso;
-    this.endDate = endIso;
+        this.startDate = start
+        this.endDate = end
 
-    const [eventsRes, totalRes, runRes, dbRes, funcRes, lbRes] = await Promise.all([
-      api.client.get('/scan', { params: { from: startIso, to: endIso } }),
-      api.client.get('/scan', { params: { from: startIso, to: endIso, count: 'True' } }),
-      api.client.get('/scan', { params: { from: startIso, to: endIso, eventName: 'RunInstances', count: 'True' } }),
-      api.client.get('/scan', { params: { from: startIso, to: endIso, eventName: 'CreateDBInstance', count: 'True', begin_with: 'True' } }),
-      api.client.get('/scan', { params: { from: startIso, to: endIso, eventName: 'CreateFunction', count: 'True', begin_with: 'True' } }),
-      api.client.get('/scan', { params: { from: startIso, to: endIso, eventName: 'CreateLoadBalancer', count: 'True' } })
-    ]);
+        const [runRes, dbRes, funcRes, lbRes] = await Promise.all([
+          api.client.get('/scan', { params: { from: start, to: end, eventName: 'RunInstances', count: 'True' } }),
+          api.client.get('/scan', {
+            params: { from: start, to: end, eventName: 'CreateDBInstance', count: 'True', begin_with: 'True' },
+          }),
+          api.client.get('/scan', {
+            params: { from: start, to: end, eventName: 'CreateFunction', count: 'True', begin_with: 'True' },
+          }),
+          api.client.get('/scan', { params: { from: start, to: end, eventName: 'CreateLoadBalancer', count: 'True' } }),
+        ])
 
-    this.events = eventsRes.data;
-    this.metrics = {
-      total: totalRes.data,
-      runInstances: runRes.data,
-      createDBInstance: dbRes.data,
-      createFunction: funcRes.data,
-      createLoadBalancer: lbRes.data
-    };
+        this.metrics = {
+          runInstances: runRes.data,
+          createDBInstance: dbRes.data,
+          createFunction: funcRes.data,
+          createLoadBalancer: lbRes.data,
+        }
 
-  } catch (error) {
-    console.error("Error en la migración de datos AWS:", error);
-  } finally {
-    this.loading = false;
-  }
-}
-  }
-}
-)
-
-
+        // si se hacen a la vez es demasiado pesado y da error timeout
+        const eventsRes = await api.client.get('/scan', { params: { from: start, to: end } })
+        this.events = eventsRes.data.map((event: any, index: number) => ({
+          ...event,
+          id: index + 1, // ID fijo y persistente para cada evento
+        }))
+      } catch (error) {
+        console.error('Error en la migración de datos AWS:', error)
+      } finally {
+        this.loading = false
+      }
+    },
+    setEventFilter(name: string) {
+      this.filters.eventName = name
+    },
+  },
+})

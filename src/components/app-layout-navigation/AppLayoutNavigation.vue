@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-2">
+  <div class="align-left">
     <VaIconMenuCollapsed
       class="cursor-pointer"
       :class="{ 'x-flip': !isSidebarMinimized }"
@@ -92,5 +92,9 @@ const handleBreadcrumbClick = (item: BreadcrumbNavigationItem) => {
 <style lang="scss" scoped>
 .x-flip {
   transform: scaleX(-100%);
+}
+
+.align-left {
+  display: flex;
 }
 </style>

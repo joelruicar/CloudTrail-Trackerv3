@@ -1,6 +1,6 @@
 export const eventLinks = [
   {
-    id: 'Empty',
+    eventName: 'Empty',
     url: 'https://docs.aws.amazon.com/',
     description: {
       es: 'Sin datos',
@@ -8,7 +8,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateKeyPair',
+    eventName: 'CreateKeyPair',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateKeyPair.html',
     description: {
       es: 'Crea un par de claves ED25519 o RSA de 2048 bits con el nombre especificado y en el formato especificado.',
@@ -16,7 +16,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateSecurityGroup',
+    eventName: 'CreateSecurityGroup',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateSecurityGroup.html',
     description: {
       es: 'Crea un grupo de seguridad dentro de una VPC para instancias EC2.',
@@ -24,7 +24,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'AuthorizeSecurityGroupIngress',
+    eventName: 'AuthorizeSecurityGroupIngress',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AuthorizeSecurityGroupIngress.html',
     description: {
       es: 'Añade reglas a un grupo de seguridad que permiten el acceso entrante a instancias EC2.',
@@ -32,7 +32,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RunInstances',
+    eventName: 'RunInstances',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_RunInstances.html',
     description: {
       es: 'Inicia una o más instancias EC2.',
@@ -40,7 +40,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'StopInstances',
+    eventName: 'StopInstances',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_StopInstances.html',
     description: {
       es: 'Para una o más instancias EC2.',
@@ -48,7 +48,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'StartInstances',
+    eventName: 'StartInstances',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_StartInstances.html',
     description: {
       es: 'Inicia una instancia respaldada por Amazon EBS que haya detenido previamente.',
@@ -56,7 +56,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'TerminateInstances',
+    eventName: 'TerminateInstances',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_TerminateInstances.html',
     description: {
       es: 'Termina una o más instancias EC2.',
@@ -64,7 +64,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'AttachVolume',
+    eventName: 'AttachVolume',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AttachVolume.html',
     description: {
       es: 'Asocia un volumen de Amazon EBS a una instancia en ejecución.',
@@ -72,7 +72,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateAutoScalingGroup',
+    eventName: 'CreateAutoScalingGroup',
     url: 'https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_CreateAutoScalingGroup.html',
     description: {
       es: 'Crea un grupo de Auto Scaling con los parámetros especificados.',
@@ -80,7 +80,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateBucket',
+    eventName: 'CreateBucket',
     url: 'https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html',
     description: {
       es: 'Crea un nuevo bucket S3.',
@@ -88,7 +88,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateImage',
+    eventName: 'CreateImage',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateImage.html',
     description: {
       es: 'Crea una imagen de una instancia EC2.',
@@ -96,7 +96,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateLaunchTemplate',
+    eventName: 'CreateLaunchTemplate',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateLaunchTemplate.html',
     description: {
       es: 'Crea una plantilla de lanzamiento para iniciar instancias EC2.',
@@ -104,7 +104,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateListener',
+    eventName: 'CreateListener',
     url: 'https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_CreateListener.html',
     description: {
       es: 'Crea un listener para un equilibrador de carga de aplicaciones o un equilibrador de carga de red.',
@@ -112,7 +112,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateLoadBalancer',
+    eventName: 'CreateLoadBalancer',
     url: 'https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_CreateLoadBalancer.html',
     description: {
       es: 'Crea un equilibrador de carga de aplicaciones o un equilibrador de carga de red.',
@@ -120,7 +120,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateSnapshot',
+    eventName: 'CreateSnapshot',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateSnapshot.html',
     description: {
       es: 'Crea una instantánea de un volumen de Amazon EBS.',
@@ -128,7 +128,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateTags',
+    eventName: 'CreateTags',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTags.html',
     description: {
       es: 'Agrega o sobrescribe etiquetas para los recursos de Amazon EC2 especificados.',
@@ -136,7 +136,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateTargetGroup',
+    eventName: 'CreateTargetGroup',
     url: 'https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_CreateTargetGroup.html',
     description: {
       es: 'Crea un grupo de destino para un equilibrador de carga de aplicaciones o un equilibrador de carga de red.',
@@ -144,7 +144,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateVolume',
+    eventName: 'CreateVolume',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateVolume.html',
     description: {
       es: 'Crea un volumen Amazon EBS.',
@@ -152,7 +152,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteAutoScalingGroup',
+    eventName: 'DeleteAutoScalingGroup',
     url: 'https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_DeleteAutoScalingGroup.html',
     description: {
       es: 'Elimina un grupo de Auto Scaling.',
@@ -160,7 +160,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteLaunchTemplate',
+    eventName: 'DeleteLaunchTemplate',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteLaunchTemplate.html',
     description: {
       es: 'Elimina una plantilla de lanzamiento.',
@@ -168,7 +168,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteLoadBalancer',
+    eventName: 'DeleteLoadBalancer',
     url: 'https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_DeleteLoadBalancer.html',
     description: {
       es: 'Elimina un equilibrador de carga de aplicaciones o un equilibrador de carga de red.',
@@ -176,7 +176,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteBucket',
+    eventName: 'DeleteBucket',
     url: 'https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucket.html',
     description: {
       es: 'Elimina un bucket de S3.',
@@ -184,7 +184,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteVolume',
+    eventName: 'DeleteVolume',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteVolume.html',
     description: {
       es: 'Elimina un volumen de Amazon EBS.',
@@ -192,7 +192,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteTargetGroup',
+    eventName: 'DeleteTargetGroup',
     url: 'https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_DeleteTargetGroup.html',
     description: {
       es: 'Elimina un grupo de destino.',
@@ -200,7 +200,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeregisterTargets',
+    eventName: 'DeregisterTargets',
     url: 'https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_DeregisterTargets.html',
     description: {
       es: 'Elimina los objetivos especificados del grupo de objetivos especificado.',
@@ -208,7 +208,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DetachVolume',
+    eventName: 'DetachVolume',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DetachVolume.html',
     description: {
       es: 'Desconecta un volumen Amazon EBS de una instancia.',
@@ -216,7 +216,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutBucketWebsite',
+    eventName: 'PutBucketWebsite',
     url: 'https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketWebsite.html',
     description: {
       es: 'Configura el sitio web para un bucket S3.',
@@ -224,7 +224,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutMetricAlarm',
+    eventName: 'PutMetricAlarm',
     url: 'https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutMetricAlarm.html',
     description: {
       es: 'Crea o actualiza una alarma de CloudWatch que monitoriza una métrica o el resultado de una expresión matemática.',
@@ -232,7 +232,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutScalingPolicy',
+    eventName: 'PutScalingPolicy',
     url: 'https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_PutScalingPolicy.html',
     description: {
       es: 'Crea o actualiza una política de escalado para un grupo de Auto Scaling.',
@@ -240,7 +240,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RegisterTargets',
+    eventName: 'RegisterTargets',
     url: 'https://docs.aws.amazon.com/elasticloadbalancing/latest/APIReference/API_RegisterTargets.html',
     description: {
       es: 'Registra los objetivos especificados en el grupo de destino especificado.',
@@ -248,7 +248,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'ChangeResourceRecordSets',
+    eventName: 'ChangeResourceRecordSets',
     url: 'https://docs.aws.amazon.com/Route53/latest/APIReference/API_ChangeResourceRecordSets.html',
     description: {
       es: 'Crea, cambia o elimina un conjunto de registros de recursos en una zona hospedada.',
@@ -256,7 +256,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateDBInstance',
+    eventName: 'CreateDBInstance',
     url: 'https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html',
     description: {
       es: 'Crea una nueva instancia de base de datos.',
@@ -264,7 +264,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateDBInstanceReadReplica',
+    eventName: 'CreateDBInstanceReadReplica',
     url: 'https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstanceReadReplica.html',
     description: {
       es: 'Crea una réplica de lectura de una instancia de base de datos.',
@@ -272,7 +272,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteDBInstance',
+    eventName: 'DeleteDBInstance',
     url: 'https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_DeleteDBInstance.html',
     description: {
       es: 'Elimina una instancia de base de datos.',
@@ -280,7 +280,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'ModifyDBInstance',
+    eventName: 'ModifyDBInstance',
     url: 'https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_ModifyDBInstance.html',
     description: {
       es: 'Modifica la configuración de una instancia de base de datos.',
@@ -288,7 +288,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RebootDBInstance',
+    eventName: 'RebootDBInstance',
     url: 'https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_RebootDBInstance.html',
     description: {
       es: 'Reinicia una instancia de base de datos.',
@@ -296,7 +296,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateTable',
+    eventName: 'CreateTable',
     url: 'https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_CreateTable.html',
     description: {
       es: 'Crea una nueva tabla de Amazon DynamoDB.',
@@ -304,7 +304,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteTable',
+    eventName: 'DeleteTable',
     url: 'https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_DeleteTable.html',
     description: {
       es: 'Elimina una tabla de Amazon DynamoDB.',
@@ -312,7 +312,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'AllocateAddress',
+    eventName: 'AllocateAddress',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AllocateAddress.html',
     description: {
       es: 'Asigna una dirección IP elástica (Elastic IP) a tu cuenta.',
@@ -320,7 +320,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'ReleaseAddress',
+    eventName: 'ReleaseAddress',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ReleaseAddress.html',
     description: {
       es: 'Libera una dirección IP elástica de tu cuenta.',
@@ -328,7 +328,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateAutoScalingGroup',
+    eventName: 'UpdateAutoScalingGroup',
     url: 'https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_UpdateAutoScalingGroup.html',
     description: {
       es: 'Actualiza la configuración de un grupo de Auto Scaling existente.',
@@ -336,7 +336,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeregisterImage',
+    eventName: 'DeregisterImage',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeregisterImage.html',
     description: {
       es: 'Anula el registro de una AMI.',
@@ -344,7 +344,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'AuthorizeSecurityGroupEgress',
+    eventName: 'AuthorizeSecurityGroupEgress',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AuthorizeSecurityGroupEgress.html',
     description: {
       es: 'Agrega reglas a un grupo de seguridad que permiten el acceso saliente desde instancias EC2.',
@@ -352,7 +352,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateChangeSet',
+    eventName: 'CreateChangeSet',
     url: 'https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateChangeSet.html',
     description: {
       es: 'Crea un conjunto de cambios para una pila de CloudFormation.',
@@ -360,7 +360,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateStack',
+    eventName: 'CreateStack',
     url: 'https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_CreateStack.html',
     description: {
       es: 'Crea una pila de CloudFormation.',
@@ -368,7 +368,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteSecurityGroup',
+    eventName: 'DeleteSecurityGroup',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteSecurityGroup.html',
     description: {
       es: 'Elimina un grupo de seguridad.',
@@ -376,7 +376,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteStack',
+    eventName: 'DeleteStack',
     url: 'https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_DeleteStack.html',
     description: {
       es: 'Elimina una pila de CloudFormation.',
@@ -384,7 +384,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'ModifyInstanceAttribute',
+    eventName: 'ModifyInstanceAttribute',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyInstanceAttribute.html',
     description: {
       es: 'Modifica un atributo de una instancia EC2.',
@@ -392,7 +392,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RestoreDBInstanceFromDBSnapshot',
+    eventName: 'RestoreDBInstanceFromDBSnapshot',
     url: 'https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_RestoreDBInstanceFromDBSnapshot.html',
     description: {
       es: 'Crea una nueva instancia de base de datos a partir de una instantánea.',
@@ -400,7 +400,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RevokeSecurityGroupEgress',
+    eventName: 'RevokeSecurityGroupEgress',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_RevokeSecurityGroupEgress.html',
     description: {
       es: 'Revoca reglas de acceso saliente de un grupo de seguridad.',
@@ -408,7 +408,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateStack',
+    eventName: 'UpdateStack',
     url: 'https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_UpdateStack.html',
     description: {
       es: 'Actualiza una pila de CloudFormation.',
@@ -416,7 +416,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'AssociateAddress',
+    eventName: 'AssociateAddress',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AssociateAddress.html',
     description: {
       es: 'Asocia una dirección IP elástica con una instancia EC2 o interfaz de red.',
@@ -424,7 +424,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'AssociateRouteTable',
+    eventName: 'AssociateRouteTable',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AssociateRouteTable.html',
     description: {
       es: 'Asocia una tabla de rutas con una subred o una gateway.',
@@ -432,7 +432,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'AttachInternetGateway',
+    eventName: 'AttachInternetGateway',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_AttachInternetGateway.html',
     description: {
       es: 'Adjunta una gateway de Internet a una VPC.',
@@ -440,7 +440,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateInternetGateway',
+    eventName: 'CreateInternetGateway',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateInternetGateway.html',
     description: {
       es: 'Crea una gateway de Internet.',
@@ -448,7 +448,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateRouteTable',
+    eventName: 'CreateRouteTable',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateRouteTable.html',
     description: {
       es: 'Crea una tabla de rutas para la VPC especificada.',
@@ -456,7 +456,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateSubnet',
+    eventName: 'CreateSubnet',
     url: 'https://docs.aws.amazon.com/vpc/latest/userguide/create-subnets.html',
     description: {
       es: 'Crea una subred en la VPC especificada.',
@@ -464,7 +464,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateVpc',
+    eventName: 'CreateVpc',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateVpc.html',
     description: {
       es: 'Crea una VPC con el bloque CIDR IPv4 especificado.',
@@ -472,7 +472,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteInternetGateway',
+    eventName: 'DeleteInternetGateway',
     url: 'https://docs.aws.amazon.com/vpc/latest/userguide/delete-igw.html',
     description: {
       es: 'Elimina la gateway de Internet especificada.',
@@ -480,7 +480,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteRouteTable',
+    eventName: 'DeleteRouteTable',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteRouteTable.html',
     description: {
       es: 'Elimina la tabla de rutas especificada.',
@@ -488,7 +488,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteSubnet',
+    eventName: 'DeleteSubnet',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteSubnet.html',
     description: {
       es: 'Elimina la subred especificada.',
@@ -496,7 +496,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteVpc',
+    eventName: 'DeleteVpc',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DeleteVpc.html',
     description: {
       es: 'Elimina la VPC especificada.',
@@ -504,7 +504,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DetachInternetGateway',
+    eventName: 'DetachInternetGateway',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DetachInternetGateway.html',
     description: {
       es: 'Desasocia una gateway de Internet de una VPC.',
@@ -512,7 +512,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'ModifyVpcAttribute',
+    eventName: 'ModifyVpcAttribute',
     url: 'https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_ModifyVpcAttribute.html',
     description: {
       es: 'Modifica el atributo especificado de la VPC especificada.',
@@ -520,7 +520,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RunJobFlow',
+    eventName: 'RunJobFlow',
     url: 'https://docs.aws.amazon.com/emr/latest/APIReference/API_RunJobFlow.html',
     description: {
       es: 'Lanza un nuevo clúster EMR con las configuraciones especificadas.',
@@ -528,7 +528,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateFunction20150331',
+    eventName: 'CreateFunction20150331',
     url: 'https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html',
     description: {
       es: 'Crea una nueva función Lambda.',
@@ -536,7 +536,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateQueue',
+    eventName: 'CreateQueue',
     url: 'https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_CreateQueue.html',
     description: {
       es: 'Crea una nueva cola de Amazon SQS.',
@@ -544,7 +544,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteFunction20150331',
+    eventName: 'DeleteFunction20150331',
     url: 'https://docs.aws.amazon.com/lambda/latest/dg/API_DeleteFunction.html',
     description: {
       es: 'Elimina una función Lambda.',
@@ -552,7 +552,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteLogGroup',
+    eventName: 'DeleteLogGroup',
     url: 'https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_DeleteLogGroup.html',
     description: {
       es: 'Elimina el grupo de logs especificado y borra permanentemente todos los eventos archivados asociados.',
@@ -560,7 +560,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutBucketNotification',
+    eventName: 'PutBucketNotification',
     url: 'https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketNotificationConfiguration.html',
     description: {
       es: 'Habilita o deshabilita notificaciones para eventos en un bucket.',
@@ -568,7 +568,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutRule',
+    eventName: 'PutRule',
     url: 'https://docs.aws.amazon.com/AmazonCloudWatchEvents/latest/APIReference/API_PutRule.html',
     description: {
       es: 'Crea o actualiza una regla de CloudWatch Events que coincide con eventos entrantes y los dirige a destinos.',
@@ -576,7 +576,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutTargets',
+    eventName: 'PutTargets',
     url: 'https://docs.aws.amazon.com/AmazonCloudWatchEvents/latest/APIReference/API_PutTargets.html',
     description: {
       es: 'Agrega o actualiza un destino para una regla de CloudWatch Events.',
@@ -584,7 +584,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'SetQueueAttributes',
+    eventName: 'SetQueueAttributes',
     url: 'https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SetQueueAttributes.html',
     description: {
       es: 'Establece atributos para la cola especificada.',
@@ -592,7 +592,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateAuthorizer',
+    eventName: 'CreateAuthorizer',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_CreateAuthorizer.html',
     description: {
       es: 'Crea un nuevo recurso Authorizer en tu REST API.',
@@ -600,7 +600,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateBasePathMapping',
+    eventName: 'CreateBasePathMapping',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_CreateBasePathMapping.html',
     description: {
       es: 'Crea un nuevo recurso BasePathMapping.',
@@ -608,7 +608,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateDeployment',
+    eventName: 'CreateDeployment',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_CreateDeployment.html',
     description: {
       es: 'Crea un recurso Deployment bajo el RestApi especificado en tu cuenta de Amazon API Gateway.',
@@ -616,7 +616,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateDistribution',
+    eventName: 'CreateDistribution',
     url: 'https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_CreateDistribution.html',
     description: {
       es: 'Crea una nueva distribución de CloudFront.',
@@ -624,7 +624,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateDomainName',
+    eventName: 'CreateDomainName',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_CreateDomainName.html',
     description: {
       es: 'Crea un nuevo nombre de dominio.',
@@ -632,7 +632,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateFunction20050330',
+    eventName: 'CreateFunction20050330',
     url: 'https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html',
     description: {
       es: 'Crea una nueva función Lambda (versión antigua de la API, probablemente un alias de CreateFunction).',
@@ -640,7 +640,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateGrant',
+    eventName: 'CreateGrant',
     url: 'https://docs.aws.amazon.com/kms/latest/APIReference/API_CreateGrant.html',
     description: {
       es: 'Agrega un permiso (grant) a una clave KMS.',
@@ -648,7 +648,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateLogGroup',
+    eventName: 'CreateLogGroup',
     url: 'https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateLogGroup.html',
     description: {
       es: 'Crea un nuevo grupo de logs con el nombre especificado.',
@@ -656,7 +656,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateResource',
+    eventName: 'CreateResource',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_CreateResource.html',
     description: {
       es: 'Crea un recurso en una API REST.',
@@ -664,7 +664,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateRestApi',
+    eventName: 'CreateRestApi',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_CreateRestApi.html',
     description: {
       es: 'Crea una nueva API REST.',
@@ -672,7 +672,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateUserPool',
+    eventName: 'CreateUserPool',
     url: 'https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPool.html',
     description: {
       es: 'Crea un nuevo grupo de usuarios de Amazon Cognito.',
@@ -680,7 +680,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateUserPoolClient',
+    eventName: 'CreateUserPoolClient',
     url: 'https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolClient.html',
     description: {
       es: 'Crea un nuevo cliente para el grupo de usuarios especificado.',
@@ -688,7 +688,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateUserPoolDomain',
+    eventName: 'CreateUserPoolDomain',
     url: 'https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolDomain.html',
     description: {
       es: 'Crea un nuevo dominio para un grupo de usuarios.',
@@ -696,7 +696,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteDeployment',
+    eventName: 'DeleteDeployment',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_DeleteDeployment.html',
     description: {
       es: 'Elimina un recurso Deployment.',
@@ -704,7 +704,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteDomainName',
+    eventName: 'DeleteDomainName',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_DeleteDomainName.html',
     description: {
       es: 'Elimina un nombre de dominio personalizado.',
@@ -712,7 +712,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteMethod',
+    eventName: 'DeleteMethod',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_DeleteMethod.html',
     description: {
       es: 'Elimina un recurso Method existente.',
@@ -720,7 +720,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteResource',
+    eventName: 'DeleteResource',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_DeleteResource.html',
     description: {
       es: 'Elimina un recurso Resource.',
@@ -728,7 +728,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteRestApi',
+    eventName: 'DeleteRestApi',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_DeleteRestApi.html',
     description: {
       es: 'Elimina una API REST existente.',
@@ -736,7 +736,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteUserPool',
+    eventName: 'DeleteUserPool',
     url: 'https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_DeleteUserPool.html',
     description: {
       es: 'Elimina un grupo de usuarios.',
@@ -744,7 +744,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteUserPoolClient',
+    eventName: 'DeleteUserPoolClient',
     url: 'https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_DeleteUserPoolClient.html',
     description: {
       es: 'Elimina un cliente de grupo de usuarios.',
@@ -752,7 +752,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteUserPoolDomain',
+    eventName: 'DeleteUserPoolDomain',
     url: 'https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_DeleteUserPoolDomain.html',
     description: {
       es: 'Elimina un dominio de grupo de usuarios.',
@@ -760,7 +760,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PublishVersion20150331',
+    eventName: 'PublishVersion20150331',
     url: 'https://docs.aws.amazon.com/lambda/latest/dg/API_PublishVersion.html',
     description: {
       es: 'Crea una nueva versión de una función Lambda.',
@@ -768,7 +768,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutIntegration',
+    eventName: 'PutIntegration',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_PutIntegration.html',
     description: {
       es: 'Configura la integración de un método con un servicio de AWS o un endpoint URL.',
@@ -776,7 +776,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutIntegrationResponse',
+    eventName: 'PutIntegrationResponse',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_PutIntegrationResponse.html',
     description: {
       es: 'Representa la respuesta de integración de un método.',
@@ -784,7 +784,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutMethod',
+    eventName: 'PutMethod',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_PutMethod.html',
     description: {
       es: 'Agrega un método a un recurso existente.',
@@ -792,7 +792,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutMethodResponse',
+    eventName: 'PutMethodResponse',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_PutMethodResponse.html',
     description: {
       es: 'Agrega un recurso MethodResponse a un recurso Method existente.',
@@ -800,7 +800,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RemovePermission20150331v2',
+    eventName: 'RemovePermission20150331v2',
     url: 'https://docs.aws.amazon.com/lambda/latest/dg/API_RemovePermission.html',
     description: {
       es: 'Revoca permisos de una función Lambda.',
@@ -808,7 +808,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'TagResource',
+    eventName: 'TagResource',
     url: 'https://docs.aws.amazon.com/organizations/latest/APIReference/API_TagResource.html',
     description: {
       es: 'Agrega o sobrescribe etiquetas para el recurso de AWS especificado.',
@@ -816,7 +816,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateAuthorizer',
+    eventName: 'UpdateAuthorizer',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_UpdateAuthorizer.html',
     description: {
       es: 'Actualiza un recurso Authorizer existente.',
@@ -824,7 +824,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateDistribution',
+    eventName: 'UpdateDistribution',
     url: 'https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_UpdateDistribution.html',
     description: {
       es: 'Actualiza la configuración de una distribución de CloudFront existente.',
@@ -832,7 +832,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateGatewayResponse',
+    eventName: 'UpdateGatewayResponse',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_UpdateGatewayResponse.html',
     description: {
       es: 'Actualiza un recurso GatewayResponse.',
@@ -840,7 +840,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateIntegrationResponse',
+    eventName: 'UpdateIntegrationResponse',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_UpdateIntegrationResponse.html',
     description: {
       es: 'Representa una actualización de la respuesta de integración de un método.',
@@ -848,7 +848,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateMethod',
+    eventName: 'UpdateMethod',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_UpdateMethod.html',
     description: {
       es: 'Actualiza un recurso Method existente.',
@@ -856,7 +856,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateMethodResponse',
+    eventName: 'UpdateMethodResponse',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_UpdateMethodResponse.html',
     description: {
       es: 'Actualiza un recurso MethodResponse existente.',
@@ -864,7 +864,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateStage',
+    eventName: 'UpdateStage',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_UpdateStage.html',
     description: {
       es: 'Actualiza un recurso Stage.',
@@ -872,7 +872,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateUserPoolClient',
+    eventName: 'UpdateUserPoolClient',
     url: 'https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_UpdateUserPoolClient.html',
     description: {
       es: 'Actualiza el cliente del grupo de usuarios especificado.',
@@ -880,7 +880,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'ValidateTemplate',
+    eventName: 'ValidateTemplate',
     url: 'https://docs.aws.amazon.com/AWSCloudFormation/latest/APIReference/API_ValidateTemplate.html',
     description: {
       es: 'Valida una plantilla de CloudFormation especificada.',
@@ -888,7 +888,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteDistribution',
+    eventName: 'DeleteDistribution',
     url: 'https://docs.aws.amazon.com/cloudfront/latest/APIReference/API_DeleteDistribution.html',
     description: {
       es: 'Elimina una distribución de CloudFront.',
@@ -896,7 +896,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteRepository',
+    eventName: 'DeleteRepository',
     url: 'https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_DeleteRepository.html',
     description: {
       es: 'Elimina un repositorio de Amazon ECR.',
@@ -904,7 +904,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutCredentials',
+    eventName: 'PutCredentials',
     url: 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscloudshell.html',
     description: {
       es: 'Sube un nuevo conjunto de credenciales para el usuario especificado.',
@@ -912,7 +912,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteSession',
+    eventName: 'DeleteSession',
     url: 'https://docs.aws.amazon.com/glue/latest/webapi/API_DeleteSession.html',
     description: {
       es: 'Elimina una sesión.',
@@ -920,7 +920,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateSession',
+    eventName: 'CreateSession',
     url: 'https://docs.aws.amazon.com/glue/latest/webapi/API_CreateSession.html',
     description: {
       es: 'Crea una nueva sesión para un usuario.',
@@ -928,7 +928,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'StartEnvironment',
+    eventName: 'StartEnvironment',
     url: 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscloudshell.html',
     description: {
       es: 'Inicia un entorno que esté detenido o en estado inactivo.',
@@ -936,7 +936,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateEnvironment',
+    eventName: 'CreateEnvironment',
     url: 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscloudshell.html',
     description: {
       es: 'Otorga permisos para crear un entorno CloudShell.',
@@ -944,7 +944,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutImage',
+    eventName: 'PutImage',
     url: 'https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_PutImage.html',
     description: {
       es: 'Sube un manifiesto de imagen a un repositorio de Amazon ECR.',
@@ -952,7 +952,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UploadLayerPart',
+    eventName: 'UploadLayerPart',
     url: 'https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_UploadLayerPart.html',
     description: {
       es: 'Sube una parte específica de una capa de imagen a Amazon ECR.',
@@ -960,7 +960,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CompleteLayerUpload',
+    eventName: 'CompleteLayerUpload',
     url: 'https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_CompleteLayerUpload.html',
     description: {
       es: 'Informa a Amazon ECR que la carga de la capa de imagen se ha completado.',
@@ -968,7 +968,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'InitiateLayerUpload',
+    eventName: 'InitiateLayerUpload',
     url: 'https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_InitiateLayerUpload.html',
     description: {
       es: 'Notifica a Amazon ECR que deseas cargar una capa de imagen.',
@@ -976,7 +976,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateRepository',
+    eventName: 'CreateRepository',
     url: 'https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_CreateRepository.html',
     description: {
       es: 'Crea un repositorio de Amazon ECR.',
@@ -984,7 +984,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateFunctionCode20150331v2',
+    eventName: 'UpdateFunctionCode20150331v2',
     url: 'https://docs.aws.amazon.com/lambda/latest/dg/API_UpdateFunctionCode.html',
     description: {
       es: 'Actualiza el código de una función Lambda.',
@@ -992,7 +992,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteJob',
+    eventName: 'DeleteJob',
     url: 'https://docs.aws.amazon.com/glue/latest/webapi/API_DeleteJob.html',
     description: {
       es: 'Elimina una definición de trabajo de AWS especificada.',
@@ -1000,7 +1000,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteDatabase',
+    eventName: 'DeleteDatabase',
     url: 'https://docs.aws.amazon.com/glue/latest/webapi/API_DeleteDatabase.html',
     description: {
       es: 'Elimina una base de datos de AWS Glue especificada.',
@@ -1008,7 +1008,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteCrawler',
+    eventName: 'DeleteCrawler',
     url: 'https://docs.aws.amazon.com/glue/latest/webapi/API_DeleteCrawler.html',
     description: {
       es: 'Elimina un crawler de AWS Glue.',
@@ -1016,7 +1016,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteDeliveryStream',
+    eventName: 'DeleteDeliveryStream',
     url: 'https://docs.aws.amazon.com/firehose/latest/APIReference/API_DeleteDeliveryStream.html',
     description: {
       es: 'Elimina el stream de entrega de Amazon Kinesis Firehose especificado.',
@@ -1024,7 +1024,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'StartQueryExecution',
+    eventName: 'StartQueryExecution',
     url: 'https://docs.aws.amazon.com/athena/latest/APIReference/API_StartQueryExecution.html',
     description: {
       es: 'Inicia una nueva ejecución de consulta en Amazon Athena.',
@@ -1032,7 +1032,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'StopSession',
+    eventName: 'StopSession',
     url: 'https://docs.aws.amazon.com/glue/latest/webapi/API_StopSession.html',
     description: {
       es: 'Detiene una sesión en Amazon Managed Blockchain.',
@@ -1040,7 +1040,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateJob',
+    eventName: 'CreateJob',
     url: 'https://docs.aws.amazon.com/glue/latest/webapi/API_CreateJob.html',
     description: {
       es: 'Crea una nueva definición de trabajo de AWS Glue.',
@@ -1048,7 +1048,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'StartCrawler',
+    eventName: 'StartCrawler',
     url: 'https://docs.aws.amazon.com/glue/latest/webapi/API_StartCrawler.html',
     description: {
       es: 'Inicia un crawler de AWS Glue especificado.',
@@ -1056,7 +1056,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateDatabase',
+    eventName: 'CreateDatabase',
     url: 'https://docs.aws.amazon.com/glue/latest/webapi/API_CreateDatabase.html',
     description: {
       es: 'Crea una nueva base de datos de AWS Glue.',
@@ -1064,7 +1064,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateCrawler',
+    eventName: 'CreateCrawler',
     url: 'https://docs.aws.amazon.com/glue/latest/webapi/API_CreateCrawler.html',
     description: {
       es: 'Crea un nuevo crawler de AWS Glue.',
@@ -1072,7 +1072,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateDeliveryStream',
+    eventName: 'CreateDeliveryStream',
     url: 'https://docs.aws.amazon.com/firehose/latest/APIReference/API_CreateDeliveryStream.html',
     description: {
       es: 'Crea un nuevo stream de entrega de Amazon Kinesis Firehose.',
@@ -1080,7 +1080,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateStage',
+    eventName: 'CreateStage',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_CreateStage.html',
     description: {
       es: 'Crea un nuevo recurso Stage en API Gateway.',
@@ -1088,7 +1088,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateStateMachine',
+    eventName: 'CreateStateMachine',
     url: 'https://docs.aws.amazon.com/step-functions/latest/apireference/API_CreateStateMachine.html',
     description: {
       es: 'Crea una nueva máquina de estados en AWS Step Functions.',
@@ -1096,7 +1096,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'ImportApi',
+    eventName: 'ImportApi',
     url: 'https://docs.aws.amazon.com/apigateway/latest/api/API_ImportRestApi.html',
     description: {
       es: 'Importa una API REST desde una definición OpenAPI.',
@@ -1104,7 +1104,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateEventBus',
+    eventName: 'CreateEventBus',
     url: 'https://docs.aws.amazon.com/eventbridge/latest/APIReference/API_CreateEventBus.html',
     description: {
       es: 'Crea un nuevo bus de eventos.',
@@ -1112,7 +1112,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreatePlaceIndex',
+    eventName: 'CreatePlaceIndex',
     url: 'https://docs.aws.amazon.com/location/previous/APIReference/API_CreatePlaceIndex.html',
     description: {
       es: 'Crea un nuevo recurso de índice de lugares en Amazon Location Service.',
@@ -1120,7 +1120,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateRouteCalculator',
+    eventName: 'CreateRouteCalculator',
     url: 'https://docs.aws.amazon.com/location/latest/APIReference/API_CreateRouteCalculator.html',
     description: {
       es: 'Crea un nuevo recurso de calculadora de rutas en Amazon Location Service.',
@@ -1128,7 +1128,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteEnvironment',
+    eventName: 'DeleteEnvironment',
     url: 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscloudshell.html',
     description: {
       es: 'Permite eliminar un entorno de AWS CloudShell.',
@@ -1136,7 +1136,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'GetEnvironmentStatus',
+    eventName: 'GetEnvironmentStatus',
     url: 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscloudshell.html',
     description: {
       es: 'Permite consultar el estado de un entorno CloudShell existente.',
@@ -1144,7 +1144,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DescribeEnvironments',
+    eventName: 'DescribeEnvironments',
     url: 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscloudshell.html',
     description: {
       es: 'Permite listar entornos CloudShell del usuario.',
@@ -1152,7 +1152,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'GetFileDownloadUrls',
+    eventName: 'GetFileDownloadUrls',
     url: 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscloudshell.html',
     description: {
       es: 'Genera URLs prefirmadas para descargar archivos desde CloudShell.',
@@ -1160,7 +1160,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'GetFileUploadUrls',
+    eventName: 'GetFileUploadUrls',
     url: 'https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscloudshell.html',
     description: {
       es: 'Genera URLs prefirmadas para cargar archivos en CloudShell.',
@@ -1168,7 +1168,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RedeemCode',
+    eventName: 'RedeemCode',
     url: 'https://docs.aws.amazon.com/cloudshell/latest/userguide/logging-and-monitoring.html?utm',
     description: {
       es: 'Recupera el token de actualización en el entorno CloudShell.',
@@ -1176,7 +1176,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'SendHeartBeat',
+    eventName: 'SendHeartBeat',
     url: 'https://docs.aws.amazon.com/cloudshell/latest/userguide/logging-and-monitoring.html',
     description: {
       es: 'El cliente web envía un heartbeat periódico para mantener la sesión activa',
@@ -1184,7 +1184,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'CreateLogStream',
+    eventName: 'CreateLogStream',
     url: 'https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_CreateLogStream.html',
     description: {
       es: 'Crea un flujo de registro para el grupo de registros especificado.',
@@ -1192,7 +1192,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'UpdateInstanceInformation',
+    eventName: 'UpdateInstanceInformation',
     url: 'https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up-messageAPIs.html',
     description: {
       es: 'El agente SSM llama al servicio Systems Manager en la nube cada 5 minutos para proporcionar información sobre el latido.',
@@ -1200,7 +1200,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'InitiateAuth',
+    eventName: 'InitiateAuth',
     url: 'https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_InitiateAuth.html',
     description: {
       es: 'Declara un flujo de autenticación e inicia el inicio de sesión de un usuario en el directorio de usuarios de Amazon Cognito.',
@@ -1208,7 +1208,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RespondToAuthChallenge',
+    eventName: 'RespondToAuthChallenge',
     url: 'https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_RespondToAuthChallenge.html',
     description: {
       es: 'Proporciona la respuesta a un desafío de user pool',
@@ -1216,7 +1216,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'SharedSnapshotCopyInitiated',
+    eventName: 'SharedSnapshotCopyInitiated',
     url: 'https://docs.aws.amazon.com/es_es/ebs/latest/userguide/ebs-modifying-snapshot-permissions.html',
     description: {
       es: 'Se está utilizando una instantánea compartida para crear un volumen.',
@@ -1224,7 +1224,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'SharedSnapshotVolumeCreated',
+    eventName: 'SharedSnapshotVolumeCreated',
     url: 'https://docs.aws.amazon.com/es_es/ebs/latest/userguide/ebs-modifying-snapshot-permissions.html',
     description: {
       es: 'Se está copiando una instantánea compartida',
@@ -1232,7 +1232,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RegisterManagedInstance',
+    eventName: 'RegisterManagedInstance',
     url: 'https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up-messageAPIs.html',
     description: {
       es: 'El agente SSM ejecuta esta operación API en los siguientes casos: Para registrar un servidor local o una máquina virtual (VM) en Systems Manager como instancia gestionada utilizando un código de activación y un ID. Para registrar las credenciales de AWS IoT Greengrass Versión 2.',
@@ -1240,7 +1240,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'RotateKey',
+    eventName: 'RotateKey',
     url: 'https://docs.aws.amazon.com/kms/latest/developerguide/ct-rotatekey.html',
     description: {
       es: 'Enlace a ejemplos',
@@ -1248,7 +1248,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'DeleteAlarms',
+    eventName: 'DeleteAlarms',
     url: 'https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_DeleteAlarms.html',
     description: {
       es: 'Elimina las alarmas especificadas',
@@ -1256,7 +1256,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'SearchAgreements',
+    eventName: 'SearchAgreements',
     url: 'https://docs.aws.amazon.com/marketplace/latest/APIReference/API_marketplace-agreements_SearchAgreements.html',
     description: {
       es: 'Busca en todos los acuerdos que un proponente tiene en AWS Marketplace.',
@@ -1264,7 +1264,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'SearchListings',
+    eventName: 'SearchListings',
     url: 'https://docs.aws.amazon.com/datazone/latest/APIReference/API_SearchListings.html',
     description: {
       es: 'Busca listados (registros de un activo en un momento dado) en Amazon DataZone.',
@@ -1272,7 +1272,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutBucketPublicAccessBlock',
+    eventName: 'PutBucketPublicAccessBlock',
     url: 'https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutPublicAccessBlock.html',
     description: {
       es: 'Crea o modifica la configuración PublicAccessBlock para un bucket de Amazon S3.',
@@ -1280,7 +1280,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutBucketEncryption',
+    eventName: 'PutBucketEncryption',
     url: 'https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketEncryption.html',
     description: {
       es: 'Configura el cifrado predeterminado y las claves de Amazon S3 Bucket para un bucket existente.',
@@ -1288,7 +1288,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'ValidatePolicy',
+    eventName: 'ValidatePolicy',
     url: 'https://docs.aws.amazon.com/access-analyzer/latest/APIReference/API_ValidatePolicy.html',
     description: {
       es: 'Solicita la validación de una política y devuelve una lista de resultados.',
@@ -1296,7 +1296,7 @@ export const eventLinks = [
     },
   },
   {
-    id: 'PutBucketPolicy',
+    eventName: 'PutBucketPolicy',
     url: 'https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketPolicy.html',
     description: {
       es: 'Aplica una política de bucket de Amazon S3 a un bucket de Amazon S3.',

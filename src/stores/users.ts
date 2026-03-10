@@ -40,9 +40,9 @@ export const useUsersStore = defineStore('users', {
 
         this.items = data.map((event: any) => ({
           id: event.eventID,
-          fullname: event.userIdentity_userName, 
-          username: event.eventName, 
-          email: event.eventSource, 
+          fullname: event.User,
+          username: event.eventName,
+          email: event.eventSource,
           role: event.eventTime,
           active: true,
         }))

@@ -1,15 +1,14 @@
 export interface AwsEvent {
-  eventName: string;
-  eventID: string;
-  eventSource: string;
-  userIdentity_userName: string;
-  eventTime: string;
+  Event: string
+  eventID: string
+  eventSource: string
+  User: string
+  TimeStamp: string
 }
 
 export interface AwsMetrics {
-  total: number;
-  runInstances: number;
-  createDBInstance: number;
-  createFunction: number;
-  createLoadBalancer: number;
+  runInstances: number
+  createDBInstance: number
+  createFunction: number
+  createLoadBalancer: number
 }

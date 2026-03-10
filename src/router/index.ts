@@ -20,13 +20,13 @@ const routes: Array<RouteRecordRaw> = [
       {
         name: 'dashboard',
         path: 'dashboard',
-        component: () => import('../pages/admin/dashboard/Dashboard.vue'),
+        component: () => import('../pages/dashboard/Dashboard.vue'),
       },
-       {
+      {
         name: 'change-password',
         path: 'change-password',
         component: () => import('../pages/auth/Changepassword.vue'),
-      }, 
+      },
     ],
   },
   {
@@ -49,10 +49,10 @@ const routes: Array<RouteRecordRaw> = [
         path: 'recover-password-username',
         component: () => import('../pages/auth/CheckTheEmail.vue'),
       },
-        {
+      {
         name: 'password-reset-confirm',
         path: 'password-reset-confirm',
-        component: () => import('../pages/auth/PasswordResetConfirm.vue')
+        component: () => import('../pages/auth/PasswordResetConfirm.vue'),
       },
       {
         path: '',
