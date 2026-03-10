@@ -1,8 +1,8 @@
 export interface EventLinkItem {
-  eventName: string;
-  url: string;
+  eventName: string
+  url: string
   description: {
-    es: string;
-    en: string;
-  };
+    es: string
+    en: string
+  }
 }

@@ -1,5 +1,13 @@
 import { defineStore } from 'pinia'
-import { getCurrentUser, fetchAuthSession, signIn, signOut, updatePassword, confirmResetPassword, resetPassword } from 'aws-amplify/auth'
+import {
+  getCurrentUser,
+  fetchAuthSession,
+  signIn,
+  signOut,
+  updatePassword,
+  confirmResetPassword,
+  resetPassword,
+} from 'aws-amplify/auth'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -52,35 +60,27 @@ export const useAuthStore = defineStore('auth', {
     },
     async changePassword(oldPass: string, newPass: string) {
       try {
-        await updatePassword({ 
-          oldPassword: oldPass, 
-          newPassword: newPass 
-        });
-        return { success: true };
+        await updatePassword({
+          oldPassword: oldPass,
+          newPassword: newPass,
+        })
+        return { success: true }
       } catch (error: any) {
-        console.error("Error al actualizar la contraseña:", error);
-        throw error; 
+        console.error('Error al actualizar la contraseña:', error)
+        throw error
       }
     },
     async confirmResetPassword(username: string, code: string, newPass: string) {
-      try {
-        await confirmResetPassword({ 
-          username, 
-          confirmationCode: code, 
-          newPassword: newPass 
-        });
-        return { success: true };
-      } catch (error) {
-        throw error;
-      }
+      await confirmResetPassword({
+        username,
+        confirmationCode: code,
+        newPassword: newPass,
+      })
+      return { success: true }
     },
     async resetPassword(username: string) {
-      try {
-        await resetPassword({ username });
-        return { success: true };
-      } catch (error) {
-        throw error;
-      }
+      await resetPassword({ username })
+      return { success: true }
     },
-  }
+  },
 })

@@ -1,7 +1,7 @@
 <template>
   <VaForm ref="passwordResetForm" @submit.prevent="handleReset">
     <h1 class="font-semibold text-4xl mb-4 text-center">Password Reset</h1>
-    
+
     <p class="text-base mb-6 leading-5 text-center">
       Enter your username and we'll send you a code to reset your password.
     </p>
@@ -19,19 +19,11 @@
     </VaAlert>
 
     <div class="flex justify-center mt-4">
-      <VaButton 
-        class="w-full" 
-        @click="handleReset" 
-        :loading="processing"
-      >
-        Recover Password
-      </VaButton>
+      <VaButton class="w-full" :loading="processing" @click="handleReset"> Recover Password </VaButton>
     </div>
 
     <div class="mt-4 text-center">
-      <RouterLink :to="{ name: 'login' }" class="font-semibold text-primary">
-        Back to Login
-      </RouterLink>
+      <RouterLink :to="{ name: 'login' }" class="font-semibold text-primary"> Back to Login </RouterLink>
     </div>
   </VaForm>
 </template>
@@ -58,15 +50,15 @@ const handleReset = async () => {
 
   processing.value = true
   error.value = false
-  
+
   try {
     await authStore.resetPassword(username.value)
-    
-    init({ message: "Reset code sent to your email", color: 'success' })
+
+    init({ message: 'Reset code sent to your email', color: 'success' })
     router.push({ name: 'confirm-password-reset' })
   } catch (err: any) {
     error.value = true
-    errorMessage.value = err.message || "Failed to initiate password reset"
+    errorMessage.value = err.message || 'Failed to initiate password reset'
   } finally {
     processing.value = false
   }

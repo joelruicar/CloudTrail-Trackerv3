@@ -71,9 +71,9 @@ withDefaults(
           },
           {
             name: 'change-password',
-            to: "change-password",
-            icon: 'mso-password'
-          },  
+            to: 'change-password',
+            icon: 'mso-password',
+          },
           {
             name: 'logout',
             to: 'login',
@@ -93,8 +93,7 @@ const handleItemClick = async (item: ProfileListItem) => {
     } catch (error) {
       console.error('Error al cerrar sesión:', error)
     }
-  }
-  else if (item.to) {
+  } else if (item.to) {
     router.push({ name: item.to })
   } else if (item.href) {
     window.open(item.href, '_blank')

@@ -2,19 +2,9 @@
   <VaForm ref="confirmForm" @submit.prevent="handleConfirm">
     <h1 class="font-semibold text-4xl mb-4">Confirm Reset</h1>
 
-    <VaInput
-      v-model="username"
-      label="Username"
-      class="mb-4"
-      :rules="[validators.required]"
-    />
+    <VaInput v-model="username" label="Username" class="mb-4" :rules="[validators.required]" />
 
-    <VaInput
-      v-model="code"
-      label="Confirmation Code"
-      class="mb-4"
-      :rules="[validators.required]"
-    />
+    <VaInput v-model="code" label="Confirmation Code" class="mb-4" :rules="[validators.required]" />
 
     <VaValue v-slot="isPasswordVisible" :default-value="false">
       <VaInput
@@ -40,13 +30,7 @@
     </VaAlert>
 
     <div class="flex justify-center mt-4">
-      <VaButton 
-        class="w-full" 
-        @click="handleConfirm" 
-        :loading="processing"
-      >
-        Confirm Password Reset
-      </VaButton>
+      <VaButton class="w-full" :loading="processing" @click="handleConfirm"> Confirm Password Reset </VaButton>
     </div>
   </VaForm>
 </template>
@@ -56,7 +40,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm, useToast } from 'vuestic-ui'
 import { useAuthStore } from '../../stores/auth'
-import { validators } from '../../services/utils' 
+import { validators } from '../../services/utils'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -75,14 +59,14 @@ const handleConfirm = async () => {
 
   processing.value = true
   error.value = false
-  
+
   try {
     await authStore.confirmResetPassword(username.value, code.value, password.value)
-    init({ message: "Password reset successful", color: 'success' })
+    init({ message: 'Password reset successful', color: 'success' })
     router.replace({ name: 'login' })
   } catch (err: any) {
     error.value = true
-    errorMessage.value = err.message || "An error occurred"
+    errorMessage.value = err.message || 'An error occurred'
   } finally {
     processing.value = false
   }
