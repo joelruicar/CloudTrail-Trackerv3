@@ -19,6 +19,13 @@ export default {
       },
     },
     {
+      name: 'search-by-user',
+      displayName: 'menu.searchByUser',
+      meta: {
+        icon: 'vuestic-iconset-user',
+      },
+    },
+    {
       name: '404',
       displayName: 'menu.404',
       meta: {

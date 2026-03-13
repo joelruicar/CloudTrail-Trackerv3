@@ -14,6 +14,7 @@ export default {
       },
       colors: {
         primary: 'var(--va-primary)',
+        remarkPrimary: 'var(--va-remark-primary)',
         secondary: 'var(--va-secondary)',
         success: 'var(--va-success)',
         info: 'var(--va-info)',

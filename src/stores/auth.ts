@@ -16,12 +16,12 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   getters: {
-    isProfessor: (state) => state.user?.username?.toLowerCase().startsWith('gmolto'),
+    isProfessor: (state) =>
+      state.user?.username?.toLowerCase().startsWith('gmolto') ||
+      state.user?.username?.toLowerCase().startsWith('admin'),
     isStudent: (state) => state.user?.username?.toLowerCase().startsWith('alucloud'),
-    roleName(): string {
-      if (this.isProfessor) return 'Profesor'
-      if (this.isStudent) return 'Estudiante'
-      return 'undefined'
+    username(): string {
+      return this.user?.username
     },
   },
 

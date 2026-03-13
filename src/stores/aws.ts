@@ -3,6 +3,7 @@ import { AwsEvent, AwsMetrics } from './interfaces/aws'
 import { eventLinks } from '../pages/data/event-links'
 import { EventLinkItem } from './interfaces/types'
 import api from '../services/api'
+import { useEventBus } from '@vueuse/core'
 
 const formatLocal = (date: Date, includeTime: boolean) => {
   const pad = (n: number) => n.toString().padStart(2, '0')
@@ -17,8 +18,34 @@ const formatLocal = (date: Date, includeTime: boolean) => {
   const hh = pad(date.getHours())
   const min = pad(date.getMinutes())
   const ss = pad(date.getSeconds())
-
   return `${dateStr}T${hh}:${min}:${ss}Z`
+}
+
+const calculateDateRange = (range: string): { start: string; end: string } => {
+  const now = new Date()
+  let start: string
+  let end: string
+
+  if (range === 'last hour' || range === 'last six hours') {
+    const offset = range === 'last hour' ? 3 : 10
+    const endDate = new Date(now.getTime() - 2 * 60 * 60 * 1000)
+    const startDate = new Date(now.getTime() - offset * 60 * 60 * 1000)
+
+    end = formatLocal(endDate, true)
+    start = formatLocal(startDate, true)
+  } else {
+    const daysMap: Record<string, number> = {
+      'last day': 1,
+      'last week': 7,
+    }
+    const daysToSubtract = daysMap[range] || 1
+    const startDate = new Date(now.getTime() - daysToSubtract * 24 * 60 * 60 * 1000)
+
+    end = formatLocal(now, false)
+    start = formatLocal(startDate, false)
+  }
+
+  return { start, end }
 }
 export const useAwsStore = defineStore('aws', {
   state: () => ({
@@ -43,12 +70,32 @@ export const useAwsStore = defineStore('aws', {
 
   getters: {
     chartDataServices: (state) => {
-      const counts = state.events.reduce((acc: Record<string, number>, event) => {
+      const counts = state.events.reduce((num: Record<string, number>, event) => {
         const service = event.eventSource.split('.')[0]
-        acc[service] = (acc[service] || 0) + 1
-        return acc
+        num[service] = (num[service] || 0) + 1
+        return num
       }, {})
 
+      return {
+        labels: Object.keys(counts),
+        datasets: [
+          {
+            label: 'AWS Services Usage',
+            backgroundColor: 'rgba(74, 227, 135, 0.2)',
+            borderColor: 'rgba(0, 102, 0, 1)',
+            borderWidth: 1,
+            data: Object.values(counts),
+          },
+        ],
+      }
+    },
+
+    chartDataUsers: (state) => {
+      const counts = state.events.reduce((num: Record<string, number>, event) => {
+        const user = event.user
+        num[user] = (num[user] || 0) + 1
+        return num
+      }, {})
       return {
         labels: Object.keys(counts),
         datasets: [
@@ -66,20 +113,20 @@ export const useAwsStore = defineStore('aws', {
     formattedEvents: (state) => {
       const lang = navigator.language === 'es-ES' ? 'es' : 'en'
       const linksMap = (eventLinks as EventLinkItem[]).reduce(
-        (acc, item) => {
-          acc[item.eventName] = item
-          return acc
+        (num, item) => {
+          num[item.eventName] = item
+          return num
         },
         {} as Record<string, EventLinkItem>,
       )
 
       return state.events.map((event) => {
-        const linkConfig = linksMap[event.Event] || linksMap['Empty']
+        const linkConfig = linksMap[event.eventName] || linksMap['Empty']
         return {
           ...event,
           eventLink: linkConfig ? linkConfig.url : '#',
           description: linkConfig ? linkConfig.description[lang] : 'No description',
-          displayTime: new Date(event.TimeStamp).toLocaleString(),
+          displayTime: new Date(event.eventTime).toLocaleString(),
         }
       })
     },
@@ -87,7 +134,7 @@ export const useAwsStore = defineStore('aws', {
       let result = [...state.events]
 
       if (state.filters.eventName) {
-        result = result.filter((e) => e.Event === state.filters.eventName)
+        result = result.filter((e) => e.eventName === state.filters.eventName)
       }
 
       if (state.filters.searchQuery) {
@@ -107,29 +154,7 @@ export const useAwsStore = defineStore('aws', {
       let end: string
 
       try {
-        if (range === 'last hour') {
-          const endDate = new Date(now.getTime() - 2 * 60 * 60 * 1000)
-          const startDate = new Date(now.getTime() - 3 * 60 * 60 * 1000)
-          end = formatLocal(endDate, true)
-          start = formatLocal(startDate, true)
-        } else if (range === 'last six hours') {
-          const endDate = new Date(now.getTime() - 2 * 60 * 60 * 1000)
-          const startDate = new Date(now.getTime() - 10 * 60 * 60 * 1000)
-          end = formatLocal(endDate, true)
-          start = formatLocal(startDate, true)
-        } else {
-          const daysMap: Record<string, number> = {
-            'last day': 1,
-            'last week': 7,
-          }
-          const daysToSubtract = daysMap[range] || 1
-          const startDate = new Date(now.getTime() - daysToSubtract * 24 * 60 * 60 * 1000)
-          end = formatLocal(now, false)
-          start = formatLocal(startDate, false)
-        }
-
-        this.startDate = start
-        this.endDate = end
+        const { start, end } = calculateDateRange(range)
 
         const [runRes, dbRes, funcRes, lbRes] = await Promise.all([
           api.client.get('/scan', { params: { from: start, to: end, eventName: 'RunInstances', count: 'True' } }),
@@ -151,12 +176,74 @@ export const useAwsStore = defineStore('aws', {
 
         // si se hacen a la vez es demasiado pesado y da error timeout
         const eventsRes = await api.client.get('/scan', { params: { from: start, to: end } })
-        this.events = eventsRes.data.map((event: any, index: number) => ({
-          ...event,
-          id: index + 1, // ID fijo y persistente para cada evento
-        }))
+
+        this.events = eventsRes.data.map((event: any, index: number) => {
+          const rawDate = event.eventTime
+          const dateObj = new Date(rawDate)
+
+          const pad = (n: number) => n.toString().padStart(2, '0')
+
+          const hh = pad(dateObj.getHours())
+          const mm = pad(dateObj.getMinutes())
+          const ss = pad(dateObj.getSeconds())
+          const day = pad(dateObj.getDate())
+          const month = pad(dateObj.getMonth() + 1)
+          const year = dateObj.getFullYear()
+
+          return {
+            ...event,
+            id: index + 1,
+            formatedTime: `${hh}:${mm}:${ss} ${day}-${month}-${year}`,
+            user: event.userIdentity_userName,
+          }
+        })
       } catch (error) {
         console.error('Error en la migración de datos AWS:', error)
+      } finally {
+        this.loading = false
+      }
+    },
+    async fetchUserDashboardData(username: string, start: string, end: string) {
+      this.loading = true
+      try {
+        const [runRes, dbRes, funcRes, lbRes] = await Promise.all([
+          api.client.get(`/users/${username}`, { params: { from: start, to: end, eventName: 'RunInstances' } }),
+          api.client.get(`/users/${username}`, { params: { from: start, to: end, eventName: 'CreateDBInstance' } }),
+          api.client.get(`/users/${username}`, { params: { from: start, to: end, eventName: 'CreateFunction' } }),
+          api.client.get(`/users/${username}`, { params: { from: start, to: end, eventName: 'CreateLoadBalancer' } }),
+        ])
+
+        this.metrics = {
+          runInstances: runRes.data.length,
+          createDBInstance: dbRes.data.length,
+          createFunction: funcRes.data.length,
+          createLoadBalancer: lbRes.data.length,
+        }
+
+        const eventsRes = await api.client.get(`/users/${username}`, {
+          params: { from: start, to: end },
+        })
+        console.log(start, end, 'aha')
+        this.events = eventsRes.data.map((event: any, index: number) => {
+          const dateObj = new Date(event.eventTime)
+          const pad = (n: number) => n.toString().padStart(2, '0')
+
+          const hh = pad(dateObj.getHours())
+          const mm = pad(dateObj.getMinutes())
+          const ss = pad(dateObj.getSeconds())
+          const day = pad(dateObj.getDate())
+          const month = pad(dateObj.getMonth() + 1)
+          const year = dateObj.getFullYear()
+
+          return {
+            ...event,
+            id: index + 1,
+            formatedTime: `${hh}:${mm}:${ss} ${day}-${month}-${year}`,
+            user: event.userIdentity_userName,
+          }
+        })
+      } catch (error) {
+        console.error(`Error cargando datos del usuario ${username}:`, error)
       } finally {
         this.loading = false
       }

@@ -1,92 +1,53 @@
 <template>
-  <VaCard class="p-4">
+  <div v-if="awsStore.loading" class="loading-overlay">
+    <VaProgressCircle indeterminate size="large" />
+  </div>
+  <VaCard v-else class="p-4">
     <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
-    <div class="widget-container mb-4">
-      <VaProgressCircle v-if="loading" indeterminate />
-      <DashboardInfoWidgets v-else />
-    </div>
-    <VaSelect v-model="timeRange" :options="options" label="Select time range" class="mb-4 date-select" />
-    <VaDivider v-if="loading" indeterminate />
-    <div v-else class="main-content-grid">
-      <div class="charts-column">
-        <VaCard class="mb-4 chart-card">
-          <VaCardTitle>AWS services used in the last hour</VaCardTitle>
-          <VaCardContent>
-            <Chart title="" />
-          </VaCardContent>
-        </VaCard>
-
-        <VaCard class="chart-card">
-          <VaCardTitle>Users who have used AWS services</VaCardTitle>
-          <VaCardContent>
-            <!-- <UserChart />  -->
-          </VaCardContent>
-        </VaCard>
-      </div>
-      <VaCard class="full-height-card">
-        <VaCardContent>
-          <div class="table-container">
-            <div class="table-toolbar">
-              <VaInput v-model="searchQuery" placeholder="Buscar eventos..." class="search-input" clearable>
-                <template #prependInner>
-                  <VaIcon name="search" />
-                </template>
-              </VaInput>
-
-              <VaSelect v-model="perPage" :options="[10, 25, 50, 100]" label="Items por página" class="page-select" />
-            </div>
-
-            <VaDataTable
-              :items="awsStore.events"
-              :columns="columns"
-              :filter="searchQuery"
-              :per-page="perPage"
-              :current-page="currentPage"
-              hoverable
-            />
-            <div class="pagination-footer">
-              <VaPagination v-model="currentPage" :pages="pages" color="primary" size="small" />
-            </div>
-          </div>
-        </VaCardContent>
+    <InfoWidgets />
+    <VaSelect v-model="timeRange" :options="options" label="Select time range" class="date-select" />
+    <div class="charts-column">
+      <VaCard class="hart-card">
+        <VaCardTitle>AWS services used in the last hour</VaCardTitle>
+        <Chart :chart-data="awsStore.chartDataServices" x-axis="Services" />
+      </VaCard>
+      <VaCard class="chart-card">
+        <VaCardTitle>Users who have used AWS services</VaCardTitle>
+        <Chart :chart-data="awsStore.chartDataUsers" x-axis="Users" />
       </VaCard>
     </div>
+    <VaButton color="primary" @click="display = !display">Details</VaButton>
+    <Transition name="expand" @afterEnter="handleAfterEnter">
+      <Table v-if="!display" ref="eventsTable" />
+    </Transition>
   </VaCard>
 </template>
 
 <script setup lang="ts">
-import DashboardInfoWidgets from './DashboardInfoWidgets.vue'
-import { VaDataTable, VaCard, VaSelect, VaProgressCircle } from 'vuestic-ui'
-import { useAwsStore } from '../../stores/aws'
+import InfoWidgets from '../data/InfoWidgets.vue'
+import { VaCard, VaSelect, VaProgressCircle } from 'vuestic-ui'
 import { ref, onMounted, watch } from 'vue'
+import { useAwsStore } from '../../stores/aws'
 import Chart from '../data/Chart.vue'
-import { computed } from 'vue'
+import Table from '../data/Table.vue'
 
 const options = ['last hour', 'last six hours', 'last day', 'last week']
-const awsStore = useAwsStore()
 const timeRange = ref('last hour')
-const searchQuery = ref('')
-const perPage = ref(10)
-const currentPage = ref(1)
+const display = ref(true)
 
-const columns = [
-  { key: 'id', label: '#', sortable: true },
-  { key: 'userIdentity_userName', label: 'User', sortable: true },
-  { key: 'eventName', label: 'EventName', sortable: true },
-  { key: 'eventTime', label: 'Timestamp', sortable: true },
-]
-
-const loading = computed(() => awsStore.loading)
-
-const pages = computed(() => {
-  return Math.ceil(awsStore.events.length / perPage.value)
-})
+const awsStore = useAwsStore()
 watch(timeRange, (newValue) => {
   awsStore.fetchDashboardData(newValue)
 })
 onMounted(() => {
   awsStore.fetchDashboardData(timeRange.value)
 })
+
+const eventsTable = ref<InstanceType<typeof Table> | null>(null)
+
+const handleAfterEnter = () => {
+  eventsTable.value?.scrollToTable()
+}
 </script>
 
 <style scoped>
@@ -121,36 +82,46 @@ onMounted(() => {
   border-radius: 15px;
 }
 
-.search-input {
-  max-width: 200px;
-}
-
 :deep(.date-select) {
   max-width: 250px;
+  margin-top: 1%;
 }
 @media (max-width: 1024px) {
   .main-content-grid {
     grid-template-columns: 1fr;
   }
 }
-.table-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
 
-.search-input {
-  width: 300px;
-}
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
 
-.page-select {
-  width: 150px;
-}
-
-.pagination-footer {
-  margin-top: 1rem;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.search-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.1s ease-in-out;
+  overflow: hidden;
+  max-height: 1000px;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 </style>

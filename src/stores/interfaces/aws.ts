@@ -1,9 +1,9 @@
 export interface AwsEvent {
-  Event: string
+  eventName: string
   eventID: string
   eventSource: string
-  User: string
-  TimeStamp: string
+  user: string
+  eventTime: string
 }
 
 export interface AwsMetrics {
