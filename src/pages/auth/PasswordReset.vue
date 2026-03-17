@@ -12,6 +12,7 @@
       class="mb-4"
       :rules="[validators.required]"
       placeholder="Enter your username"
+      @keydown.enter="handleReset"
     />
 
     <VaAlert v-if="error" color="danger" class="mb-4">

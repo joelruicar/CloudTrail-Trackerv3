@@ -2,30 +2,31 @@
   <div v-if="awsStore.loading" class="loading-overlay">
     <VaProgressCircle indeterminate size="large" />
   </div>
-  <VaCard v-else class="p-4">
+
+  <VaCard v-else class="p-4 overflow-visible">
     <h1 class="text-2xl font-bold mb-4">Search by user</h1>
-    <InfoWidgets />
-    <VaCheckbox v-model="checked" label="Show dates" />
-    <VaDatePicker
-      v-if="checked"
-      v-model="range"
-      mode="range"
-      columns="2"
-      label="Select time range"
-      class="date-select mb-4"
-    />
+    <InfoWidgets class="mb-4" />
+
+    <div class="flex flex-row items-end gap-4 mb-6 relative">
+      <VaSelect
+        ref="userSelect"
+        v-model="user_name"
+        v-model:search="autoCompleteSearchValue"
+        label="USERNAME"
+        :options="awsStore.allUsers"
+        autocomplete
+        @focus="userSelect?.showDropdown()"
+      />
+      <DateFilter v-model="range" />
+      <VaButton icon="search" class="mb-1" @click="search"> Search </VaButton>
+    </div>
     <div class="charts-column mb-4">
-      <VaCard class="chart-card">
+      <VaCard>
         <VaCardTitle>AWS services used in the last hour</VaCardTitle>
         <Chart :chart-data="awsStore.chartDataServices" x-axis="Services" />
       </VaCard>
     </div>
-    <div class="flex gap-4">
-      <VaButton @click="search">Search</VaButton>
-      <VaButton color="primary" @click="display = !display">
-        {{ display ? 'Show Details' : 'Hide Details' }}
-      </VaButton>
-    </div>
+    <VaButton color="primary" @click="display = !display">Details</VaButton>
     <Transition name="expand" @afterEnter="handleAfterEnter">
       <Table v-if="!display" ref="eventsTable" />
     </Transition>
@@ -36,50 +37,61 @@
 import { ref, onMounted } from 'vue'
 import { useAwsStore } from '../stores/aws'
 import { useAuthStore } from '../stores/auth'
-import { VaDatePicker, VaProgressCircle, VaButton, VaCheckbox, VaCard, VaCardTitle } from 'vuestic-ui'
+import DateFilter from './data/DateFilter.vue'
+import { VaProgressCircle, VaButton, VaCard, VaCardTitle } from 'vuestic-ui'
 import InfoWidgets from './data/InfoWidgets.vue'
 import Chart from './data/Chart.vue'
 import Table from './data/Table.vue'
 import dayjs from 'dayjs'
-
 const authStore = useAuthStore()
 const awsStore = useAwsStore()
-
-const checked = ref(false)
-const display = ref(true)
-const eventsTable = ref<InstanceType<typeof Table> | null>(null)
+const userSelect = ref<any>(null)
 const currentUser = authStore.username
-
-// --- Lógica de fechas iniciales ---
+const user_name = ref(currentUser)
 const now = new Date()
 const currYear = now.getFullYear()
-const currMonth = now.getMonth() // 0 = Enero, 8 = Septiembre
+const currMonth = now.getMonth()
 
+const display = ref(true)
+const autoCompleteSearchValue = ref('')
 let startDateDefault: Date
 let endDateDefault: Date
 
 if (currMonth >= 8) {
-  // Septiembre o posterior
   startDateDefault = new Date(currYear, 8, 1)
   endDateDefault = new Date(currYear + 1, 6, 31)
 } else {
-  // Antes de Septiembre
   startDateDefault = new Date(currYear - 1, 8, 1)
   endDateDefault = new Date(currYear, 6, 31)
 }
 
-// El ref 'range' es el que se vincula al DatePicker
 const range = ref({ start: startDateDefault, end: endDateDefault })
 
-// --- Función de búsqueda ---
 const search = () => {
-  // Calculamos los strings formateados justo en el momento del click
   const startStr = dayjs(range.value.start).format('YYYY-MM-DDTHH:mm:ss')
   const endStr = dayjs(range.value.end).format('YYYY-MM-DDTHH:mm:ss')
-
-  awsStore.fetchUserDashboardData(currentUser, startStr, endStr)
+  if (user_name.value) {
+    awsStore.fetchUserDashboardData(user_name.value, startStr, endStr)
+  } else {
+    awsStore.fetchUserDashboardData(currentUser, startStr, endStr)
+  }
 }
 
+onMounted(async () => {
+  const startStr = dayjs(range.value.start).format('YYYY-MM-DDTHH:mm:ss')
+  const endStr = dayjs(range.value.end).format('YYYY-MM-DDTHH:mm:ss')
+  awsStore.fetchUserDashboardData(currentUser, startStr, endStr)
+  if (authStore.isProfessor) {
+    await awsStore.getAllUsers()
+    autoCompleteSearchValue.value = currentUser
+  } else {
+    awsStore.allUsers = [authStore.username]
+    user_name.value = authStore.username
+    autoCompleteSearchValue.value = currentUser
+  }
+})
+
+const eventsTable = ref<InstanceType<typeof Table> | null>(null)
 const handleAfterEnter = () => {
   eventsTable.value?.scrollToTable()
 }
@@ -101,5 +113,11 @@ const handleAfterEnter = () => {
 .expand-leave-to {
   opacity: 0;
   max-height: 0;
+}
+
+/* Forzamos a que el contenedor interno de Vuestic también se encoja */
+:deep(.va-input-wrapper) {
+  min-width: 0 !important;
+  width: 20% !important;
 }
 </style>

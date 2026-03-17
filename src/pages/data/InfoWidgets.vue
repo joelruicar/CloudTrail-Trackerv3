@@ -22,9 +22,10 @@ const data = computed(() => awsStore.metrics)
 <style scoped>
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
   width: 100%;
+  box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
@@ -34,6 +35,7 @@ const data = computed(() => awsStore.metrics)
 }
 
 .metric-card {
+  min-width: 0;
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);

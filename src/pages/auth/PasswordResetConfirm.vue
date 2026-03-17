@@ -2,9 +2,21 @@
   <VaForm ref="confirmForm" @submit.prevent="handleConfirm">
     <h1 class="font-semibold text-4xl mb-4">Confirm Reset</h1>
 
-    <VaInput v-model="username" label="Username" class="mb-4" :rules="[validators.required]" />
+    <VaInput
+      v-model="username"
+      label="Username"
+      class="mb-4"
+      :rules="[validators.required]"
+      @keydown.enter="handleConfirm"
+    />
 
-    <VaInput v-model="code" label="Confirmation Code" class="mb-4" :rules="[validators.required]" />
+    <VaInput
+      v-model="code"
+      label="Confirmation Code"
+      class="mb-4"
+      :rules="[validators.required]"
+      @keydown.enter="handleConfirm"
+    />
 
     <VaValue v-slot="isPasswordVisible" :default-value="false">
       <VaInput
@@ -14,6 +26,7 @@
         :type="isPasswordVisible.value ? 'text' : 'password'"
         :rules="[validators.required]"
         @clickAppendInner.stop="isPasswordVisible.value = !isPasswordVisible.value"
+        @keydown.enter="handleConfirm"
       >
         <template #appendInner>
           <VaIcon

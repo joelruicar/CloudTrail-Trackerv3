@@ -17,8 +17,8 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isProfessor: (state) =>
-      state.user?.username?.toLowerCase().startsWith('gmolto') ||
-      state.user?.username?.toLowerCase().startsWith('admin'),
+      state.user?.username?.toLowerCase().startsWith('alucloud189') ||
+      state.user?.username?.toLowerCase().startsWith('alucloud46'),
     isStudent: (state) => state.user?.username?.toLowerCase().startsWith('alucloud'),
     username(): string {
       return this.user?.username

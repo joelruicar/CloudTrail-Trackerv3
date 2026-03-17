@@ -1,7 +1,14 @@
 <template>
   <VaForm ref="form" @submit.prevent="submit">
     <h1 class="font-semibold text-4xl mb-4">Log in</h1>
-    <VaInput v-model="formData.username" :rules="[validators.required]" class="mb-4" label="Username" type="username" />
+    <VaInput
+      v-model="formData.username"
+      :rules="[validators.required]"
+      class="mb-4"
+      label="Username"
+      type="username"
+      @keydown.enter="submit"
+    />
     <VaValue v-slot="isPasswordVisible" :default-value="false">
       <VaInput
         v-model="formData.password"
@@ -9,6 +16,7 @@
         :type="isPasswordVisible.value ? 'text' : 'password'"
         class="mb-4"
         label="Password"
+        @keydown.enter="submit"
         @clickAppendInner.stop="isPasswordVisible.value = !isPasswordVisible.value"
       >
         <template #appendInner>

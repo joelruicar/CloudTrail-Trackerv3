@@ -16,14 +16,26 @@
           <VaDataTable
             v-model:sort-by="sortBy"
             v-model:sorting-order="sortingOrder"
-            :items="awsStore.events"
+            :items="awsStore.formattedEvents"
             :columns="columns"
             :disable-client-side-sorting="false"
             :filter="searchQuery"
             :per-page="perPage"
             :current-page="currentPage"
             hoverable
-          />
+          >
+            <template #cell(eventName)="{ rowData }">
+              <VaPopover :message="rowData.description" trigger="hover" placement="right" color="info">
+                <a
+                  :href="rowData.eventLink"
+                  target="_blank"
+                  class="cursor-help border-b border-dotted border-blue-500 text-blue-600 hover:text-blue-800"
+                >
+                  {{ rowData.eventName }}
+                </a>
+              </VaPopover>
+            </template>
+          </VaDataTable>
         </div>
         <div class="pagination-footer">
           <VaPagination
@@ -41,10 +53,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, ComponentPublicInstance } from 'vue'
 import { useAwsStore } from '../../stores/aws'
-
-// const props = defineProps<{
-//
-// }>()
 
 const awsStore = useAwsStore()
 const tableCard = ref<ComponentPublicInstance | null>(null)

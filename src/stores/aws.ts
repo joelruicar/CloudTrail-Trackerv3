@@ -3,7 +3,6 @@ import { AwsEvent, AwsMetrics } from './interfaces/aws'
 import { eventLinks } from '../pages/data/event-links'
 import { EventLinkItem } from './interfaces/types'
 import api from '../services/api'
-import { useEventBus } from '@vueuse/core'
 
 const formatLocal = (date: Date, includeTime: boolean) => {
   const pad = (n: number) => n.toString().padStart(2, '0')
@@ -51,6 +50,7 @@ export const useAwsStore = defineStore('aws', {
   state: () => ({
     events: [] as AwsEvent[],
     services: [] as string[],
+    allUsers: [] as string[],
     filters: {
       eventName: '',
       date: '',
@@ -100,7 +100,7 @@ export const useAwsStore = defineStore('aws', {
         labels: Object.keys(counts),
         datasets: [
           {
-            label: 'AWS Services Usage',
+            label: 'Users who have used AWS services',
             backgroundColor: 'rgba(74, 227, 135, 0.2)',
             borderColor: 'rgba(0, 102, 0, 1)',
             borderWidth: 1,
@@ -203,6 +203,30 @@ export const useAwsStore = defineStore('aws', {
         this.loading = false
       }
     },
+    async getAllUsers() {
+      this.loading = true
+      try {
+        const response = await api.client.get('/users')
+        const rawUsers = response.data.usernames || response.data
+
+        const alucloudUsers = rawUsers
+          .filter((u: string) => u.startsWith('alucloud'))
+          .sort((a: string | any[], b: string | any[]) => Number(a.slice(8)) - Number(b.slice(8)))
+
+        const otherUsers = rawUsers
+          .filter((u: string) => !u.startsWith('alucloud'))
+          .sort((a: string, b: any) => a.localeCompare(b))
+
+        this.allUsers = [...alucloudUsers, ...otherUsers]
+
+        return this.allUsers
+      } catch (error) {
+        console.error('Error al obtener la lista de usuarios:', error)
+        this.allUsers = []
+      } finally {
+        this.loading = false
+      }
+    },
     async fetchUserDashboardData(username: string, start: string, end: string) {
       this.loading = true
       try {
@@ -223,7 +247,6 @@ export const useAwsStore = defineStore('aws', {
         const eventsRes = await api.client.get(`/users/${username}`, {
           params: { from: start, to: end },
         })
-        console.log(start, end, 'aha')
         this.events = eventsRes.data.map((event: any, index: number) => {
           const dateObj = new Date(event.eventTime)
           const pad = (n: number) => n.toString().padStart(2, '0')
