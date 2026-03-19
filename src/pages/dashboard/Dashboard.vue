@@ -24,10 +24,10 @@
 </template>
 
 <script setup lang="ts">
-import InfoWidgets from '../data/InfoWidgets.vue'
 import { VaCard, VaSelect, VaProgressCircle } from 'vuestic-ui'
-import { ref, onMounted, watch } from 'vue'
+import InfoWidgets from '../data/InfoWidgets.vue'
 import { useAwsStore } from '../../stores/aws'
+import { ref, onMounted, watch } from 'vue'
 import Chart from '../data/Chart.vue'
 import Table from '../data/Table.vue'
 

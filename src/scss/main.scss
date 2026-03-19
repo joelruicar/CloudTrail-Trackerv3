@@ -64,3 +64,8 @@ pre {
   font-size: 0.8125rem;
   line-height: 1rem;
 }
+
+/* VaSelect searchable: clearly mark selected option in dropdown */
+.va-dropdown__content .va-select-option.va-select-option--selected {
+  background-color: rgba(0, 128, 0, 0.14) !important;
+}
