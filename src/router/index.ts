@@ -30,7 +30,12 @@ const routes: Array<RouteRecordRaw> = [
       {
         name: 'search-by-user',
         path: 'search-by-user',
-        component: () => import('../pages/searchByUser.vue'),
+        component: () => import('../pages/SearchByUser.vue'),
+      },
+      {
+        name: 'search-by-course',
+        path: 'search-by-course',
+        component: () => import('../pages/SearchByCourse.vue'),
       },
     ],
   },

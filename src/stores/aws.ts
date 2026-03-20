@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { AwsEvent, AwsMetrics } from './interfaces/aws'
-import { eventLinks } from '../pages/data/event-links'
+import eventLinksJson from '../pages/data/event-links.json'
 import { EventLinkItem } from './interfaces/types'
 import api from '../services/api'
 
@@ -46,6 +46,15 @@ const calculateDateRange = (range: string): { start: string; end: string } => {
 
   return { start, end }
 }
+
+const eventLinksMap = (eventLinksJson as EventLinkItem[]).reduce(
+  (num, item) => {
+    num[item.eventName] = item
+    return num
+  },
+  {} as Record<string, EventLinkItem>,
+)
+
 export const useAwsStore = defineStore('aws', {
   state: () => ({
     events: [] as AwsEvent[],
@@ -112,16 +121,9 @@ export const useAwsStore = defineStore('aws', {
 
     formattedEvents: (state) => {
       const lang = navigator.language === 'es-ES' ? 'es' : 'en'
-      const linksMap = (eventLinks as EventLinkItem[]).reduce(
-        (num, item) => {
-          num[item.eventName] = item
-          return num
-        },
-        {} as Record<string, EventLinkItem>,
-      )
 
       return state.events.map((event) => {
-        const linkConfig = linksMap[event.eventName] || linksMap['Empty']
+        const linkConfig = eventLinksMap[event.eventName] || eventLinksMap['Empty']
         return {
           ...event,
           eventLink: linkConfig ? linkConfig.url : '#',

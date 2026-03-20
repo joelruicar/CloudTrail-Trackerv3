@@ -2,24 +2,31 @@
   <div v-if="awsStore.loading" class="loading-overlay">
     <VaProgressCircle indeterminate size="large" />
   </div>
-
   <VaCard v-else class="p-2 sm:p-4 overflow-visible">
     <h1 class="text-xl sm:text-2xl font-bold mb-4">Search by user</h1>
     <InfoWidgets class="mb-4" />
-
     <div class="search-controls mb-6">
       <div class="user-select-fixed">
         <VaSelect
           ref="userSelect"
           v-model="user_name"
+          v-model:search="userSearch"
           label="USERNAME"
           :options="selectOptions"
           searchable
           :highlight-matched-text="false"
-          @focus="userSelect?.showDropdown()"
+          @focus="handleSelectFocus"
+          @open="focusSearchInput"
         >
           <template #option-content="{ option }">
-            <span class="select-option-text">{{ getUserOptionText(option) }}</span>
+            <span class="select-option-text">
+              <template
+                v-for="(part, index) in getHighlightedParts(option)"
+                :key="`${getUserOptionText(option)}-${index}`"
+              >
+                <span :class="{ 'select-option-match': part.match }">{{ part.text }}</span>
+              </template>
+            </span>
           </template>
         </VaSelect>
       </div>
@@ -28,16 +35,13 @@
       </div>
       <VaButton icon="search" class="search-button-fixed" @click="search"> Search </VaButton>
     </div>
-
     <div class="charts-column mb-4">
       <VaCard>
         <VaCardTitle>AWS services used in the last hour</VaCardTitle>
         <Chart :chart-data="awsStore.chartDataServices" x-axis="Services" />
       </VaCard>
     </div>
-
     <VaButton color="primary" @click="display = !display">Details</VaButton>
-
     <Transition name="expand" @afterEnter="handleAfterEnter">
       <Table v-if="!display" ref="eventsTable" />
     </Transition>
@@ -45,37 +49,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useAwsStore } from '../stores/aws'
-import { useAuthStore } from '../stores/auth'
-import DateFilter from './data/DateFilter.vue'
 import { VaProgressCircle, VaButton, VaCard, VaCardTitle } from 'vuestic-ui'
+import { useAcademicYear } from '../composables/useAcademicYear'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import InfoWidgets from './data/InfoWidgets.vue'
+import DateFilter from './data/DateFilter.vue'
+import { useAuthStore } from '../stores/auth'
+import { useAwsStore } from '../stores/aws'
 import Chart from './data/Chart.vue'
 import Table from './data/Table.vue'
 import dayjs from 'dayjs'
 const authStore = useAuthStore()
 const awsStore = useAwsStore()
-const userSelect = ref<any>(null)
+const { range } = useAcademicYear()
 const currentUser = authStore.username
 const user_name = ref(currentUser)
-const now = new Date()
-const currYear = now.getFullYear()
-const currMonth = now.getMonth()
-
+const userSelect = ref<any>(null)
+const userSearch = ref('')
 const display = ref(true)
-let startDateDefault: Date
-let endDateDefault: Date
-
-if (currMonth >= 8) {
-  startDateDefault = new Date(currYear, 8, 1)
-  endDateDefault = new Date(currYear + 1, 6, 31)
-} else {
-  startDateDefault = new Date(currYear - 1, 8, 1)
-  endDateDefault = new Date(currYear, 6, 31)
-}
-
-const range = ref({ start: startDateDefault, end: endDateDefault })
 
 const selectOptions = computed(() => {
   if (awsStore.allUsers.length) {
@@ -93,6 +84,56 @@ const getUserOptionText = (option: unknown) => {
   return String(option ?? '')
 }
 
+const getHighlightedParts = (option: unknown) => {
+  const text = getUserOptionText(option)
+  const query = userSearch.value.trim()
+
+  if (!query) return [{ text, match: false }]
+
+  const lowerText = text.toLowerCase()
+  const lowerQuery = query.toLowerCase()
+  const parts: Array<{ text: string; match: boolean }> = []
+
+  let from = 0
+  while (from < text.length) {
+    const index = lowerText.indexOf(lowerQuery, from)
+
+    if (index === -1) {
+      parts.push({ text: text.slice(from), match: false })
+      break
+    }
+
+    if (index > from) {
+      parts.push({ text: text.slice(from, index), match: false })
+    }
+
+    parts.push({ text: text.slice(index, index + query.length), match: true })
+    from = index + query.length
+  }
+
+  return parts
+}
+
+const handleSelectFocus = async () => {
+  userSelect.value?.showDropdown()
+}
+
+const focusSearchInput = async () => {
+  await nextTick()
+  const searchInput = document.querySelector('[data-testid="searchInput"]') as HTMLInputElement
+  if (searchInput) {
+    searchInput.focus()
+    return
+  }
+  const dropdown = document.querySelector('[role="listbox"]')
+  if (dropdown && dropdown.parentElement) {
+    const inputs = dropdown.parentElement.querySelectorAll('input')
+    if (inputs.length > 0) {
+      ;(inputs[0] as HTMLInputElement).focus()
+    }
+  }
+}
+
 const search = () => {
   const startStr = dayjs(range.value.start).format('YYYY-MM-DDTHH:mm:ss')
   const endStr = dayjs(range.value.end).format('YYYY-MM-DDTHH:mm:ss')
@@ -101,6 +142,11 @@ const search = () => {
   } else {
     awsStore.fetchUserDashboardData(currentUser, startStr, endStr)
   }
+}
+
+const eventsTable = ref<InstanceType<typeof Table> | null>(null)
+const handleAfterEnter = () => {
+  eventsTable.value?.scrollToTable()
 }
 
 onMounted(async () => {
@@ -114,11 +160,6 @@ onMounted(async () => {
     user_name.value = authStore.username
   }
 })
-
-const eventsTable = ref<InstanceType<typeof Table> | null>(null)
-const handleAfterEnter = () => {
-  eventsTable.value?.scrollToTable()
-}
 </script>
 
 <style scoped>
@@ -186,5 +227,13 @@ const handleAfterEnter = () => {
 
 .select-option-text {
   color: var(--va-text-primary);
+}
+
+.select-option-match {
+  color: var(--va-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: #f59e0b;
+  text-decoration-thickness: 2px;
 }
 </style>

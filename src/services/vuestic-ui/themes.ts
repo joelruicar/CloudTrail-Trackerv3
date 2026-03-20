@@ -1,15 +1,15 @@
 export default {
   presets: {
     light: {
-      primary: '#1a923e',
-      focus: '#1a923e',
+      primary: '#3aa877',
+      focus: '#207750',
       backgroundPrimary: '#F4F6F8',
       backgroundSecondary: '#ffffff',
       backgroundCardPrimary: '#F7F9F9',
       backgroundCardSecondary: '#ECFDE6',
       remarkPrimary: '#213d29',
       success: '#228200',
-      info: '#158DE3',
+      info: '#35495e',
       danger: '#E42222',
       warning: '#FFD43A',
     },

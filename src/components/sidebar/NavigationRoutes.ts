@@ -26,6 +26,13 @@ export default {
       },
     },
     {
+      name: 'search-by-course',
+      displayName: 'menu.searchByCourse',
+      meta: {
+        icon: 'vuestic-iconset-statistics',
+      },
+    },
+    {
       name: '404',
       displayName: 'menu.404',
       meta: {

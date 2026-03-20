@@ -25,12 +25,24 @@
             hoverable
           >
             <template #cell(eventName)="{ rowData }">
-              <VaPopover :message="rowData.description" trigger="hover" placement="right" color="info">
+              <!-- <VaPopover :message="rowData.description" trigger="hover" placement="right" color="info">
                 <a
                   :href="rowData.eventLink"
                   target="_blank"
-                  class="cursor-help border-b border-dotted border-blue-500 text-blue-600 hover:text-blue-800"
+                  class="event-link"
                 >
+                  {{ rowData.eventName }}
+                </a>
+              </VaPopover> -->
+              <VaPopover
+                :message="rowData.description"
+                trigger="hover"
+                placement="right"
+                color="info"
+                content-class="event-popover-content"
+                stick-to-edges
+              >
+                <a :href="rowData.eventLink" target="_blank" class="event-link">
                   {{ rowData.eventName }}
                 </a>
               </VaPopover>
@@ -117,6 +129,28 @@ defineExpose({ scrollToTable })
 
 .search-input {
   width: 300px;
+}
+
+.event-link {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.event-link:hover,
+.event-link:focus,
+.event-link:visited,
+.event-link:active {
+  color: #000;
+  text-decoration: none;
+}
+
+:global(.event-popover-content) {
+  max-width: min(85vw, 420px);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
 }
 
 .pagination-footer {
