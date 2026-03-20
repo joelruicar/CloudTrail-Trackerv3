@@ -1,6 +1,8 @@
+import { REFERDATA } from '../data/evenprac'
 import { defineStore } from 'pinia'
 import { AwsEvent, AwsMetrics } from './interfaces/aws'
-import eventLinksJson from '../pages/data/event-links.json'
+import { StudentProgress } from './interfaces/StudentProgress'
+import eventLinksJson from '../data/event-links.json'
 import { EventLinkItem } from './interfaces/types'
 import api from '../services/api'
 
@@ -75,8 +77,13 @@ export const useAwsStore = defineStore('aws', {
     selectedRange: 'last hour',
     startDate: '',
     endDate: '',
+    studentRangeFilter: {
+      from: 0,
+      to: 350,
+      subject: '',
+    },
+    studentProgressData: [] as StudentProgress[],
   }),
-
   getters: {
     chartDataServices: (state) => {
       const counts = state.events.reduce((num: Record<string, number>, event) => {
@@ -98,7 +105,20 @@ export const useAwsStore = defineStore('aws', {
         ],
       }
     },
+    averageProgressByRange: (state) => {
+      if (!state.studentProgressData.length) return 0
 
+      const filtered = state.studentProgressData.filter(
+        (sp) =>
+          sp.studentIndex >= state.studentRangeFilter.from &&
+          sp.studentIndex <= state.studentRangeFilter.to &&
+          (!state.studentRangeFilter.subject || sp.subject === state.studentRangeFilter.subject),
+      )
+
+      if (!filtered.length) return 0
+
+      return filtered.reduce((sum, sp) => sum + sp.progress, 0) / filtered.length
+    },
     chartDataUsers: (state) => {
       const counts = state.events.reduce((num: Record<string, number>, event) => {
         const user = event.user
@@ -118,7 +138,6 @@ export const useAwsStore = defineStore('aws', {
         ],
       }
     },
-
     formattedEvents: (state) => {
       const lang = navigator.language === 'es-ES' ? 'es' : 'en'
 
@@ -151,9 +170,6 @@ export const useAwsStore = defineStore('aws', {
     async fetchDashboardData(range: string) {
       this.loading = true
       this.selectedRange = range
-      const now = new Date()
-      let start: string
-      let end: string
 
       try {
         const { start, end } = calculateDateRange(range)
@@ -205,8 +221,10 @@ export const useAwsStore = defineStore('aws', {
         this.loading = false
       }
     },
-    async getAllUsers() {
-      this.loading = true
+    async getAllUsers(setLoading = true): Promise<string[]> {
+      if (setLoading) {
+        this.loading = true
+      }
       try {
         const response = await api.client.get('/users')
         const rawUsers = response.data.usernames || response.data
@@ -225,8 +243,11 @@ export const useAwsStore = defineStore('aws', {
       } catch (error) {
         console.error('Error al obtener la lista de usuarios:', error)
         this.allUsers = []
+        return []
       } finally {
-        this.loading = false
+        if (setLoading) {
+          this.loading = false
+        }
       }
     },
     async fetchUserDashboardData(username: string, start: string, end: string) {
@@ -275,6 +296,83 @@ export const useAwsStore = defineStore('aws', {
     },
     setEventFilter(name: string) {
       this.filters.eventName = name
+    },
+    async fetchStudentProgressByRangeForSubjects(
+      from: number,
+      to: number,
+      subjects: string[],
+      startDate?: string,
+      endDate?: string,
+    ) {
+      this.loading = true
+      try {
+        this.studentRangeFilter = { from, to, subject: '' }
+
+        const to_date = endDate || formatLocal(new Date(), false)
+        const from_date = startDate || formatLocal(new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000), false)
+
+        const allUsersList = await this.getAllUsers(false)
+        const studentUsers = allUsersList.filter((u) => u.startsWith('alucloud')).slice(from, to)
+
+        const referDataBySubject = (REFERDATA.REFERDATA || {}) as Record<string, Record<string, number>>
+        const normalizedSubjects = subjects.filter(Boolean)
+        const normalizedSubjectsSet = new Set(normalizedSubjects)
+        const subjectOrder = Object.keys(referDataBySubject)
+        const progressDataList: StudentProgress[] = []
+
+        for (const username of studentUsers) {
+          try {
+            const eventsRes = await api.client.get(`/users/${username}`, {
+              params: { from: from_date, to: to_date },
+            })
+
+            const events = (eventsRes.data || []) as AwsEvent[]
+            const studentIndex = parseInt(username.replace('alucloud', '')) || 0
+            const remainingEventCounts = events.reduce<Record<string, number>>((acc, event) => {
+              const eventName = event.eventName
+              acc[eventName] = (acc[eventName] || 0) + 1
+              return acc
+            }, {})
+
+            for (const subject of subjectOrder) {
+              const allowedEvents: Record<string, number> = referDataBySubject[subject] || {}
+              let completedPractices = 0
+
+              Object.entries(allowedEvents).forEach(([eventName, requiredCount]) => {
+                const observedCount = remainingEventCounts[eventName] || 0
+                const consumed = Math.min(observedCount, requiredCount)
+                completedPractices += consumed
+                remainingEventCounts[eventName] = Math.max(0, observedCount - consumed)
+              })
+
+              const totalPractices = Object.values(allowedEvents).reduce((sum, val) => sum + val, 0)
+              const progress = totalPractices > 0 ? (completedPractices / totalPractices) * 100 : 0
+
+              if (!normalizedSubjectsSet.has(subject)) {
+                continue
+              }
+
+              progressDataList.push({
+                studentIndex,
+                studentName: username,
+                subject,
+                progress: Math.round(Math.min(progress, 100) * 100) / 100,
+                completedPractices,
+                totalPractices,
+                events: events.filter((e: AwsEvent) => e.eventName in allowedEvents),
+              })
+            }
+          } catch (error) {
+            console.error(`Error obteniendo datos del alumno ${username}:`, error)
+          }
+        }
+
+        this.studentProgressData = progressDataList
+      } catch (error) {
+        console.error('Error fetching student progress by subjects:', error)
+      } finally {
+        this.loading = false
+      }
     },
   },
 })

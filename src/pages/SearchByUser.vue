@@ -52,12 +52,12 @@
 import { VaProgressCircle, VaButton, VaCard, VaCardTitle } from 'vuestic-ui'
 import { useAcademicYear } from '../composables/useAcademicYear'
 import { ref, onMounted, computed, nextTick } from 'vue'
-import InfoWidgets from './data/InfoWidgets.vue'
-import DateFilter from './data/DateFilter.vue'
+import InfoWidgets from '../components/InfoWidgets.vue'
+import DateFilter from '../components/DateFilter.vue'
 import { useAuthStore } from '../stores/auth'
 import { useAwsStore } from '../stores/aws'
-import Chart from './data/Chart.vue'
-import Table from './data/Table.vue'
+import Chart from '../components/Chart.vue'
+import Table from '../components/Table.vue'
 import dayjs from 'dayjs'
 const authStore = useAuthStore()
 const awsStore = useAwsStore()

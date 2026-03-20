@@ -12,6 +12,7 @@ export default {
       info: '#35495e',
       danger: '#E42222',
       warning: '#FFD43A',
+      backgroundBorder: '#cef5e3',
     },
     dark: {
       backgroundCardPrimary: '#111827',

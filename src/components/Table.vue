@@ -64,7 +64,7 @@
 </template>
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, ComponentPublicInstance } from 'vue'
-import { useAwsStore } from '../../stores/aws'
+import { useAwsStore } from '../stores/aws'
 
 const awsStore = useAwsStore()
 const tableCard = ref<ComponentPublicInstance | null>(null)

@@ -20,7 +20,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         name: 'dashboard',
         path: 'dashboard',
-        component: () => import('../pages/dashboard/Dashboard.vue'),
+        component: () => import('../pages/Dashboard.vue'),
       },
       {
         name: 'change-password',

@@ -13,7 +13,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useAwsStore } from '../../stores/aws'
+import { useAwsStore } from '../stores/aws'
 
 const awsStore = useAwsStore()
 

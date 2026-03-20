@@ -25,11 +25,11 @@
 
 <script setup lang="ts">
 import { VaCard, VaSelect, VaProgressCircle } from 'vuestic-ui'
-import InfoWidgets from '../data/InfoWidgets.vue'
-import { useAwsStore } from '../../stores/aws'
+import InfoWidgets from '../components/InfoWidgets.vue'
+import { useAwsStore } from '../stores/aws'
 import { ref, onMounted, watch } from 'vue'
-import Chart from '../data/Chart.vue'
-import Table from '../data/Table.vue'
+import Chart from '../components/Chart.vue'
+import Table from '../components/Table.vue'
 
 const options = ['last hour', 'last six hours', 'last day', 'last week']
 const timeRange = ref('last hour')

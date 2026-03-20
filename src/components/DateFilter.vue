@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { useAcademicYear } from '../../composables/useAcademicYear'
+import { useAcademicYear } from '../composables/useAcademicYear'
 
 const props = defineProps<{
   modelValue: { start: Date; end: Date } | null
