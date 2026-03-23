@@ -9,11 +9,11 @@
     <div class="charts-column">
       <VaCard class="hart-card">
         <VaCardTitle>AWS services used in the last hour</VaCardTitle>
-        <Chart :chart-data="awsStore.chartDataServices" x-axis="Services" />
+        <Chart :chart-data="awsStore.chartDataServices" x-axis="Services" y-axis="#times" />
       </VaCard>
       <VaCard class="chart-card">
         <VaCardTitle>Users who have used AWS services</VaCardTitle>
-        <Chart :chart-data="awsStore.chartDataUsers" x-axis="Users" />
+        <Chart :chart-data="awsStore.chartDataUsers" x-axis="Users" y-axis="#times" />
       </VaCard>
     </div>
     <VaButton color="primary" @click="display = !display">Details</VaButton>

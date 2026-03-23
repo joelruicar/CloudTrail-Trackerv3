@@ -2,7 +2,7 @@ export default {
   presets: {
     light: {
       primary: '#3aa877',
-      focus: '#207750',
+      focus: '#47916f',
       backgroundPrimary: '#F4F6F8',
       backgroundSecondary: '#ffffff',
       backgroundCardPrimary: '#F7F9F9',

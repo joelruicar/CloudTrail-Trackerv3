@@ -1,17 +1,15 @@
 <template>
-  <div v-if="awsStore.loading" class="loading-overlay">
-    <VaProgressCircle indeterminate size="large" />
-  </div>
-  <VaCard v-else class="p-2 sm:p-4 overflow-visible">
+  <VaCard class="p-2 sm:p-4 overflow-visible">
     <h1 class="text-xl sm:text-2xl font-bold mb-4">Search by course</h1>
-
     <RangeSelector
       :total-students="awsStore.allUsers.filter((u) => u.startsWith('alucloud')).length"
       :courses="courseOptions"
       @filterApplied="handleFilterApplied"
     />
-
-    <div v-if="awsStore.studentProgressData.length" class="charts-column mb-4">
+    <div v-if="awsStore.loading" class="loading-overlay">
+      <VaProgressCircle indeterminate size="large" />
+    </div>
+    <div v-else-if="awsStore.studentProgressData.length" class="mb-4">
       <VaCard>
         <VaCardTitle> Promedio de Avance por Asignatura - {{ selectedCourseLabel || 'Sin curso' }} </VaCardTitle>
         <div class="progress-stats">
@@ -19,18 +17,20 @@
             <span class="stat-label">Promedio:</span>
             <span class="stat-value">{{ awsStore.averageProgressByRange.toFixed(2) }}%</span>
           </div>
-          <div class="stat-item">
+          <div v-if="selectedStudentsFrom == selectedStudentsTo" class="stat-item">
+            <span class="stat-label">Alumno:</span>
+            <span class="stat-value">alucloud{{ selectedStudentsFrom }}</span>
+          </div>
+          <div v-else class="stat-item">
             <span class="stat-label">Alumnos en rango:</span>
-            <span class="stat-value">{{ selectedStudentsFrom }} - {{ selectedStudentsTo }}</span>
+            <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
           </div>
         </div>
-        <Chart :chart-data="averageProgressChart" x-axis="Asignatura" />
+        <Chart :chart-data="averageProgressChart" x-axis="Asignatura" y-axis="%" title="laboratory" />
       </VaCard>
     </div>
-
-    <div v-if="awsStore.studentProgressData.length" class="charts-column mb-4">
+    <div v-if="awsStore.studentProgressData.length" class="mb-4">
       <VaButton color="primary" class="mb-4" @click="displayDetails = !displayDetails"> Details </VaButton>
-
       <Transition name="expand">
         <div v-if="!displayDetails" class="table-container">
           <VaCard>
@@ -93,13 +93,14 @@ import {
 } from 'vuestic-ui'
 import { ref, computed, onMounted } from 'vue'
 import { useAwsStore } from '../stores/aws'
+import { useAuthStore } from '../stores/auth'
 import { useAcademicYear } from '../composables/useAcademicYear'
 import RangeSelector from '../components/RangeSelector.vue'
 import Chart from '../components/Chart.vue'
-import { REFERDATA } from '../data/evenprac'
 import dayjs from 'dayjs'
 
 const awsStore = useAwsStore()
+const authStore = useAuthStore()
 const { calculateRange } = useAcademicYear()
 const displayDetails = ref(true)
 const selectedCourseLabel = ref('')
@@ -116,120 +117,29 @@ const normalizeSubject = (subject: string) => {
   return subject
 }
 
-type SubjectWithPractices = {
-  subject: string
-  practices: Record<string, number>
-}
-
-const allSubjectsWithPractices: SubjectWithPractices[] = Object.entries(
-  REFERDATA.REFERDATA as Record<string, Record<string, number>>,
-).map(([subject, practices]) => ({ subject, practices }))
-
-const courseExcludedSubjectsMap: Record<string, string[]> = {
-  CursoCloudAWS: ['PL_EMR', 'PL_GRAVITON', 'PL_DATA_LAKE', 'PL_EVENTS_WORKFLOWS'],
-  'MBDA-CGDNGB': [
-    'PL_EMR',
-    'PL_VPC',
-    'PL_SERVERLESS_APP',
-    'PL_DYNAMODB',
-    'PL_CF',
-    'PL_GRAVITON',
-    'PL_DATA_LAKE',
-    'PL_EVENTS_WORKFLOWS',
-  ],
-  'MBDA-MEGBD': [
+const courseSubjectsMap: Record<string, string[]> = {
+  CursoCloudAWS: [
     'PL_EC2',
-    'PL_EC_S3',
-    'PL_VPC',
-    'PL_DYNAMODB',
-    'PL_RDS',
-    'PL_APP',
-    'PL_CF',
-    'PL_LAMBDA_SQS',
-    'PL_SERVERLESS_APP',
-    'PL_GRAVITON',
-    'PL_DATA_LAKE',
-    'PL_EVENTS_WORKFLOWS',
-  ],
-  'MUCNAP-ICP': ['PL_EMR', 'PL_SERVERLESS_APP', 'PL_GRAVITON', 'PL_DATA_LAKE', 'PL_EVENTS_WORKFLOWS'],
-  'MUCNAP-CBD': [
-    'PL_EC2',
-    'PL_EC_S3',
-    'PL_VPC',
-    'PL_DYNAMODB',
-    'PL_RDS',
-    'PL_APP',
-    'PL_CF',
-    'PL_LAMBDA_SQS',
-    'PL_SERVERLESS_APP',
-    'PL_GRAVITON',
-    'PL_DATA_LAKE',
-    'PL_EVENTS_WORKFLOWS',
-  ],
-  'MUGI-SEN': ['PL_VPC', 'PL_SERVERLESS_APP', 'PL_GRAVITON', 'PL_DATA_LAKE', 'PL_EVENTS_WORKFLOWS'],
-  'GII-LPP': [
-    'PL_VPC',
-    'PL_DYNAMODB',
-    'PL_RDS',
-    'PL_APP',
-    'PL_CF',
-    'PL_LAMBDA_SQS',
-    'PL_EMR',
-    'PL_SERVERLESS_APP',
-    'PL_GRAVITON',
-    'PL_DATA_LAKE',
-    'PL_EVENTS_WORKFLOWS',
-  ],
-  'GCD-IPD': [
-    'PL_VPC',
-    'PL_DYNAMODB',
-    'PL_RDS',
-    'PL_APP',
-    'PL_CF',
-    'PL_LAMBDA_SQS',
-    'PL_EMR',
-    'PL_SERVERLESS_APP',
-    'PL_GRAVITON',
-    'PL_DATA_LAKE',
-    'PL_EVENTS_WORKFLOWS',
-  ],
-  'MUCC-DDS': ['PL_DYNAMODB', 'PL_EMR', 'PL_SERVERLESS_APP', 'PL_GRAVITON', 'PL_DATA_LAKE', 'PL_EVENTS_WORKFLOWS'],
-  'MUIS-DOS': [
-    'PL_EMR',
     'PL_EC2_S3',
-    'PL_VPC',
     'PL_RDS',
-    'PL_SERVERLESS_APP',
-    'PL_DYNAMODB',
-    'PL_GRAVITON',
-    'PL_DATA_LAKE',
-    'PL_EVENTS_WORKFLOWS',
-    'PL_APP',
-  ],
-  TCC: [
-    'PL_EMR',
-    'PL_EC2_S3',
-    'PL_VPC',
-    'PL_RDS',
-    'PL_SERVERLESS_APP',
     'PL_DYNAMODB',
     'PL_APP',
-    'PL_LAMBDA_SQS',
     'PL_CF',
+    'PL_VPC',
+    'PL_LAMBDA_SQS',
+    'PL_SERVERLESS_APP',
   ],
+  'MBDA-CGDNGB': ['PL_EC2', 'PL_EC2_S3', 'PL_RDS', 'PL_APP', 'PL_LAMBDA_SQS'],
+  'MBDA-MEGBD': ['PL_EMR'],
+  'MUCNAP-ICP': ['PL_EC2', 'PL_EC2_S3', 'PL_RDS', 'PL_DYNAMODB', 'PL_APP', 'PL_CF', 'PL_VPC', 'PL_LAMBDA_SQS'],
+  'MUCNAP-CBD': ['PL_EMR'],
+  'MUGI-SEN': ['PL_EC2', 'PL_EC2_S3', 'PL_RDS', 'PL_DYNAMODB', 'PL_APP', 'PL_CF', 'PL_LAMBDA_SQS'],
+  'GII-CNA': ['PL_EC2', 'PL_EC2_S3'],
+  'GCD-IPD': ['PL_EC2', 'PL_EC2_S3'],
+  'MUCC-DDS': ['PL_EC2', 'PL_EC2_S3', 'PL_VPC', 'PL_RDS', 'PL_APP', 'PL_CF', 'PL_LAMBDA_SQS'],
+  'MUIS-DOS': ['PL_EC2', 'PL_CF', 'PL_LAMBDA_SQS'],
+  TCC: ['PL_GRAVITON', 'PL_DATA_LAKE', 'PL_EVENTS_WORKFLOWS'],
 }
-
-const courseSubjectsMap: Record<string, SubjectWithPractices[]> = Object.fromEntries(
-  Object.entries(courseExcludedSubjectsMap).map(([course, excludedSubjects]) => {
-    const excluded = new Set(excludedSubjects.map(normalizeSubject))
-    const included = allSubjectsWithPractices.filter((item) => !excluded.has(item.subject))
-    return [course, included]
-  }),
-) as Record<string, SubjectWithPractices[]>
-
-const courseSubjectNamesMap: Record<string, string[]> = Object.fromEntries(
-  Object.entries(courseSubjectsMap).map(([course, items]) => [course, items.map((item) => item.subject)]),
-) as Record<string, string[]>
 
 const courseOptions = computed(() => Object.keys(courseSubjectsMap))
 
@@ -259,7 +169,7 @@ const practiceRows = computed(() => {
       practiceName: studentRow.subject,
       user: studentRow.studentName,
       completionPercent: Number(studentRow.progress.toFixed(2)),
-      lastRelatedEventDate: lastEvent ? dayjs(lastEvent).format('YYYY-MM-DDTHH:mm:ss.SSS[Z]') : 'N/A',
+      lastRelatedEventDate: lastEvent ? dayjs(lastEvent).format('HH:mm:ss DD-MM-YYYY') : 'N/A',
     })
   })
 
@@ -269,13 +179,34 @@ const practiceRows = computed(() => {
 const pages = computed(() => Math.max(1, Math.ceil(practiceRows.value.length / perPage.value)))
 
 const averageProgressChart = computed(() => {
-  const subjectsInCourse = (courseSubjectNamesMap[selectedCourseLabel.value] || []).map(normalizeSubject)
+  const subjectsInCourse = (courseSubjectsMap[selectedCourseLabel.value] || []).map(normalizeSubject)
   const labels = Array.from(new Set(subjectsInCourse))
+
+  const myColors: Record<string, string> = {}
+  const borderColor: Record<string, string> = {}
 
   const data = labels.map((subject) => {
     const subjectRows = awsStore.studentProgressData.filter((row) => row.subject === subject)
-    if (!subjectRows.length) return 0
-    return Number((subjectRows.reduce((sum, row) => sum + row.progress, 0) / subjectRows.length).toFixed(2))
+    if (!subjectRows.length) {
+      myColors[subject] = 'rgba(200,200,200,0.2)'
+      borderColor[subject] = 'rgba(120,120,120,1)'
+      return 0
+    }
+
+    const number = Number((subjectRows.reduce((sum, row) => sum + row.progress, 0) / subjectRows.length).toFixed(2))
+
+    if (80 <= number && number <= 100) {
+      myColors[subject] = 'rgba(74,227,135,0.2)'
+      borderColor[subject] = 'rgba(0,102,0,1)'
+    } else if (40 < number && number < 79) {
+      myColors[subject] = 'rgba(214,236,97,1)'
+      borderColor[subject] = 'rgba(255,102,0,1)'
+    } else {
+      myColors[subject] = 'rgba(255,51,0,0.2)'
+      borderColor[subject] = 'rgba(255,51,0,1)'
+    }
+
+    return number
   })
 
   return {
@@ -283,9 +214,9 @@ const averageProgressChart = computed(() => {
     datasets: [
       {
         label: 'Promedio de Avance (%)',
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderColor: 'rgb(54, 162, 235)',
-        borderWidth: 2,
+        backgroundColor: labels.map((subject) => myColors[subject]),
+        borderColor: labels.map((subject) => borderColor[subject]),
+        // borderWidth: 1
         data,
       },
     ],
@@ -299,19 +230,39 @@ const handleFilterApplied = async (filter: {
   dateRange: { start: Date; end: Date } | null
 }) => {
   selectedCourseLabel.value = filter.course
-  selectedStudentsFrom.value = filter.from
-  selectedStudentsTo.value = filter.to
+
   const rangeStart = filter.dateRange?.start ?? calculateRange().start
   const rangeEnd = filter.dateRange?.end ?? calculateRange().end
   const startDate = dayjs(rangeStart).format('YYYY-MM-DD')
   const endDate = dayjs(rangeEnd).format('YYYY-MM-DD')
 
-  const selectedCourseSubjects = (courseSubjectNamesMap[filter.course] || []).map(normalizeSubject)
+  const selectedCourseSubjects = (courseSubjectsMap[filter.course] || []).map(normalizeSubject)
   const normalizedSubjects = Array.from(new Set(selectedCourseSubjects))
 
+  if (authStore.isProfessor) {
+    selectedStudentsFrom.value = filter.from
+    selectedStudentsTo.value = filter.to
+
+    await awsStore.fetchStudentProgressByRangeForSubjects(
+      filter.from,
+      filter.to + 1,
+      normalizedSubjects,
+      startDate,
+      endDate,
+    )
+    return
+  }
+
+  const currentUsername = authStore.username
+  const studentUsers = awsStore.allUsers.filter((u) => u.startsWith('alucloud'))
+  const currentUserPosition = studentUsers.indexOf(currentUsername)
+
+  selectedStudentsFrom.value = currentUserPosition
+  selectedStudentsTo.value = currentUserPosition
+
   await awsStore.fetchStudentProgressByRangeForSubjects(
-    filter.from,
-    filter.to + 1,
+    currentUserPosition,
+    currentUserPosition + 1,
     normalizedSubjects,
     startDate,
     endDate,
@@ -319,7 +270,7 @@ const handleFilterApplied = async (filter: {
 }
 
 onMounted(async () => {
-  if (awsStore.allUsers.length === 0) {
+  if (authStore.isProfessor && awsStore.allUsers.length === 0) {
     await awsStore.getAllUsers()
   }
 })
@@ -331,10 +282,6 @@ onMounted(async () => {
   justify-content: center;
   align-items: center;
   height: 100vh;
-}
-
-.charts-column {
-  margin-bottom: 2rem;
 }
 
 .progress-stats {

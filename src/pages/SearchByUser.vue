@@ -38,7 +38,7 @@
     <div class="charts-column mb-4">
       <VaCard>
         <VaCardTitle>AWS services used in the last hour</VaCardTitle>
-        <Chart :chart-data="awsStore.chartDataServices" x-axis="Services" />
+        <Chart :chart-data="awsStore.chartDataServices" x-axis="Services" y-axis="#times" />
       </VaCard>
     </div>
     <VaButton color="primary" @click="display = !display">Details</VaButton>

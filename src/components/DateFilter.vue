@@ -1,13 +1,15 @@
 <template>
   <div ref="container" class="relative inline-flex items-end gap-3 min-h-10">
-    <VaCheckbox v-model="showInput" label="Dates" class="whitespace-nowrap" />
+    <VaCheckbox v-model="showInput" label="Dates" class="whitespace-nowrap date-checkbox" />
 
     <Transition name="expand-width">
       <div v-if="showInput" class="overflow-hidden flex items-center">
         <VaInput
           v-model="appliedText"
           placeholder="DD/MM/YYYY - DD/MM/YYYY"
-          class="w-72"
+          class="w-72 interactive-field"
+          background="#eef6ff"
+          color="primary"
           @click="open = true"
           @focus="open = true"
         >
@@ -135,5 +137,11 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
 .expand-width-leave-to {
   max-width: 0;
   opacity: 0;
+}
+
+:deep(.date-checkbox .va-checkbox__square) {
+  background-color: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.4);
+  align-self: center;
 }
 </style>

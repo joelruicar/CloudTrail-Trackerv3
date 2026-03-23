@@ -55,7 +55,7 @@ const data = computed(() => awsStore.metrics)
   justify-content: center;
   padding: 1.5rem;
   height: 100%;
-  background-color: #a5d6c0;
+  background-color: var(--va-background-border);
 }
 
 .stats-area {

@@ -16,7 +16,11 @@ const props = defineProps({
   chartData: { type: Object, required: true },
   title: { type: String, default: '' },
   xAxis: { type: String, default: '' },
+  yAxis: { type: String, default: '' },
 })
+
+const isLaboratoryChart = computed(() => props.title.toLowerCase().includes('laboratory'))
+
 const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
@@ -30,7 +34,7 @@ const chartOptions = computed(() => ({
   plugins: {
     legend: { display: false },
     title: {
-      display: true,
+      display: false,
       text: props.title,
     },
     datalabels: {
@@ -60,6 +64,14 @@ const chartOptions = computed(() => ({
       ticks: { color: '#000' },
     },
     y: {
+      title: {
+        display: true,
+        text: props.yAxis,
+        color: '#000',
+        font: { weight: 'bold', family: 'Helvetica' },
+      },
+      beginAtZero: true,
+      max: isLaboratoryChart.value ? 100 : undefined,
       grid: {
         display: false,
         color: 'rgba(220, 227, 241, 1)',
