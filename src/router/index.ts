@@ -20,7 +20,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         name: 'dashboard',
         path: 'dashboard',
-        component: () => import('../pages/Dashboard.vue'),
+        component: () => import('../pages/Dashboard/Dashboard.vue'),
       },
       {
         name: 'change-password',
@@ -30,12 +30,12 @@ const routes: Array<RouteRecordRaw> = [
       {
         name: 'search-by-user',
         path: 'search-by-user',
-        component: () => import('../pages/SearchByUser.vue'),
+        component: () => import('../pages/SearchByUser/SearchByUser.vue'),
       },
       {
         name: 'search-by-course',
         path: 'search-by-course',
-        component: () => import('../pages/SearchByCourse.vue'),
+        component: () => import('../pages/SearchByCourse/SearchByCourse.vue'),
       },
     ],
   },

@@ -25,11 +25,11 @@
 
 <script setup lang="ts">
 import { VaCard, VaSelect, VaProgressCircle } from 'vuestic-ui'
-import InfoWidgets from '../components/InfoWidgets.vue'
-import { useAwsStore } from '../stores/aws'
+import InfoWidgets from '../../components/InfoWidgets.vue'
+import { useAwsStore } from '../../stores/aws'
 import { ref, onMounted, watch } from 'vue'
-import Chart from '../components/Chart.vue'
-import Table from '../components/Table.vue'
+import Chart from '../../components/Chart.vue'
+import Table from '../../components/Table.vue'
 
 const options = ['last hour', 'last six hours', 'last day', 'last week']
 const timeRange = ref('last hour')
@@ -50,78 +50,4 @@ const handleAfterEnter = () => {
 }
 </script>
 
-<style scoped>
-.dashboard-layout {
-  padding: 1.5rem;
-  background-color: #f4f6f8;
-}
-
-.main-content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-items: start;
-}
-
-.charts-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.chart-card {
-  border-radius: 15px;
-  background: white;
-}
-
-.table-column {
-  height: 100%;
-}
-
-.full-height-card {
-  height: 100%;
-  border-radius: 15px;
-}
-
-:deep(.date-select) {
-  max-width: 250px;
-  margin-top: 1%;
-}
-@media (max-width: 1024px) {
-  .main-content-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.search-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.expand-enter-active,
-.expand-leave-active {
-  transition: all 0.1s ease-in-out;
-  overflow: hidden;
-  max-height: 1000px;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-</style>
+<style scoped src="./Dashboard.css" />

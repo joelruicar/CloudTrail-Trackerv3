@@ -11,7 +11,9 @@
     </div>
     <div v-else-if="awsStore.studentProgressData.length" class="mb-4">
       <VaCard>
-        <VaCardTitle> Promedio de Avance por Asignatura - {{ selectedCourseLabel || 'Sin curso' }} </VaCardTitle>
+        <VaCardTitle>
+          Promedio de Avance por Práctica de laboratorio - {{ selectedCourseLabel || 'Sin curso' }}
+        </VaCardTitle>
         <div class="progress-stats">
           <div class="stat-item">
             <span class="stat-label">Promedio:</span>
@@ -26,7 +28,21 @@
             <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
           </div>
         </div>
-        <Chart :chart-data="averageProgressChart" x-axis="Asignatura" y-axis="%" title="laboratory" />
+        <Chart :chart-data="averageProgressChart" x-axis="Práctica" y-axis="%" title="laboratory" />
+      </VaCard>
+    </div>
+    <div v-if="studentCharts.length && selectedStudentsFrom != selectedStudentsTo" class="mb-4">
+      <VaCard>
+        <VaCardTitle>Progreso por Alumno</VaCardTitle>
+        <p v-if="hiddenStudentChartsCount > 0" class="charts-note">
+          Mostrando {{ studentCharts.length }} de {{ studentCharts.length + hiddenStudentChartsCount }} alumnos.
+        </p>
+        <div class="student-charts-grid">
+          <VaCard v-for="student in studentCharts" :key="student.studentName" class="student-chart-card">
+            <VaCardTitle>{{ student.studentName }} - {{ student.average.toFixed(2) }}%</VaCardTitle>
+            <Chart :chart-data="student.chartData" x-axis="Práctica" y-axis="%" />
+          </VaCard>
+        </div>
       </VaCard>
     </div>
     <div v-if="awsStore.studentProgressData.length" class="mb-4">
@@ -92,11 +108,11 @@ import {
   VaPagination,
 } from 'vuestic-ui'
 import { ref, computed, onMounted } from 'vue'
-import { useAwsStore } from '../stores/aws'
-import { useAuthStore } from '../stores/auth'
-import { useAcademicYear } from '../composables/useAcademicYear'
-import RangeSelector from '../components/RangeSelector.vue'
-import Chart from '../components/Chart.vue'
+import { useAwsStore } from '../../stores/aws'
+import { useAuthStore } from '../../stores/auth'
+import { useAcademicYear } from '../../composables/useAcademicYear'
+import RangeSelector from '../../components/RangeSelector.vue'
+import Chart from '../../components/Chart.vue'
 import dayjs from 'dayjs'
 
 const awsStore = useAwsStore()
@@ -177,6 +193,63 @@ const practiceRows = computed(() => {
 })
 
 const pages = computed(() => Math.max(1, Math.ceil(practiceRows.value.length / perPage.value)))
+const maxStudentCharts = 10
+
+const allStudentCharts = computed(() => {
+  const labels = Array.from(new Set((courseSubjectsMap[selectedCourseLabel.value] || []).map(normalizeSubject)))
+
+  if (!labels.length || !awsStore.studentProgressData.length) {
+    return [] as Array<{
+      studentName: string
+      average: number
+      chartData: Record<string, unknown>
+      studentIndex: number
+    }>
+  }
+
+  const labelsSet = new Set(labels)
+  const grouped = new Map<string, { studentIndex: number; values: Record<string, number> }>()
+
+  for (const row of awsStore.studentProgressData) {
+    const subject = normalizeSubject(row.subject)
+    if (!labelsSet.has(subject)) continue
+
+    if (!grouped.has(row.studentName)) {
+      grouped.set(row.studentName, { studentIndex: row.studentIndex, values: {} })
+    }
+
+    grouped.get(row.studentName)!.values[subject] = Number(row.progress.toFixed(2))
+  }
+
+  return Array.from(grouped.entries())
+    .map(([studentName, payload], index) => {
+      const data = labels.map((subject) => payload.values[subject] ?? 0)
+      const average = data.length ? data.reduce((sum, value) => sum + value, 0) / data.length : 0
+      const hue = (index * 47) % 360
+
+      return {
+        studentName,
+        studentIndex: payload.studentIndex,
+        average,
+        chartData: {
+          labels,
+          datasets: [
+            {
+              label: 'Avance (%)',
+              data,
+              backgroundColor: `hsla(${hue}, 80%, 70%, 0.35)`,
+              borderColor: `hsla(${hue}, 80%, 35%, 1)`,
+              borderWidth: 1,
+            },
+          ],
+        },
+      }
+    })
+    .sort((a, b) => a.studentIndex - b.studentIndex)
+})
+
+const studentCharts = computed(() => allStudentCharts.value.slice(0, maxStudentCharts))
+const hiddenStudentChartsCount = computed(() => Math.max(0, allStudentCharts.value.length - studentCharts.value.length))
 
 const averageProgressChart = computed(() => {
   const subjectsInCourse = (courseSubjectsMap[selectedCourseLabel.value] || []).map(normalizeSubject)
@@ -276,101 +349,4 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.loading-overlay {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.progress-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: var(--va-background-element);
-  border-radius: 0.5rem;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--va-text-secondary);
-  font-weight: 500;
-}
-
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--va-primary);
-}
-
-.table-container {
-  overflow-x: auto;
-  margin-top: 1.5rem;
-}
-
-.table-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  gap: 1rem;
-}
-
-.search-input {
-  width: 320px;
-}
-
-.per-page-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.pagination-footer {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: center;
-}
-
-.expand-enter-active,
-.expand-leave-active {
-  transition: all 0.3s ease;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-  opacity: 0;
-  max-height: 0;
-}
-
-.expand-enter-to,
-.expand-leave-from {
-  opacity: 1;
-  max-height: 2000px;
-}
-
-@media (max-width: 768px) {
-  .search-input {
-    width: 100%;
-  }
-
-  .table-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .stat-value {
-    font-size: 1.25rem;
-  }
-}
-</style>
+<style scoped src="./SearchByCourse.css" />

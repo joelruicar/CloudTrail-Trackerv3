@@ -50,14 +50,14 @@
 
 <script setup lang="ts">
 import { VaProgressCircle, VaButton, VaCard, VaCardTitle } from 'vuestic-ui'
-import { useAcademicYear } from '../composables/useAcademicYear'
+import { useAcademicYear } from '../../composables/useAcademicYear'
 import { ref, onMounted, computed, nextTick } from 'vue'
-import InfoWidgets from '../components/InfoWidgets.vue'
-import DateFilter from '../components/DateFilter.vue'
-import { useAuthStore } from '../stores/auth'
-import { useAwsStore } from '../stores/aws'
-import Chart from '../components/Chart.vue'
-import Table from '../components/Table.vue'
+import InfoWidgets from '../../components/InfoWidgets.vue'
+import DateFilter from '../../components/DateFilter.vue'
+import { useAuthStore } from '../../stores/auth'
+import { useAwsStore } from '../../stores/aws'
+import Chart from '../../components/Chart.vue'
+import Table from '../../components/Table.vue'
 import dayjs from 'dayjs'
 const authStore = useAuthStore()
 const awsStore = useAwsStore()
@@ -162,78 +162,4 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.loading-overlay {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-.search-controls {
-  display: grid;
-  grid-template-columns: 450px 20px 320px 200px auto;
-  align-items: end;
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
-
-.user-select-fixed {
-  grid-column: 1;
-}
-
-.date-filter-fixed {
-  grid-column: 3;
-  width: 320px;
-  display: flex;
-  align-items: center;
-  min-height: 38px;
-}
-
-.search-button-fixed {
-  grid-column: 5;
-  height: 36px;
-  white-space: nowrap;
-  width: fit-content;
-}
-
-@media (max-width: 1100px) {
-  .search-controls {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-
-  .user-select-fixed,
-  .date-filter-fixed {
-    width: 100%;
-    grid-column: auto;
-  }
-
-  .date-filter-fixed {
-    height: auto;
-  }
-
-  .search-button-fixed {
-    grid-column: auto;
-    width: 100%;
-    margin-top: 8px;
-  }
-}
-
-:deep(.va-input-wrapper) {
-  width: 100% !important;
-}
-
-.select-option-text {
-  color: var(--va-text-primary);
-}
-
-.select-option-match {
-  color: var(--va-primary);
-  font-weight: 600;
-  text-decoration: underline;
-  text-decoration-color: #f59e0b;
-  text-decoration-thickness: 2px;
-}
-</style>
+<style scoped src="./SearchByUser.css" />
