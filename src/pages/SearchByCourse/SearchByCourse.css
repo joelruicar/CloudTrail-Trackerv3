@@ -14,14 +14,39 @@
   color: var(--va-text-secondary);
 }
 
-.student-charts-grid {
+.insights-list {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.75rem;
 }
 
-.student-chart-card {
-  padding: 0.5rem;
+.insight-item {
+  border-radius: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.insight-item--danger {
+  background: rgba(239, 68, 68, 0.12);
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
+.insight-item--success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #166534;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.insight-item--warning {
+  background: rgba(245, 158, 11, 0.14);
+  color: #92400e;
+  border-color: rgba(245, 158, 11, 0.34);
+}
+
+.heatmap-block {
+  margin-top: 0.5rem;
 }
 
 .stat-item {
@@ -88,18 +113,7 @@
 }
 
 @media print {
-  .student-charts-grid {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
-
-  .student-chart-card {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    padding: 0.75rem;
-  }
-
-  .student-chart-card :deep(.chart-wrapper) {
-    height: 500px;
+  .heatmap-block :deep(.chart-wrapper) {
+    height: 700px !important;
   }
 }

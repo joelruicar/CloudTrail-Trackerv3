@@ -9,89 +9,87 @@
     <div v-if="awsStore.loading" class="loading-overlay">
       <VaProgressCircle indeterminate size="large" />
     </div>
-    <div v-else-if="awsStore.studentProgressData.length" class="mb-4">
-      <VaCard>
-        <VaCardTitle>
-          Promedio de Avance por Práctica de laboratorio - {{ selectedCourseLabel || 'Sin curso' }}
-        </VaCardTitle>
-        <div class="progress-stats">
-          <div class="stat-item">
-            <span class="stat-label">Promedio:</span>
-            <span class="stat-value">{{ awsStore.averageProgressByRange.toFixed(2) }}%</span>
-          </div>
-          <div v-if="selectedStudentsFrom == selectedStudentsTo" class="stat-item">
-            <span class="stat-label">Alumno:</span>
-            <span class="stat-value">alucloud{{ selectedStudentsFrom }}</span>
-          </div>
-          <div v-else class="stat-item">
-            <span class="stat-label">Alumnos en rango:</span>
-            <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
-          </div>
-        </div>
-        <Chart :chart-data="averageProgressChart" x-axis="Práctica" y-axis="%" title="laboratory" />
-      </VaCard>
-    </div>
-    <div v-if="studentCharts.length && selectedStudentsFrom != selectedStudentsTo" class="mb-4">
-      <VaCard>
-        <VaCardTitle>Progreso por Alumno</VaCardTitle>
-        <p v-if="hiddenStudentChartsCount > 0" class="charts-note">
-          Mostrando {{ studentCharts.length }} de {{ studentCharts.length + hiddenStudentChartsCount }} alumnos.
-        </p>
-        <div class="student-charts-grid">
-          <VaCard v-for="student in studentCharts" :key="student.studentName" class="student-chart-card">
-            <VaCardTitle>{{ student.studentName }} - {{ student.average.toFixed(2) }}%</VaCardTitle>
-            <Chart :chart-data="student.chartData" x-axis="Práctica" y-axis="%" />
-          </VaCard>
-        </div>
-      </VaCard>
-    </div>
-    <div v-if="awsStore.studentProgressData.length" class="mb-4">
-      <VaButton color="primary" class="mb-4" @click="displayDetails = !displayDetails"> Details </VaButton>
-      <Transition name="expand">
-        <div v-if="!displayDetails" class="table-container">
-          <VaCard>
-            <VaCardTitle>Detalle por práctica</VaCardTitle>
-            <div class="table-toolbar">
-              <VaInput
-                v-model="searchQuery"
-                class="search-input"
-                placeholder="Buscar práctica o usuario..."
-                clearable
-              />
-              <label class="per-page-label">
-                Show
-                <VaSelect v-model="perPage" :options="[10, 25, 50, 100]" class="page-select-inline" />
-                entries
-              </label>
+    <div v-else-if="hasSearched" class="mb-4">
+      <template v-if="hasResults">
+        <VaCard>
+          <VaCardTitle>
+            Promedio de Avance por Práctica de laboratorio - {{ selectedCourseLabel || 'Sin curso' }}
+          </VaCardTitle>
+          <div class="progress-stats">
+            <div class="stat-item">
+              <span class="stat-label">Promedio:</span>
+              <span class="stat-value">{{ awsStore.averageProgressByRange.toFixed(2) }}%</span>
             </div>
-            <VaDataTable
-              v-model:sort-by="sortBy"
-              v-model:sorting-order="sortingOrder"
-              :items="practiceRows"
-              :columns="practiceColumns"
-              :filter="searchQuery"
-              :per-page="perPage"
-              :current-page="currentPage"
-              :disable-client-side-sorting="false"
-              hoverable
-            >
-              <template #cell(completionPercent)="{ rowData }">{{ rowData.completionPercent.toFixed(2) }}%</template>
-              <template #cell(lastRelatedEventDate)="{ rowData }">
-                {{ rowData.lastRelatedEventDate || '-' }}
-              </template>
-            </VaDataTable>
-            <div class="pagination-footer">
-              <VaPagination
-                v-model="currentPage"
-                :pages="pages"
-                active-page-color="remarkPrimary"
-                color="primary"
-                size="small"
-              />
+            <div v-if="selectedStudentsFrom == selectedStudentsTo" class="stat-item">
+              <span class="stat-label">Alumno:</span>
+              <span class="stat-value">alucloud{{ selectedStudentsFrom }}</span>
             </div>
-          </VaCard>
-        </div>
-      </Transition>
+            <div v-else class="stat-item">
+              <span class="stat-label">Alumnos en rango:</span>
+              <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
+            </div>
+          </div>
+          <div v-if="courseInsights.length && selectedStudentsFrom != selectedStudentsTo" class="mb-4">
+            <VaCard>
+              <div class="insights-list">
+                <div
+                  v-for="insight in courseInsights"
+                  :key="insight.id"
+                  class="insight-item"
+                  :class="`insight-item--${insight.tone}`"
+                >
+                  {{ insight.message }}
+                </div>
+              </div>
+            </VaCard>
+          </div>
+          <Chart :chart-data="averageProgressChart" x-axis="Práctica" y-axis="%" title="laboratory" />
+        </VaCard>
+        <VaCard v-if="heatmapData.students.length && selectedStudentsFrom != selectedStudentsTo" class="mb-4">
+          <VaCardTitle>Heatmap de Progreso por Alumno</VaCardTitle>
+          <HeatmapChart :heatmap-data="heatmapData" x-axis="Práctica" y-axis="Alumno" class="heatmap-block" />
+        </VaCard>
+        <VaButton color="primary" class="mb-4" @click="displayDetails = !displayDetails"> Details </VaButton>
+        <Transition name="expand">
+          <div v-if="!displayDetails" ref="tableContainerRef" class="table-container">
+            <VaCard>
+              <div class="table-toolbar">
+                <VaInput v-model="searchQuery" class="search-input" placeholder="Search" clearable />
+                <label class="per-page-label">
+                  Show
+                  <VaSelect v-model="perPage" :options="[10, 25, 50, 100]" class="page-select-inline" />
+                  entries
+                </label>
+              </div>
+              <VaDataTable
+                v-model:sort-by="sortBy"
+                v-model:sorting-order="sortingOrder"
+                :items="practiceRows"
+                :columns="practiceColumns"
+                :filter="searchQuery"
+                :per-page="perPage"
+                :current-page="currentPage"
+                :disable-client-side-sorting="false"
+                hoverable
+              >
+                <template #cell(completionPercent)="{ rowData }">{{ rowData.completionPercent.toFixed(2) }}%</template>
+                <template #cell(lastRelatedEventDate)="{ rowData }">
+                  {{ rowData.lastRelatedEventDate || '-' }}
+                </template>
+              </VaDataTable>
+              <div class="pagination-footer">
+                <VaPagination
+                  v-model="currentPage"
+                  :pages="pages"
+                  active-page-color="remarkPrimary"
+                  color="primary"
+                  size="small"
+                />
+              </div>
+            </VaCard>
+          </div>
+        </Transition>
+      </template>
     </div>
   </VaCard>
 </template>
@@ -107,12 +105,13 @@ import {
   VaSelect,
   VaPagination,
 } from 'vuestic-ui'
-import { ref, computed, onMounted } from 'vue'
-import { useAwsStore } from '../../stores/aws'
-import { useAuthStore } from '../../stores/auth'
 import { useAcademicYear } from '../../composables/useAcademicYear'
 import RangeSelector from '../../components/RangeSelector.vue'
+import HeatmapChart from '../../components/HeatmapChart.vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
+import { useAuthStore } from '../../stores/auth'
 import Chart from '../../components/Chart.vue'
+import { useAwsStore } from '../../stores/aws'
 import dayjs from 'dayjs'
 
 const awsStore = useAwsStore()
@@ -127,11 +126,7 @@ const sortBy = ref('index')
 const perPage = ref(10)
 const searchQuery = ref('')
 const currentPage = ref(1)
-
-const normalizeSubject = (subject: string) => {
-  if (subject === 'PL_EC_S3') return 'PL_EC2_S3'
-  return subject
-}
+const hasSearched = ref(false)
 
 const courseSubjectsMap: Record<string, string[]> = {
   CursoCloudAWS: [
@@ -193,90 +188,145 @@ const practiceRows = computed(() => {
 })
 
 const pages = computed(() => Math.max(1, Math.ceil(practiceRows.value.length / perPage.value)))
-const maxStudentCharts = 10
+const hasResults = computed(() => awsStore.studentProgressData.length > 0)
+const heatmapData = computed(() => {
+  const subjects = Array.from(new Set(courseSubjectsMap[selectedCourseLabel.value] || []))
 
-const allStudentCharts = computed(() => {
-  const labels = Array.from(new Set((courseSubjectsMap[selectedCourseLabel.value] || []).map(normalizeSubject)))
-
-  if (!labels.length || !awsStore.studentProgressData.length) {
-    return [] as Array<{
-      studentName: string
-      average: number
-      chartData: Record<string, unknown>
-      studentIndex: number
-    }>
+  if (!subjects.length || !awsStore.studentProgressData.length) {
+    return {
+      students: [] as string[],
+      subjects: [] as string[],
+      points: [] as Array<{ x: string; y: string; v: number }>,
+    }
   }
 
-  const labelsSet = new Set(labels)
-  const grouped = new Map<string, { studentIndex: number; values: Record<string, number> }>()
+  const subjectsSet = new Set(subjects)
+  const byStudent = new Map<string, { index: number; values: Record<string, number> }>()
 
   for (const row of awsStore.studentProgressData) {
-    const subject = normalizeSubject(row.subject)
-    if (!labelsSet.has(subject)) continue
+    const subject = row.subject
+    if (!subjectsSet.has(subject)) continue
 
-    if (!grouped.has(row.studentName)) {
-      grouped.set(row.studentName, { studentIndex: row.studentIndex, values: {} })
+    if (!byStudent.has(row.studentName)) {
+      byStudent.set(row.studentName, { index: row.studentIndex, values: {} })
     }
 
-    grouped.get(row.studentName)!.values[subject] = Number(row.progress.toFixed(2))
+    byStudent.get(row.studentName)!.values[subject] = Number(row.progress.toFixed(2))
   }
 
-  return Array.from(grouped.entries())
-    .map(([studentName, payload], index) => {
-      const data = labels.map((subject) => payload.values[subject] ?? 0)
-      const average = data.length ? data.reduce((sum, value) => sum + value, 0) / data.length : 0
-      const hue = (index * 47) % 360
+  const students = Array.from(byStudent.entries())
+    .sort((a, b) => a[1].index - b[1].index)
+    .map(([studentName]) => studentName)
 
-      return {
-        studentName,
-        studentIndex: payload.studentIndex,
-        average,
-        chartData: {
-          labels,
-          datasets: [
-            {
-              label: 'Avance (%)',
-              data,
-              backgroundColor: `hsla(${hue}, 80%, 70%, 0.35)`,
-              borderColor: `hsla(${hue}, 80%, 35%, 1)`,
-              borderWidth: 1,
-            },
-          ],
-        },
-      }
-    })
-    .sort((a, b) => a.studentIndex - b.studentIndex)
+  const points: Array<{ x: string; y: string; v: number }> = []
+  for (const student of students) {
+    const values = byStudent.get(student)?.values || {}
+    for (const subject of subjects) {
+      points.push({ x: subject, y: student, v: values[subject] ?? 0 })
+    }
+  }
+
+  return { students, subjects, points }
 })
 
-const studentCharts = computed(() => allStudentCharts.value.slice(0, maxStudentCharts))
-const hiddenStudentChartsCount = computed(() => Math.max(0, allStudentCharts.value.length - studentCharts.value.length))
+const tableContainerRef = ref<HTMLElement | null>(null)
+
+watch(currentPage, async () => {
+  if (displayDetails.value) return
+  await new Promise((resolve) => setTimeout(resolve, 200))
+  tableContainerRef.value?.scrollIntoView({ behavior: 'auto', block: 'end' })
+})
+
+const courseInsights = computed(() => {
+  const subjects = Array.from(new Set(courseSubjectsMap[selectedCourseLabel.value] || []))
+
+  const subjectsSet = new Set(subjects)
+  const rowsInCourse = awsStore.studentProgressData.filter((row) => subjectsSet.has(row.subject))
+
+  const students = Array.from(new Set(rowsInCourse.map((row) => row.studentName)))
+  const totalStudents = students.length
+  const bySubject = new Map<string, number[]>()
+  for (const subject of subjects) {
+    bySubject.set(subject, [])
+  }
+
+  for (const row of rowsInCourse) {
+    const subject = row.subject
+    const values = bySubject.get(subject)
+    if (values) {
+      values.push(row.progress)
+    }
+  }
+
+  const stuckBySubject = subjects.map((subject) => {
+    const values = bySubject.get(subject) || []
+    const stuckCount = values.filter((value) => value > 0 && value < 80).length
+    return { subject, ratio: totalStudents ? (stuckCount / totalStudents) * 100 : 0 }
+  })
+
+  const completedBySubject = subjects.map((subject) => {
+    const values = bySubject.get(subject) || []
+    const completedCount = values.filter((value) => value >= 80).length
+    return { subject, ratio: totalStudents ? (completedCount / totalStudents) * 100 : 0 }
+  })
+
+  const byStudent = new Map<string, Record<string, number>>()
+  for (const studentName of students) {
+    byStudent.set(studentName, {})
+  }
+  for (const row of rowsInCourse) {
+    const subject = row.subject
+    byStudent.get(row.studentName)![subject] = row.progress
+  }
+
+  const nonStartedStudents = students.filter((studentName) => {
+    const values = byStudent.get(studentName) || {}
+    return subjects.every((subject) => (values[subject] ?? 0) <= 0)
+  }).length
+
+  const topStuck = stuckBySubject.sort((a, b) => b.ratio - a.ratio)[0]
+  const topCompleted = completedBySubject.sort((a, b) => b.ratio - a.ratio)[0]
+
+  return [
+    {
+      id: 'completed',
+      tone: 'success' as const,
+      message: `${topCompleted?.subject || 'N/A'} completado por ${Math.round(topCompleted?.ratio || 0)}% de alumnos`,
+    },
+    {
+      id: 'stuck',
+      tone: 'danger' as const,
+      message: `${topStuck?.subject || 'N/A'} tiene ${Math.round(topStuck?.ratio || 0)}% de alumnos atascados`,
+    },
+
+    {
+      id: 'not-started',
+      tone: 'warning' as const,
+      message: `${nonStartedStudents} alumno(s) no han empezado ninguna práctica`,
+    },
+  ]
+})
 
 const averageProgressChart = computed(() => {
-  const subjectsInCourse = (courseSubjectsMap[selectedCourseLabel.value] || []).map(normalizeSubject)
+  const subjectsInCourse = courseSubjectsMap[selectedCourseLabel.value] || []
   const labels = Array.from(new Set(subjectsInCourse))
 
   const myColors: Record<string, string> = {}
-  const borderColor: Record<string, string> = {}
-
   const data = labels.map((subject) => {
     const subjectRows = awsStore.studentProgressData.filter((row) => row.subject === subject)
     if (!subjectRows.length) {
       myColors[subject] = 'rgba(200,200,200,0.2)'
-      borderColor[subject] = 'rgba(120,120,120,1)'
       return 0
     }
 
     const number = Number((subjectRows.reduce((sum, row) => sum + row.progress, 0) / subjectRows.length).toFixed(2))
 
     if (80 <= number && number <= 100) {
-      myColors[subject] = 'rgba(74,227,135,0.2)'
-      borderColor[subject] = 'rgba(0,102,0,1)'
+      myColors[subject] = 'rgba(34, 197, 94, 0.78)'
     } else if (40 < number && number < 79) {
-      myColors[subject] = 'rgba(214,236,97,1)'
-      borderColor[subject] = 'rgba(255,102,0,1)'
+      myColors[subject] = 'rgba(250, 204, 21, 0.78)'
     } else {
-      myColors[subject] = 'rgba(255,51,0,0.2)'
-      borderColor[subject] = 'rgba(255,51,0,1)'
+      myColors[subject] = 'rgba(249, 115, 22, 0.78)'
     }
 
     return number
@@ -288,7 +338,6 @@ const averageProgressChart = computed(() => {
       {
         label: 'Promedio de Avance (%)',
         backgroundColor: labels.map((subject) => myColors[subject]),
-        borderColor: labels.map((subject) => borderColor[subject]),
         // borderWidth: 1
         data,
       },
@@ -302,6 +351,7 @@ const handleFilterApplied = async (filter: {
   course: string
   dateRange: { start: Date; end: Date } | null
 }) => {
+  hasSearched.value = true
   selectedCourseLabel.value = filter.course
 
   const rangeStart = filter.dateRange?.start ?? calculateRange().start
@@ -309,7 +359,7 @@ const handleFilterApplied = async (filter: {
   const startDate = dayjs(rangeStart).format('YYYY-MM-DD')
   const endDate = dayjs(rangeEnd).format('YYYY-MM-DD')
 
-  const selectedCourseSubjects = (courseSubjectsMap[filter.course] || []).map(normalizeSubject)
+  const selectedCourseSubjects = courseSubjectsMap[filter.course] || []
   const normalizedSubjects = Array.from(new Set(selectedCourseSubjects))
 
   if (authStore.isProfessor) {
