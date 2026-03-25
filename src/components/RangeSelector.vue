@@ -178,8 +178,8 @@ const applyFilter = () => {
 }
 
 .range-selector :deep(.interactive-field .va-input-wrapper) {
-  background-color: rgba(241, 255, 238, 0.95) !important;
-  border-color: rgba(59, 130, 246, 0.45) !important;
+  background-color: rgb(241, 255, 238) !important;
+  border-color: rgb(59, 130, 246) !important;
   border-radius: 0.5rem;
   transition:
     border-color 0.2s ease,
@@ -187,22 +187,9 @@ const applyFilter = () => {
     box-shadow 0.2s ease;
 }
 
-.range-selector :deep(.interactive-field .va-input-wrapper:hover),
-.range-selector :deep(.interactive-field .va-input-wrapper--focused),
-.range-selector :deep(.interactive-field .va-input-wrapper:focus-within) {
-  background-color: rgba(219, 234, 254, 0.95) !important;
-  border-color: rgba(27, 69, 255, 0.75) !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-}
-
-.apply-btn {
-  align-self: flex-end;
-  height: 2.5rem;
-}
-
 :deep(.admin-checkbox .va-checkbox__square) {
   background-color: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.4);
+  border: 1px solid rgb(15, 23, 42);
 }
 
 @media (max-width: 768px) {

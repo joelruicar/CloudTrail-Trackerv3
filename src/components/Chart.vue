@@ -74,7 +74,7 @@ const chartOptions = computed(() => ({
       max: isLaboratoryChart.value ? 100 : undefined,
       grid: {
         display: false,
-        color: 'rgba(220, 227, 241, 1)',
+        color: 'rgb(220, 227, 241)',
       },
     },
   },

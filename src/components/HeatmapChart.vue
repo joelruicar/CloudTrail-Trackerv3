@@ -9,10 +9,11 @@
 import { computed } from 'vue'
 //para la integracion con vue
 import { Chart as VueChart } from 'vue-chartjs'
+import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { Chart as ChartJS, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'
 import { MatrixController, MatrixElement } from 'chartjs-chart-matrix'
 
-ChartJS.register(CategoryScale, LinearScale, Tooltip, Legend, MatrixController, MatrixElement)
+ChartJS.register(CategoryScale, LinearScale, Tooltip, Legend, MatrixController, MatrixElement, ChartDataLabels)
 
 const props = defineProps({
   heatmapData: {
@@ -36,11 +37,15 @@ const chartHeight = computed(() => {
   return Math.max(360, rows * 28 + 140)
 })
 
-const colorForValue = (value) => {
-  if (value >= 80) return 'rgba(34, 197, 94, 0.78)'
-  if (value >= 40) return 'rgba(250, 204, 21, 0.78)'
-  if (value > 0) return 'rgba(249, 115, 22, 0.78)'
-  return 'rgba(148, 163, 184, 0.45)'
+const colorForValue = (value, raw) => {
+  if (raw?.x === 'Nota') {
+    return ' rgb(206,245,227)'
+  }
+
+  if (value >= 80) return ' rgb(34, 197, 94 )'
+  if (value >= 40) return ' rgb(250, 204, 21 )'
+  if (value > 0) return ' rgb(249, 115, 22 )'
+  return ' rgb(148, 163, 184, 0.45)'
 }
 
 const chartData = computed(() => ({
@@ -48,11 +53,15 @@ const chartData = computed(() => ({
     {
       label: 'Progreso (%)',
       data: props.heatmapData.points,
-      borderWidth: 1,
-      borderColor: 'rgba(255, 255, 255, 0.65)',
+      borderWidth: (context) => {
+        const raw = context.raw
+        return raw?.x === 'Nota' ? 2 : 0.1
+      },
+      borderColor: ' rgb(255, 255, 255, 0.65)',
       backgroundColor: (context) => {
-        const value = Number(context.raw?.v ?? 0)
-        return colorForValue(value)
+        const raw = context.raw
+        const value = Number(raw?.v ?? 0)
+        return colorForValue(value, raw)
       },
       width: (context) => {
         const chart = context.chart
@@ -77,7 +86,18 @@ const chartOptions = computed(() => ({
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    datalabels: { display: false },
+    // Configuración detallada de datalabels
+    datalabels: {
+      display: (context) => {
+        return context.dataset.data[context.dataIndex]?.x === 'Nota'
+      },
+      formatter: (value) => value.v, // Muestra el valor numérico (la nota)
+      color: '#000',
+      font: {
+        weight: 'bold',
+        size: 11,
+      },
+    },
     tooltip: {
       callbacks: {
         title: () => '',

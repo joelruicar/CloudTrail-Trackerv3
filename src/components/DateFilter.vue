@@ -141,7 +141,7 @@ onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
 
 :deep(.date-checkbox .va-checkbox__square) {
   background-color: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.4);
+  border: 1px solid rgb(15, 23, 42);
   align-self: center;
 }
 </style>
