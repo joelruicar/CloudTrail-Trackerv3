@@ -24,7 +24,7 @@
               <span class="stat-label">Alumnos en rango:</span>
               <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
             </div>
-            <div class="stat-item">
+            <div v-if="selectedStudentsFrom != selectedStudentsTo" class="stat-item">
               <span class="stat-label">Promedio:</span>
               <span class="stat-value">{{ awsStore.averageProgressByRange.toFixed(2) }}%</span>
             </div>

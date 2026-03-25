@@ -1,6 +1,12 @@
 <template>
   <div class="profile-dropdown-wrapper">
-    <VaDropdown v-model="isShown" :offset="[9, 0]" class="profile-dropdown" stick-to-edges>
+    <VaDropdown
+      v-model="isShown"
+      :offset="[9, 0]"
+      :close-on-content-click="false"
+      class="profile-dropdown"
+      stick-to-edges
+    >
       <template #anchor>
         <VaButton preset="secondary" color="textPrimary">
           <span class="profile-dropdown__anchor min-w-max">
@@ -9,10 +15,7 @@
           </span>
         </VaButton>
       </template>
-      <VaDropdownContent
-        class="profile-dropdown__content md:w-60 px-0 py-4 w-full"
-        :style="{ '--hover-color': hoverColor }"
-      >
+      <VaDropdownContent class="profile-dropdown__content px-0 py-4" :style="{ '--hover-color': hoverColor }">
         <VaList v-for="group in options" :key="group.name">
           <VaListItem
             v-for="item in group.list"
@@ -24,19 +27,31 @@
             {{ t(`user.${item.name}`) }}
           </VaListItem>
         </VaList>
+        <div class="theme-switch px-4 mt-2">
+          <span class="theme-switch__label">{{ isDarkTheme ? t('buttonSelect.dark') : t('buttonSelect.light') }}</span>
+          <VaSwitch v-model="isDarkTheme" size="small" color="primary" />
+        </div>
       </VaDropdownContent>
     </VaDropdown>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useColors } from 'vuestic-ui'
 import { useAuthStore } from '../../../../stores/auth'
-const { colors, setHSLAColor } = useColors()
+const { colors, setHSLAColor, applyPreset, currentPresetName } = useColors()
 const hoverColor = computed(() => setHSLAColor(colors.focus, { a: 0.1 }))
+const THEME_STORAGE_KEY = 'theme-preset'
+
+const isDarkTheme = computed({
+  get: () => currentPresetName.value === 'dark',
+  set: (value: boolean) => {
+    applyPreset(value ? 'dark' : 'light')
+  },
+})
 
 const { t } = useI18n()
 const router = useRouter()
@@ -65,11 +80,6 @@ withDefaults(
         separator: false,
         list: [
           {
-            name: 'settings',
-            to: 'settings',
-            icon: 'mso-settings',
-          },
-          {
             name: 'change-password',
             to: 'change-password',
             icon: 'mso-password',
@@ -85,6 +95,25 @@ withDefaults(
   },
 )
 const isShown = ref(false)
+
+onMounted(() => {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY)
+  if (savedTheme === 'dark' || savedTheme === 'light') {
+    applyPreset(savedTheme)
+    return
+  }
+
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    applyPreset('dark')
+  }
+})
+
+watch(currentPresetName, (preset) => {
+  if (preset === 'dark' || preset === 'light') {
+    localStorage.setItem(THEME_STORAGE_KEY, preset)
+  }
+})
+
 const handleItemClick = async (item: ProfileListItem) => {
   if (item.name === 'logout') {
     try {
@@ -112,6 +141,10 @@ const handleItemClick = async (item: ProfileListItem) => {
   cursor: pointer;
 
   &__content {
+    width: 15rem;
+    max-width: calc(100vw - 1rem);
+    overflow-x: hidden;
+
     .menu-item:hover {
       background: var(--hover-color);
     }
@@ -120,5 +153,16 @@ const handleItemClick = async (item: ProfileListItem) => {
   &__anchor {
     display: inline-block;
   }
+}
+
+.theme-switch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-switch__label {
+  font-size: 0.95rem;
 }
 </style>

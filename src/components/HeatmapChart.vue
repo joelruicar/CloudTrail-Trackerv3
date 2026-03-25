@@ -12,6 +12,7 @@ import { Chart as VueChart } from 'vue-chartjs'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { Chart as ChartJS, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'
 import { MatrixController, MatrixElement } from 'chartjs-chart-matrix'
+import { useColors } from 'vuestic-ui'
 
 ChartJS.register(CategoryScale, LinearScale, Tooltip, Legend, MatrixController, MatrixElement, ChartDataLabels)
 
@@ -31,21 +32,30 @@ const props = defineProps({
 })
 
 const hasData = computed(() => props.heatmapData.points.length > 0)
+const { getColor, colorToRgba } = useColors()
 
 const chartHeight = computed(() => {
   const rows = Math.max(1, props.heatmapData.students.length)
   return Math.max(360, rows * 28 + 140)
 })
 
+const heatmapColors = computed(() => ({
+  nota: getColor('heatmapNota'),
+  success: getColor('heatmapSuccess'),
+  warning: getColor('heatmapWarning'),
+  danger: getColor('heatmapDanger'),
+  empty: colorToRgba(getColor('heatmapEmpty'), 0.45),
+}))
+
 const colorForValue = (value, raw) => {
   if (raw?.x === 'Nota') {
-    return ' rgb(206,245,227)'
+    return heatmapColors.value.nota
   }
 
-  if (value >= 80) return ' rgb(34, 197, 94 )'
-  if (value >= 40) return ' rgb(250, 204, 21 )'
-  if (value > 0) return ' rgb(249, 115, 22 )'
-  return ' rgb(148, 163, 184, 0.45)'
+  if (value >= 80) return heatmapColors.value.success
+  if (value >= 40) return heatmapColors.value.warning
+  if (value > 0) return heatmapColors.value.danger
+  return heatmapColors.value.empty
 }
 
 const chartData = computed(() => ({

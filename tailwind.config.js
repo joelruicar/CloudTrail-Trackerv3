@@ -30,6 +30,7 @@ export default {
         textInverted: 'var(--va-text-inverted)',
         shadow: 'var(--va-shadow)',
         focus: 'var(--va-focus)',
+        tableText: 'var(--va-table-text)',
       },
       screens: {
         xs: '0px',

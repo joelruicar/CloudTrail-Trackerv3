@@ -132,7 +132,7 @@ defineExpose({ scrollToTable })
 }
 
 .event-link {
-  color: #000;
+  color: var(--va-table-text);
   text-decoration: none;
   cursor: pointer;
 }
@@ -141,7 +141,7 @@ defineExpose({ scrollToTable })
 .event-link:focus,
 .event-link:visited,
 .event-link:active {
-  color: #000;
+  color: var(--va-table-text);
   text-decoration: none;
 }
 

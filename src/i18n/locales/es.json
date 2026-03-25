@@ -139,6 +139,10 @@
   "search": {
     "placeholder": "Buscar..."
   },
+  "buttonSelect": {
+    "dark": "Oscuro",
+    "light": "Claro"
+  },
   "vuestic": {
     "search": "Buscar",
     "noOptions": "No se encontraron elementos",
