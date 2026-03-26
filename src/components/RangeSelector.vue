@@ -2,24 +2,32 @@
   <div class="range-selector">
     <div class="range-inputs">
       <div class="input-group">
-        <label for="course">Curso:</label>
+        <label
+          for="course" 
+          style="color: var(--va-plain-text)"
+        >>Curso:</label>
         <VaSelect
           id="course"
           v-model="selectedCourse"
           :options="courseOptions"
           class="interactive-field"
-          background="#eef6ff"
+          background="textInput"
           color="primary"
         />
       </div>
-      <div v-if="authStore.isProfessor" class="input-group">
-        <label for="fromStudent">Desde alumno:</label>
+      <div
+        v-if="authStore.isProfessor"
+        class="input-group"
+      >
+        <label
+          for="fromStudent" 
+          style="color: var(--va-plain-text)"
+        >>Desde alumno:</label>
         <VaInput
           id="fromStudent"
           v-model.number="localRange.from"
           class="interactive-field"
-          background="#eef6ff"
-          color="primary"
+          background="textInput"
           type="number"
           :min="0"
           :max="maxFrom"
@@ -27,14 +35,19 @@
           @update:modelValue="normalizeRange"
         />
       </div>
-      <div v-if="authStore.isProfessor" class="input-group">
-        <label for="toStudent">Hasta alumno:</label>
+      <div
+        v-if="authStore.isProfessor"
+        class="input-group"
+      >
+        <label
+          for="toStudent" 
+          style="color: var(--va-plain-text)"
+        >>Hasta alumno:</label>
         <VaInput
           id="toStudent"
           v-model.number="localRange.to"
           class="interactive-field"
-          background="#eef6ff"
-          color="primary"
+          background="textInput"
           type="number"
           :disabled="singleStudentMode"
           :min="singleStudentMode ? localRange.from : 0"
@@ -43,13 +56,26 @@
           @update:modelValue="normalizeRange"
         />
       </div>
-      <div v-if="authStore.isProfessor" class="admin-checkbox">
-        <VaCheckbox v-model="singleStudentMode" label="Buscar por alumno" />
+      <div
+        v-if="authStore.isProfessor"
+        class="admin-checkbox"
+      >
+        <VaCheckbox
+          v-model="singleStudentMode"
+          label="Buscar por alumno"
+        
+          style="color: var(--va-plain-text)"
+        />
       </div>
       <div class="input-group">
         <DateFilter v-model="selectedDateRange" />
       </div>
-      <VaButton class="apply-btn" :disabled="!selectedCourse || !hasValidBounds" @click="applyFilter">
+      <VaButton
+        class="apply-btn"
+        color="buttonColor"
+        :disabled="!selectedCourse || !hasValidBounds"
+        @click="applyFilter"
+      >
         Search
       </VaButton>
     </div>
@@ -175,16 +201,6 @@ const applyFilter = () => {
 .input-group label {
   font-weight: 600;
   font-size: 0.875rem;
-}
-
-.range-selector :deep(.interactive-field .va-input-wrapper) {
-  background-color: rgb(241, 255, 238) !important;
-  border-color: rgb(59, 130, 246) !important;
-  border-radius: 0.5rem;
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    box-shadow 0.2s ease;
 }
 
 :deep(.admin-checkbox .va-checkbox__square) {

@@ -1,24 +1,66 @@
 <template>
-  <div v-if="awsStore.loading" class="loading-overlay">
-    <VaProgressCircle indeterminate size="large" />
+  <div
+    v-if="awsStore.loading"
+    class="loading-overlay"
+  >
+    <VaProgressCircle
+      indeterminate
+      size="large"
+    />
   </div>
-  <VaCard v-else class="p-4">
-    <h1 class="text-2xl font-bold mb-4">Dashboard</h1>
+  <VaCard
+    v-else
+    class="p-4"
+  >
+    <h1
+      class="text-2xl font-bold mb-4" 
+      style="color: var(--va-plain-text)"
+    >
+      Dashboard
+    </h1>
     <InfoWidgets />
-    <VaSelect v-model="timeRange" :options="options" label="Select time range" class="date-select" />
+    <VaSelect
+      v-model="timeRange"
+      :options="options"
+      label="Select time range"
+      class="date-select"
+    />
     <div class="charts-column">
       <VaCard class="hart-card">
-        <VaCardTitle>AWS services used in the last hour</VaCardTitle>
-        <Chart :chart-data="awsStore.chartDataServices" x-axis="Services" y-axis="#times" />
+        <VaCardTitle style="color: var(--va-chart-title)">
+          AWS services used in the last hour
+        </VaCardTitle>
+        <Chart
+          :chart-data="awsStore.chartDataServices"
+          x-axis="Services"
+          y-axis="#times"
+        />
       </VaCard>
       <VaCard class="chart-card">
-        <VaCardTitle>Users who have used AWS services</VaCardTitle>
-        <Chart :chart-data="awsStore.chartDataUsers" x-axis="Users" y-axis="#times" />
+        <VaCardTitle style="color: var(--va-chart-title)">
+          Users who have used AWS services
+        </VaCardTitle>
+        <Chart
+          :chart-data="awsStore.chartDataUsers"
+          x-axis="Users"
+          y-axis="#times"
+        />
       </VaCard>
     </div>
-    <VaButton color="primary" @click="display = !display">Details</VaButton>
-    <Transition name="expand" @afterEnter="handleAfterEnter">
-      <Table v-if="!display" ref="eventsTable" />
+    <VaButton
+      color="buttonColor"
+      @click="display = !display"
+    >
+      Details
+    </VaButton>
+    <Transition
+      name="expand"
+      @afterEnter="handleAfterEnter"
+    >
+      <Table
+        v-if="!display"
+        ref="eventsTable"
+      />
     </Transition>
   </VaCard>
 </template>

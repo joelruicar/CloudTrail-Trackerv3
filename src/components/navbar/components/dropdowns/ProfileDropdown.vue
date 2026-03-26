@@ -8,28 +8,48 @@
       stick-to-edges
     >
       <template #anchor>
-        <VaButton preset="secondary" color="textPrimary">
+        <VaButton
+          preset="secondary"
+          color="textPrimary"
+        >
           <span class="profile-dropdown__anchor min-w-max">
             <slot />
-            <VaAvatar :size="32" color="warning"> 😍 </VaAvatar>
+            <VaAvatar
+              :size="32"
+              color="warning"
+            > 😍 </VaAvatar>
           </span>
         </VaButton>
       </template>
-      <VaDropdownContent class="profile-dropdown__content px-0 py-4" :style="{ '--hover-color': hoverColor }">
-        <VaList v-for="group in options" :key="group.name">
+      <VaDropdownContent
+        class="profile-dropdown__content px-0 py-4"
+        :style="{ '--hover-color': hoverColor }"
+      >
+        <VaList
+          v-for="group in options"
+          :key="group.name"
+        >
           <VaListItem
             v-for="item in group.list"
             :key="item.name"
             class="menu-item px-4 text-base cursor-pointer h-8"
             @click="handleItemClick(item)"
           >
-            <VaIcon :name="item.icon" class="pr-1" color="secondary" />
+            <VaIcon
+              :name="item.icon"
+              class="pr-1"
+              color="secondary"
+            />
             {{ t(`user.${item.name}`) }}
           </VaListItem>
         </VaList>
         <div class="theme-switch px-4 mt-2">
+          <VaSwitch
+            v-model="isDarkTheme"
+            size="small"
+            color="primary"
+          />
           <span class="theme-switch__label">{{ isDarkTheme ? t('buttonSelect.dark') : t('buttonSelect.light') }}</span>
-          <VaSwitch v-model="isDarkTheme" size="small" color="primary" />
         </div>
       </VaDropdownContent>
     </VaDropdown>
@@ -157,12 +177,10 @@ const handleItemClick = async (item: ProfileListItem) => {
 
 .theme-switch {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.4rem;
 }
 
-.theme-switch__label {
-  font-size: 0.95rem;
-}
+
 </style>

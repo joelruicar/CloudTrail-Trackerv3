@@ -1,42 +1,80 @@
 <template>
   <VaCard class="p-2 sm:p-4 overflow-visible">
-    <h1 class="text-xl sm:text-2xl font-bold mb-4">Search by course</h1>
+    <h1
+      class="text-xl sm:text-2xl font-bold mb-4"
+      style="color: var(--va-plain-text)"
+    >
+      Search by course
+    </h1>
     <RangeSelector
       :total-students="awsStore.allUsers.filter((u) => u.startsWith('alucloud')).length"
       :courses="courseOptions"
       @filterApplied="handleFilterApplied"
     />
-    <div v-if="awsStore.loading" class="loading-overlay">
-      <VaProgressCircle indeterminate size="large" />
+    <div
+      v-if="awsStore.loading"
+      class="loading-overlay"
+    >
+      <VaProgressCircle
+        indeterminate
+        size="large"
+      />
     </div>
-    <div v-else-if="hasSearched" class="mb-4">
+    <div
+      v-else-if="hasSearched"
+      class="mb-4"
+    >
       <template v-if="hasResults">
         <VaCard>
-          <VaCardTitle>
+          <VaCardTitle style="color: var(--va-chart-title)">
             Promedio de Avance por Práctica de laboratorio - {{ selectedCourseLabel || 'Sin curso' }}
           </VaCardTitle>
           <div class="progress-stats">
-            <div v-if="selectedStudentsFrom == selectedStudentsTo" class="stat-item">
-              <span class="stat-label">Alumno:</span>
+            <div
+              v-if="selectedStudentsFrom == selectedStudentsTo"
+              class="stat-item"
+            >
+              <span
+                class="stat-label"
+                style="color: var(--va-plain-text)"
+              >Alumno:</span>
               <span class="stat-value">alucloud{{ selectedStudentsFrom }}</span>
             </div>
-            <div v-else class="stat-item">
-              <span class="stat-label">Alumnos en rango:</span>
+            <div
+              v-else
+              class="stat-item"
+            >
+              <span
+                class="stat-label"
+                style="color: var(--va-plain-text)"
+              >Alumnos en rango:</span>
               <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
             </div>
-            <div v-if="selectedStudentsFrom != selectedStudentsTo" class="stat-item">
-              <span class="stat-label">Promedio:</span>
+            <div
+              v-if="selectedStudentsFrom != selectedStudentsTo"
+              class="stat-item"
+            >
+              <span
+                class="stat-label"
+                style="color: var(--va-plain-text)"
+              >Promedio:</span>
               <span class="stat-value">{{ awsStore.averageProgressByRange.toFixed(2) }}%</span>
             </div>
             <div
               v-if="selectedStudentsFrom === selectedStudentsTo && singleStudentFinalGrade !== null"
               class="stat-item"
             >
-              <span class="stat-label">Nota:</span>
+              <span
+                class="stat-label"
+                style="color: var(--va-plain-text)"
+              >Nota:</span>
               <span class="stat-value">{{ singleStudentFinalGrade.toFixed(1) }}/1</span>
             </div>
           </div>
-          <div v-if="courseInsights.length && selectedStudentsFrom != selectedStudentsTo" class="mb-4">
+          <div
+            v-if="courseInsights.length && selectedStudentsFrom != selectedStudentsTo"
+            class="mb-4"
+          >
             <VaCard>
               <div class="insights-list">
                 <div
@@ -44,20 +82,45 @@
                   :key="insight.id"
                   class="insight-item"
                   :class="`insight-item--${insight.tone}`"
+                  style="color: var(--va-plain-text)"
                 >
                   {{ insight.message }}
                 </div>
               </div>
             </VaCard>
           </div>
-          <Chart :chart-data="averageProgressChart" x-axis="Práctica" y-axis="%" title="laboratory" />
+          <Chart
+            :chart-data="averageProgressChart"
+            x-axis="Práctica"
+            y-axis="%"
+            title="laboratory"
+          />
         </VaCard>
-        <VaCard v-if="heatmapData.students.length && selectedStudentsFrom != selectedStudentsTo" class="mb-4">
-          <VaCardTitle>Heatmap de Progreso por Alumno</VaCardTitle>
-          <HeatmapChart :heatmap-data="heatmapData" x-axis="Práctica" y-axis="Alumno" class="heatmap-block" />
+        <VaCard
+          v-if="heatmapData.students.length && selectedStudentsFrom != selectedStudentsTo"
+          class="mb-4"
+        >
+          <VaCardTitle style="color: var(--va-chart-title)">
+            Heatmap de Progreso por Alumno
+          </VaCardTitle>
+          <HeatmapChart
+            :heatmap-data="heatmapData"
+            x-axis="Práctica"
+            y-axis="Alumno"
+            class="heatmap-block"
+          />
         </VaCard>
-        <VaButton color="primary" class="mb-4" @click="displayDetails = !displayDetails"> Details </VaButton>
-        <Transition name="expand" @afterEnter="handleAfterEnter">
+        <VaButton
+          color="buttonColor"
+          class="mb-4"
+          @click="displayDetails = !displayDetails"
+        >
+          Details
+        </VaButton>
+        <Transition
+          name="expand"
+          @afterEnter="handleAfterEnter"
+        >
           <div
             v-if="!displayDetails"
             ref="tableContainerRef"
@@ -66,10 +129,19 @@
           >
             <VaCard>
               <div class="table-toolbar">
-                <VaInput v-model="searchQuery" class="search-input" placeholder="Search" clearable />
+                <VaInput
+                  v-model="searchQuery"
+                  class="search-input"
+                  placeholder="Search"
+                  clearable
+                />
                 <label class="per-page-label">
                   Show
-                  <VaSelect v-model="perPage" :options="[10, 25, 50, 100]" class="page-select-inline" />
+                  <VaSelect
+                    v-model="perPage"
+                    :options="[10, 25, 50, 100]"
+                    class="page-select-inline"
+                  />
                   entries
                 </label>
               </div>
@@ -83,8 +155,11 @@
                 :current-page="currentPage"
                 :disable-client-side-sorting="false"
                 hoverable
+                style="color: var(--va-plain-text)"
               >
-                <template #cell(completionPercent)="{ rowData }">{{ rowData.completionPercent.toFixed(2) }}%</template>
+                <template #cell(completionPercent)="{ rowData }">
+                  {{ rowData.completionPercent.toFixed(2) }}%
+                </template>
                 <template #cell(lastRelatedEventDate)="{ rowData }">
                   {{ rowData.lastRelatedEventDate || '-' }}
                 </template>
@@ -94,7 +169,7 @@
                   v-model="currentPage"
                   :pages="pages"
                   active-page-color="remarkPrimary"
-                  color="primary"
+                  color="buttonColor"
                   size="small"
                 />
               </div>
@@ -117,6 +192,7 @@ import {
   VaSelect,
   VaPagination,
 } from 'vuestic-ui'
+import { useColors } from 'vuestic-ui'
 import { useAcademicYear } from '../../composables/useAcademicYear'
 import RangeSelector from '../../components/RangeSelector.vue'
 import HeatmapChart from '../../components/HeatmapChart.vue'
@@ -128,6 +204,7 @@ import dayjs from 'dayjs'
 
 const awsStore = useAwsStore()
 const authStore = useAuthStore()
+const { getColor } = useColors()
 const { calculateRange } = useAcademicYear()
 const displayDetails = ref(true)
 const selectedCourseLabel = ref('')
@@ -368,21 +445,25 @@ const averageProgressChart = computed(() => {
   const labels = Array.from(new Set(subjectsInCourse))
 
   const myColors: Record<string, string> = {}
+  const successColor = getColor('heatmapSuccess')
+  const warningColor = getColor('heatmapWarning')
+  const dangerColor = getColor('heatmapDanger')
+  const emptyColor = getColor('heatmapEmpty')
   const data = labels.map((subject) => {
     const subjectRows = awsStore.studentProgressData.filter((row) => row.subject === subject)
     if (!subjectRows.length) {
-      myColors[subject] = 'rgb(200,200,200)'
+      myColors[subject] = emptyColor
       return 0
     }
 
     const number = Number((subjectRows.reduce((sum, row) => sum + row.progress, 0) / subjectRows.length).toFixed(2))
 
     if (80 <= number && number <= 100) {
-      myColors[subject] = 'rgb(34, 197, 94)'
+      myColors[subject] = successColor
     } else if (40 < number && number < 79) {
-      myColors[subject] = 'rgb(250, 204, 21)'
+      myColors[subject] = warningColor
     } else {
-      myColors[subject] = 'rgb(249, 115, 22)'
+      myColors[subject] = dangerColor
     }
 
     return number

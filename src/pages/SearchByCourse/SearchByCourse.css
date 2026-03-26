@@ -28,21 +28,21 @@
 }
 
 .insight-item--danger {
-  background: rgba(239, 68, 68, 0.12);
-  color: #991b1b;
-  border-color: rgba(239, 68, 68, 0.28);
+  background: var(--va-insight-danger-background);
+  color: var(--va-insight-danger-text);
+  border-color: var(--va-insight-danger-border);
 }
 
 .insight-item--success {
-  background: rgba(34, 197, 94, 0.12);
-  color: #166534;
-  border-color: rgba(34, 197, 94, 0.3);
+  background: var(--va-insight-success-background);
+  color: var(--va-insight-success-text);
+  border-color: var(--va-insight-success-border);
 }
 
 .insight-item--warning {
-  background: rgba(245, 158, 11, 0.14);
-  color: #92400e;
-  border-color: rgba(245, 158, 11, 0.34);
+  background: var(--va-insight-warning-background);
+  color: var(--va-insight-warning-text);
+  border-color: var(--va-insight-warning-border);
 }
 
 .heatmap-block {

@@ -1,6 +1,18 @@
 <template>
-  <svg :height="height * 1.25" viewBox="0 0 600 70" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <text x="0" y="55" font-size="60" font-weight="bold" font-family="Arial, sans-serif" :fill="colorsComputed.start">
+  <svg
+    :height="height * 1.25"
+    viewBox="0 0 600 70"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <text
+      x="0"
+      y="55"
+      font-size="60"
+      font-weight="bold"
+      font-family="Arial, sans-serif"
+      :fill="colorsComputed.start"
+    >
       CloudTrail-Tracker
     </text>
   </svg>

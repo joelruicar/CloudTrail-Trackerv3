@@ -1,18 +1,33 @@
 <template>
-  <VaCard ref="tableCard" class="full-height-card">
+  <VaCard
+    ref="tableCard"
+    class="full-height-card"
+  >
     <VaCardContent>
       <div class="table-container">
         <div class="table-toolbar">
           <div class="search-group">
-            <VaInput v-model="searchQuery" class="search-input" placeholder="Search..." clearable />
+            <VaInput
+              v-model="searchQuery"
+              class="search-input"
+              placeholder="Search..."
+              clearable
+            />
           </div>
           <label class="per-page-label">
             Show
-            <VaSelect v-model="perPage" :options="[10, 25, 50, 100]" class="page-select-inline" />
+            <VaSelect
+              v-model="perPage"
+              :options="[10, 25, 50, 100]"
+              class="page-select-inline"
+            />
             entries
           </label>
         </div>
-        <div class="table-container" :style="{ minHeight: `${perPage * 45 + 50}px` }">
+        <div
+          class="table-container"
+          :style="{ minHeight: `${perPage * 45 + 50}px` }"
+        >
           <VaDataTable
             v-model:sort-by="sortBy"
             v-model:sorting-order="sortingOrder"
@@ -42,7 +57,11 @@
                 content-class="event-popover-content"
                 stick-to-edges
               >
-                <a :href="rowData.eventLink" target="_blank" class="event-link">
+                <a
+                  :href="rowData.eventLink"
+                  target="_blank"
+                  class="event-link"
+                >
                   {{ rowData.eventName }}
                 </a>
               </VaPopover>
@@ -112,7 +131,7 @@ defineExpose({ scrollToTable })
 
 .chart-card {
   border-radius: 15px;
-  background: white;
+  /* background: white; */
 }
 
 .per-page-label {
@@ -131,8 +150,15 @@ defineExpose({ scrollToTable })
   width: 300px;
 }
 
+.table-container :deep(.va-data-table),
+.table-container :deep(.va-data-table table),
+.table-container :deep(.va-data-table th),
+.table-container :deep(.va-data-table td) {
+  color: var(--va-plain-text) !important;
+}
+
 .event-link {
-  color: var(--va-table-text);
+  color: var(--va-plain-text);
   text-decoration: none;
   cursor: pointer;
 }
@@ -141,7 +167,7 @@ defineExpose({ scrollToTable })
 .event-link:focus,
 .event-link:visited,
 .event-link:active {
-  color: var(--va-table-text);
+  color: var(--va-plain-text);
   text-decoration: none;
 }
 

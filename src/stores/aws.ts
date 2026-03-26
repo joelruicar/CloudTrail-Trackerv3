@@ -97,9 +97,6 @@ export const useAwsStore = defineStore('aws', {
         datasets: [
           {
             label: 'AWS Services Usage',
-            backgroundColor: 'rgba(74, 227, 135, 0.2)',
-            borderColor: 'rgba(0, 102, 0, 1)',
-            borderWidth: 1,
             data: Object.values(counts),
           },
         ],
@@ -130,9 +127,6 @@ export const useAwsStore = defineStore('aws', {
         datasets: [
           {
             label: 'Users who have used AWS services',
-            backgroundColor: 'rgba(74, 227, 135, 0.2)',
-            borderColor: 'rgba(0, 102, 0, 1)',
-            borderWidth: 1,
             data: Object.values(counts),
           },
         ],

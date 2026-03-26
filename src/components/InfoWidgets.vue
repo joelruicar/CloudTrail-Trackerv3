@@ -1,10 +1,18 @@
 <template>
   <div class="metrics-grid">
-    <VaCard v-for="(val, key) in data" :key="key" class="metric-card">
+    <VaCard
+      v-for="(val, key) in data"
+      :key="key"
+      class="metric-card"
+    >
       <VaCardContent class="card-layout">
         <div class="stats-area">
-          <div class="stats-number">{{ val }}</div>
-          <div class="stats-title">{{ key }}</div>
+          <div class="stats-number">
+            {{ val }}
+          </div>
+          <div class="stats-title">
+            {{ key }}
+          </div>
         </div>
       </VaCardContent>
     </VaCard>
@@ -37,8 +45,8 @@ const data = computed(() => awsStore.metrics)
 .metric-card {
   min-width: 0;
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--va-widget-metric);
+  box-shadow: 0 4px 12px var(--va-widget-metric);
   transition:
     transform 0.2s,
     box-shadow 0.2s;
@@ -46,7 +54,7 @@ const data = computed(() => awsStore.metrics)
 
 .metric-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 20px var(--va-widget-metric);
 }
 
 .card-layout {
@@ -69,7 +77,7 @@ const data = computed(() => awsStore.metrics)
 .stats-number {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #265822;
+  color: var(--va-widget-text);
   line-height: 1.1;
   margin-bottom: 0.5rem;
 }
@@ -77,7 +85,7 @@ const data = computed(() => awsStore.metrics)
 .stats-title {
   font-size: 1rem;
   font-weight: 500;
-  color: #00351c;
+  color: var(--va-widget-text);
   letter-spacing: 0.05em;
   text-transform: capitalize;
 }

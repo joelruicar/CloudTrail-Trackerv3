@@ -1,9 +1,18 @@
 <template>
   <div class="password-change-container">
-    <VaForm ref="passwordForm" class="p-4" @submit.prevent="handlePasswordChange">
-      <h1 class="font-semibold text-4xl mb-4">Change Password</h1>
+    <VaForm
+      ref="passwordForm"
+      class="p-4"
+      @submit.prevent="handlePasswordChange"
+    >
+      <h1 class="font-semibold text-4xl mb-4">
+        Change Password
+      </h1>
 
-      <VaValue v-slot="isOldVisible" :default-value="false">
+      <VaValue
+        v-slot="isOldVisible"
+        :default-value="false"
+      >
         <VaInput
           v-model="oldPass"
           label="Current Password"
@@ -22,7 +31,10 @@
         </VaInput>
       </VaValue>
 
-      <VaValue v-slot="isNewVisible" :default-value="false">
+      <VaValue
+        v-slot="isNewVisible"
+        :default-value="false"
+      >
         <VaInput
           v-model="newPass"
           label="New Password"
@@ -41,13 +53,29 @@
         </VaInput>
       </VaValue>
 
-      <VaAlert v-if="error" color="danger" class="mb-4" outline>
+      <VaAlert
+        v-if="error"
+        color="danger"
+        class="mb-4"
+        outline
+      >
         {{ errorMessage }}
       </VaAlert>
 
       <div class="flex gap-2">
-        <VaButton class="w-full" type="submit" :loading="processing"> Confirm New Password </VaButton>
-        <VaButton preset="secondary" @click="router.back()"> Cancel </VaButton>
+        <VaButton
+          class="w-full"
+          type="submit"
+          :loading="processing"
+        >
+          Confirm New Password
+        </VaButton>
+        <VaButton
+          preset="secondary"
+          @click="router.back()"
+        >
+          Cancel
+        </VaButton>
       </div>
     </VaForm>
   </div>

@@ -1,7 +1,17 @@
 <template>
   <div class="chart-wrapper">
-    <Bar v-if="chartData?.datasets?.[0]?.data?.length > 0" :data="chartData" :options="chartOptions" />
-    <div v-else class="empty-state">No available data</div>
+    <Bar
+      v-if="chartData?.datasets?.[0]?.data?.length > 0"
+      :key="chartRenderKey"
+      :data="chartData"
+      :options="chartOptions"
+    />
+    <div
+      v-else
+      class="empty-state"
+    >
+      No available data
+    </div>
   </div>
 </template>
 
@@ -10,8 +20,9 @@ import { Bar } from 'vue-chartjs'
 import { Chart, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
 import { computed } from 'vue'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
+import { useColors } from 'vuestic-ui'
 Chart.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ChartDataLabels)
-
+const { getColor, colorToRgba, currentPresetName } = useColors()
 const props = defineProps({
   chartData: { type: Object, required: true },
   title: { type: String, default: '' },
@@ -20,12 +31,18 @@ const props = defineProps({
 })
 
 const isLaboratoryChart = computed(() => props.title.toLowerCase().includes('laboratory'))
+const chartTextColor = computed(() => getColor('blackText'))
+const chartNumberColor = computed(() => getColor('chartColor'))
+const chartRenderKey = computed(() => `${currentPresetName.value}-${props.title}-${props.xAxis}-${props.yAxis}`)
 
 const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   datasets: {
     bar: {
+      backgroundColor: colorToRgba(getColor('chartColor'), 0.8),
+      borderColor: 'transparent',
+      borderWidth: 0,
       maxBarThickness: 50,
       barPercentage: 0.5,
       categoryPercentage: 0.8,
@@ -36,6 +53,7 @@ const chartOptions = computed(() => ({
     title: {
       display: false,
       text: props.title,
+      color: chartTextColor.value,
     },
     datalabels: {
       display: (context) => {
@@ -43,7 +61,7 @@ const chartOptions = computed(() => ({
       },
       align: 'end',
       anchor: 'end',
-      color: '#000',
+      color: chartNumberColor.value,
       font: {
         size: 10,
         weight: 'bold',
@@ -57,30 +75,29 @@ const chartOptions = computed(() => ({
       title: {
         display: true,
         text: props.xAxis,
-        color: '#000',
+        color: chartTextColor.value,
         font: { weight: 'bold', family: 'Helvetica' },
       },
       grid: { display: false },
-      ticks: { color: '#000' },
+      ticks: { color: chartTextColor.value },
     },
     y: {
       title: {
         display: true,
         text: props.yAxis,
-        color: '#000',
+        color: chartTextColor.value,
         font: { weight: 'bold', family: 'Helvetica' },
       },
       beginAtZero: true,
       max: isLaboratoryChart.value ? 100 : undefined,
       grid: {
         display: false,
-        color: 'rgb(220, 227, 241)',
       },
+      ticks: { color: chartTextColor.value },
     },
   },
 }))
 </script>
-
 <style scoped>
 .chart-wrapper {
   position: relative;
@@ -93,6 +110,6 @@ const chartOptions = computed(() => ({
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #94a3b8;
+  color: var(--va-empty-state);
 }
 </style>

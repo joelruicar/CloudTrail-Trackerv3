@@ -4,7 +4,6 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import i18n from './i18n'
 import { createVuestic } from 'vuestic-ui'
-import { createGtm } from '@gtm-support/vue-gtm'
 
 import { createPinia } from 'pinia'
 import router from './router'
@@ -19,15 +18,5 @@ app.use(createPinia())
 app.use(router)
 app.use(i18n)
 app.use(createVuestic({ config: vuesticGlobalConfig }))
-
-if (import.meta.env.VITE_APP_GTM_ENABLED) {
-  app.use(
-    createGtm({
-      id: import.meta.env.VITE_APP_GTM_KEY,
-      debug: false,
-      vueRouter: router,
-    }),
-  )
-}
 
 app.mount('#app')

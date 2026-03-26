@@ -2,9 +2,6 @@
 @use 'icon-fonts/index';
 @use 'vuestic';
 @use 'vuestic-ui/dist/vuestic-ui.css';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* 2. Importación de Vuestic UI como CSS estático */
 /* Usamos @import aquí porque Vite resolverá la ruta al archivo CSS final */

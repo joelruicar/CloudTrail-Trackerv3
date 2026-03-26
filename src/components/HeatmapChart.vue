@@ -1,7 +1,21 @@
 <template>
-  <div class="chart-wrapper" :style="{ height: `${chartHeight}px` }">
-    <VueChart v-if="hasData" type="matrix" :data="chartData" :options="chartOptions" />
-    <div v-else class="empty-state">No available data</div>
+  <div
+    class="chart-wrapper"
+    :style="{ height: `${chartHeight}px` }"
+  >
+    <VueChart
+      v-if="hasData"
+      :key="chartRenderKey"
+      type="matrix"
+      :data="chartData"
+      :options="chartOptions"
+    />
+    <div
+      v-else
+      class="empty-state"
+    >
+      No available data
+    </div>
   </div>
 </template>
 
@@ -32,7 +46,11 @@ const props = defineProps({
 })
 
 const hasData = computed(() => props.heatmapData.points.length > 0)
-const { getColor, colorToRgba } = useColors()
+const { getColor, colorToRgba, currentPresetName } = useColors()
+
+const chartRenderKey = computed(
+  () => `${currentPresetName.value}-${props.heatmapData.points.length}-${props.heatmapData.subjects.length}`,
+)
 
 const chartHeight = computed(() => {
   const rows = Math.max(1, props.heatmapData.students.length)
@@ -45,6 +63,8 @@ const heatmapColors = computed(() => ({
   warning: getColor('heatmapWarning'),
   danger: getColor('heatmapDanger'),
   empty: colorToRgba(getColor('heatmapEmpty'), 0.45),
+  border: getColor('borderColorHeatmap'),
+  axisText: getColor('blackText'),
 }))
 
 const colorForValue = (value, raw) => {
@@ -67,11 +87,21 @@ const chartData = computed(() => ({
         const raw = context.raw
         return raw?.x === 'Nota' ? 2 : 0.1
       },
-      borderColor: ' rgb(255, 255, 255, 0.65)',
+      borderColor: heatmapColors.value.border,
       backgroundColor: (context) => {
         const raw = context.raw
         const value = Number(raw?.v ?? 0)
         return colorForValue(value, raw)
+      },
+      hoverBackgroundColor: (context) => {
+        const raw = context.raw
+        const value = Number(raw?.v ?? 0)
+        return colorForValue(value, raw)
+      },
+      hoverBorderColor: heatmapColors.value.border,
+      hoverBorderWidth: (context) => {
+        const raw = context.raw
+        return raw?.x === 'Nota' ? 2 : 0.1
       },
       width: (context) => {
         const chart = context.chart
@@ -102,7 +132,7 @@ const chartOptions = computed(() => ({
         return context.dataset.data[context.dataIndex]?.x === 'Nota'
       },
       formatter: (value) => value.v, // Muestra el valor numérico (la nota)
-      color: '#000',
+      // color: '#000',
       font: {
         weight: 'bold',
         size: 11,
@@ -128,12 +158,12 @@ const chartOptions = computed(() => ({
       title: {
         display: true,
         text: props.xAxis,
-        color: '#000',
+        color: heatmapColors.value.axisText,
         font: { weight: 'bold', family: 'Helvetica' },
       },
       grid: { display: false },
       ticks: {
-        color: '#000',
+        color: heatmapColors.value.axisText,
         autoSkip: false,
         maxRotation: 60,
         minRotation: 35,
@@ -146,11 +176,11 @@ const chartOptions = computed(() => ({
       title: {
         display: true,
         text: props.yAxis,
-        color: '#000',
+        color: heatmapColors.value.axisText,
         font: { weight: 'bold', family: 'Helvetica' },
       },
       grid: { display: false },
-      ticks: { color: '#000' },
+      ticks: { color: heatmapColors.value.axisText },
       reverse: true,
     },
   },
@@ -168,6 +198,6 @@ const chartOptions = computed(() => ({
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #94a3b8;
+  color: var(--va-empty-state);
 }
 </style>

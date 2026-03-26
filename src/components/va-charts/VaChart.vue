@@ -1,5 +1,11 @@
 <template>
-  <component :is="chartComponent" :chart-data="data" :data="data" :options="chartOptions" class="va-chart" />
+  <component
+    :is="chartComponent"
+    :chart-data="data"
+    :data="data"
+    :options="chartOptions"
+    class="va-chart"
+  />
 </template>
 
 <script lang="ts" setup generic="T extends 'line' | 'bar' | 'bubble' | 'doughnut' | 'pie'">

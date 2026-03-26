@@ -1,7 +1,18 @@
 <template>
-  <VaSidebar v-model="writableVisible" :width="sidebarWidth" :color="color" minimized-width="0">
-    <VaAccordion v-model="value" multiple>
-      <VaCollapse v-for="(route, index) in navigationRoutes.routes" :key="index">
+  <VaSidebar
+    v-model="writableVisible"
+    :width="sidebarWidth"
+    :color="color"
+    minimized-width="0"
+  >
+    <VaAccordion
+      v-model="value"
+      multiple
+    >
+      <VaCollapse
+        v-for="(route, index) in navigationRoutes.routes"
+        :key="index"
+      >
         <template #header="{ value: isCollapsed }">
           <VaSidebarItem
             :to="route.children ? undefined : { name: route.name }"
@@ -22,13 +33,20 @@
               />
               <VaSidebarItemTitle class="flex justify-between items-center leading-5 font-semibold">
                 {{ t(route.displayName) }}
-                <VaIcon v-if="route.children" :name="arrowDirection(isCollapsed)" size="20px" />
+                <VaIcon
+                  v-if="route.children"
+                  :name="arrowDirection(isCollapsed)"
+                  size="20px"
+                />
               </VaSidebarItemTitle>
             </VaSidebarItemContent>
           </VaSidebarItem>
         </template>
         <template #body>
-          <div v-for="(childRoute, index2) in route.children" :key="index2">
+          <div
+            v-for="(childRoute, index2) in route.children"
+            :key="index2"
+          >
             <VaSidebarItem
               :to="{ name: childRoute.name }"
               :active="isActiveChildRoute(childRoute)"
@@ -96,7 +114,7 @@ export default defineComponent({
     const activeColor = computed(() => colorToRgba(getColor('focus'), 0.1))
 
     const iconColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'secondary')
-    const textColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'textPrimary')
+    const textColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'blackText')
     const arrowDirection = (state: boolean) => (state ? 'va-arrow-up' : 'va-arrow-down')
 
     watch(() => route.fullPath, setActiveExpand, { immediate: true })

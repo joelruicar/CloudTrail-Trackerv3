@@ -1,6 +1,11 @@
 <template>
-  <VaForm ref="confirmForm" @submit.prevent="handleConfirm">
-    <h1 class="font-semibold text-4xl mb-4">Confirm Reset</h1>
+  <VaForm
+    ref="confirmForm"
+    @submit.prevent="handleConfirm"
+  >
+    <h1 class="font-semibold text-4xl mb-4">
+      Confirm Reset
+    </h1>
 
     <VaInput
       v-model="username"
@@ -18,7 +23,10 @@
       @keydown.enter="handleConfirm"
     />
 
-    <VaValue v-slot="isPasswordVisible" :default-value="false">
+    <VaValue
+      v-slot="isPasswordVisible"
+      :default-value="false"
+    >
       <VaInput
         v-model="password"
         label="New Password"
@@ -38,12 +46,22 @@
       </VaInput>
     </VaValue>
 
-    <VaAlert v-if="error" color="danger" class="mb-4">
+    <VaAlert
+      v-if="error"
+      color="danger"
+      class="mb-4"
+    >
       {{ errorMessage }}
     </VaAlert>
 
     <div class="flex justify-center mt-4">
-      <VaButton class="w-full" :loading="processing" @click="handleConfirm"> Confirm Password Reset </VaButton>
+      <VaButton
+        class="w-full"
+        :loading="processing"
+        @click="handleConfirm"
+      >
+        Confirm Password Reset
+      </VaButton>
     </div>
   </VaForm>
 </template>

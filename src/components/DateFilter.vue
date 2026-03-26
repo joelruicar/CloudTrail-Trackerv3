@@ -1,49 +1,97 @@
 <template>
-  <div ref="container" class="relative inline-flex items-end gap-3 min-h-10">
-    <VaCheckbox v-model="showInput" label="Dates" class="whitespace-nowrap date-checkbox" />
+  <div
+    ref="container"
+    class="relative z-[90] inline-flex items-end gap-3 min-h-10"
+  >
+    <VaCheckbox
+      v-model="showInput"
+      label="Dates"
+      
+      style="color: var(--va-plain-text)"
+      class="whitespace-nowrap date-checkbox"
+    />
 
     <Transition name="expand-width">
-      <div v-if="showInput" class="overflow-hidden flex items-center">
+      <div
+        v-if="showInput"
+        class="overflow-hidden flex items-center"
+      >
         <VaInput
           v-model="appliedText"
           placeholder="DD/MM/YYYY - DD/MM/YYYY"
           class="w-72 interactive-field"
-          background="#eef6ff"
+          background="textInput"
           color="primary"
           @click="open = true"
           @focus="open = true"
         >
           <template #prependInner>
-            <VaIcon name="calendar_today" color="secondary" size="small" />
+            <VaIcon
+              name="calendar_today"
+              color="secondary"
+              size="small"
+            />
           </template>
         </VaInput>
       </div>
     </Transition>
 
-    <div
-      v-if="open && showInput"
-      class="absolute top-full left-0 mt-2 p-4 bg-white border rounded shadow-xl z-50 flex flex-col"
-    >
-      <div class="flex gap-4">
-        <VaDatePicker v-model="internalRange" mode="range" class="w-64" />
-        <VaDatePicker v-model="internalRange" mode="range" class="w-64 hidden md:block" />
-      </div>
+    <Teleport to="body">
+      <div
+        v-if="open && showInput"
+        ref="popup"
+        class="fixed p-4 bg-[var(--va-background-date)] border rounded shadow-xl z-[10000] flex flex-col max-w-[calc(100vw-2rem)] overflow-x-auto"
+        :style="popupStyle"
+      >
+        <div class="flex gap-4 min-w-max">
+          <VaDatePicker
+            v-model="internalRange"
+            mode="range"
+            class="w-64"
+          />
+          <VaDatePicker
+            v-model="internalRange"
+            mode="range"
+            class="w-64 hidden md:block"
+          />
+        </div>
 
-      <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-        <span class="text-xs font-mono text-gray-500">{{ inputText }}</span>
+        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+          <span class="text-xs font-mono text-gray-500">{{ inputText }}</span>
 
-        <div class="flex gap-2">
-          <VaButton preset="secondary" size="small" color="info" @click="resetToDefault"> RESET </VaButton>
-          <VaButton preset="plain" size="small" color="secondary" @click="cancel"> CANCEL </VaButton>
-          <VaButton size="small" color="success" @click="apply"> APPLY </VaButton>
+          <div class="flex gap-2">
+            <VaButton
+              preset="secondary"
+              size="small"
+              color="info"
+              @click="resetToDefault"
+            >
+              RESET
+            </VaButton>
+            <VaButton
+              preset="plain"
+              size="small"
+              color="secondary"
+              @click="cancel"
+            >
+              CANCEL
+            </VaButton>
+            <VaButton
+              size="small"
+              color="success"
+              @click="apply"
+            >
+              APPLY
+            </VaButton>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAcademicYear } from '../composables/useAcademicYear'
 
 const props = defineProps<{
@@ -56,6 +104,8 @@ const { calculateRange } = useAcademicYear()
 const open = ref(false)
 const showInput = ref(false)
 const container = ref<HTMLElement | null>(null)
+const popup = ref<HTMLElement | null>(null)
+const popupStyle = ref<Record<string, string>>({ top: '0px', left: '0px' })
 
 const internalRange = ref(props.modelValue ? { ...props.modelValue } : null)
 
@@ -77,6 +127,35 @@ watch(open, (isOpen) => {
     internalRange.value = props.modelValue ? { ...props.modelValue } : null
     inputText.value = formatRange(internalRange.value)
   }
+})
+
+const updatePopupPosition = () => {
+  if (!open.value || !showInput.value || !container.value) return
+
+  const rect = container.value.getBoundingClientRect()
+  const margin = 8
+  const top = rect.bottom + margin
+
+  let left = rect.left
+  const estimatedWidth = popup.value?.offsetWidth ?? 720
+  if (left + estimatedWidth > window.innerWidth - margin) {
+    left = window.innerWidth - estimatedWidth - margin
+  }
+  if (left < margin) {
+    left = margin
+  }
+
+  popupStyle.value = {
+    top: `${top}px`,
+    left: `${left}px`,
+  }
+}
+
+watch([open, showInput], async ([isOpen, isShown]) => {
+  if (!isOpen || !isShown) return
+  await nextTick()
+  updatePopupPosition()
+  requestAnimationFrame(updatePopupPosition)
 })
 
 watch(
@@ -118,13 +197,25 @@ const resetToDefault = () => {
 }
 
 const handleClickOutside = (e: MouseEvent) => {
-  if (container.value && !container.value.contains(e.target as Node)) {
+  const target = e.target as Node
+  const clickedContainer = container.value?.contains(target)
+  const clickedPopup = popup.value?.contains(target)
+  if (!clickedContainer && !clickedPopup) {
     cancel()
   }
 }
 
-onMounted(() => document.addEventListener('mousedown', handleClickOutside))
-onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside))
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside)
+  window.addEventListener('resize', updatePopupPosition)
+  window.addEventListener('scroll', updatePopupPosition, true)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
+  window.removeEventListener('resize', updatePopupPosition)
+  window.removeEventListener('scroll', updatePopupPosition, true)
+})
 </script>
 
 <style scoped>

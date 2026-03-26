@@ -1,5 +1,8 @@
 <template>
-  <div ref="editorElement" class="va-medium-editor content">
+  <div
+    ref="editorElement"
+    class="va-medium-editor content"
+  >
     <slot />
   </div>
 </template>

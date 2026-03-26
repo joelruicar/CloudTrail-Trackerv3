@@ -2,7 +2,11 @@
   <VaNavbar class="app-layout-navbar py-2 px-0">
     <template #left>
       <div class="left">
-        <Transition v-if="isMobile" name="icon-fade" mode="out-in">
+        <Transition
+          v-if="isMobile"
+          name="icon-fade"
+          mode="out-in"
+        >
           <VaIcon
             color="primary"
             :name="isSidebarMinimized ? 'menu' : 'close'"
@@ -11,13 +15,19 @@
             @click="isSidebarMinimized = !isSidebarMinimized"
           />
         </Transition>
-        <RouterLink to="/" aria-label="Visit home page">
+        <RouterLink
+          to="/"
+          aria-label="Visit home page"
+        >
           <VuesticLogo />
         </RouterLink>
       </div>
     </template>
     <template #right>
-      <AppNavbarActions class="app-navbar__actions" :is-mobile="isMobile" />
+      <AppNavbarActions
+        class="app-navbar__actions"
+        :is-mobile="isMobile"
+      />
     </template>
   </VaNavbar>
 </template>

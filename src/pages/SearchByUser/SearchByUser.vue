@@ -1,9 +1,23 @@
 <template>
-  <div v-if="awsStore.loading" class="loading-overlay">
-    <VaProgressCircle indeterminate size="large" />
+  <div
+    v-if="awsStore.loading"
+    class="loading-overlay"
+  >
+    <VaProgressCircle
+      indeterminate
+      size="large"
+    />
   </div>
-  <VaCard v-else class="p-2 sm:p-4 overflow-visible">
-    <h1 class="text-xl sm:text-2xl font-bold mb-4">Search by user</h1>
+  <VaCard
+    v-else
+    class="p-2 sm:p-4 overflow-visible"
+  >
+    <h1
+      class="text-xl sm:text-2xl font-bold mb-4" 
+      style="color: var(--va-plain-text)"
+    >
+      Search by user
+    </h1>
     <InfoWidgets class="mb-4" />
     <div class="search-controls mb-6">
       <div class="user-select-fixed">
@@ -33,17 +47,41 @@
       <div class="date-filter-fixed">
         <DateFilter v-model="range" />
       </div>
-      <VaButton icon="search" class="search-button-fixed" @click="search"> Search </VaButton>
+      <VaButton
+        icon="search"
+        color="buttonColor"
+        class="search-button-fixed"
+        @click="search"
+      >
+        Search
+      </VaButton>
     </div>
     <div class="charts-column mb-4">
       <VaCard>
-        <VaCardTitle>AWS services used in the last hour</VaCardTitle>
-        <Chart :chart-data="awsStore.chartDataServices" x-axis="Services" y-axis="#times" />
+        <VaCardTitle style="color: var(--va-chart-title)">
+          AWS services used in the last hour
+        </VaCardTitle>
+        <Chart
+          :chart-data="awsStore.chartDataServices"
+          x-axis="Services"
+          y-axis="#times"
+        />
       </VaCard>
     </div>
-    <VaButton color="primary" @click="display = !display">Details</VaButton>
-    <Transition name="expand" @afterEnter="handleAfterEnter">
-      <Table v-if="!display" ref="eventsTable" />
+    <VaButton
+      color="buttonColor"
+      @click="display = !display"
+    >
+      Details
+    </VaButton>
+    <Transition
+      name="expand"
+      @afterEnter="handleAfterEnter"
+    >
+      <Table
+        v-if="!display"
+        ref="eventsTable"
+      />
     </Transition>
   </VaCard>
 </template>
