@@ -114,7 +114,7 @@ export default defineComponent({
     const activeColor = computed(() => colorToRgba(getColor('focus'), 0.1))
 
     const iconColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'secondary')
-    const textColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'blackText')
+    const textColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'plainText')
     const arrowDirection = (state: boolean) => (state ? 'va-arrow-up' : 'va-arrow-down')
 
     watch(() => route.fullPath, setActiveExpand, { immediate: true })

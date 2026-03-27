@@ -46,7 +46,7 @@ const props = defineProps({
 })
 
 const hasData = computed(() => props.heatmapData.points.length > 0)
-const { getColor, colorToRgba, currentPresetName } = useColors()
+const { getColor, currentPresetName } = useColors()
 
 const chartRenderKey = computed(
   () => `${currentPresetName.value}-${props.heatmapData.points.length}-${props.heatmapData.subjects.length}`,
@@ -62,9 +62,10 @@ const heatmapColors = computed(() => ({
   success: getColor('heatmapSuccess'),
   warning: getColor('heatmapWarning'),
   danger: getColor('heatmapDanger'),
-  empty: colorToRgba(getColor('heatmapEmpty'), 0.45),
+  empty: getColor('heatmapEmpty'),
   border: getColor('borderColorHeatmap'),
-  axisText: getColor('blackText'),
+  axisText: getColor('plainText'),
+  notaText: getColor('notaText')
 }))
 
 const colorForValue = (value, raw) => {
@@ -72,10 +73,10 @@ const colorForValue = (value, raw) => {
     return heatmapColors.value.nota
   }
 
-  if (value >= 80) return heatmapColors.value.success
-  if (value >= 40) return heatmapColors.value.warning
-  if (value > 0) return heatmapColors.value.danger
-  return heatmapColors.value.empty
+  if (value <= 0) return heatmapColors.value.empty
+  if (value < 30) return heatmapColors.value.danger
+  if (value < 80) return heatmapColors.value.warning
+  return heatmapColors.value.success
 }
 
 const chartData = computed(() => ({
@@ -132,7 +133,7 @@ const chartOptions = computed(() => ({
         return context.dataset.data[context.dataIndex]?.x === 'Nota'
       },
       formatter: (value) => value.v, // Muestra el valor numérico (la nota)
-      // color: '#000',
+       color: heatmapColors.value.notaText,
       font: {
         weight: 'bold',
         size: 11,

@@ -31,7 +31,7 @@ const props = defineProps({
 })
 
 const isLaboratoryChart = computed(() => props.title.toLowerCase().includes('laboratory'))
-const chartTextColor = computed(() => getColor('blackText'))
+const chartTextColor = computed(() => getColor('plainText'))
 const chartNumberColor = computed(() => getColor('chartColor'))
 const chartRenderKey = computed(() => `${currentPresetName.value}-${props.title}-${props.xAxis}-${props.yAxis}`)
 

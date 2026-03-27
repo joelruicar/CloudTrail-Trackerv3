@@ -5,7 +5,7 @@
         <label
           for="course" 
           style="color: var(--va-plain-text)"
-        >>Curso:</label>
+        >Curso:</label>
         <VaSelect
           id="course"
           v-model="selectedCourse"
@@ -22,7 +22,7 @@
         <label
           for="fromStudent" 
           style="color: var(--va-plain-text)"
-        >>Desde alumno:</label>
+        >Desde alumno:</label>
         <VaInput
           id="fromStudent"
           v-model.number="localRange.from"
@@ -42,7 +42,7 @@
         <label
           for="toStudent" 
           style="color: var(--va-plain-text)"
-        >>Hasta alumno:</label>
+        >Hasta alumno:</label>
         <VaInput
           id="toStudent"
           v-model.number="localRange.to"

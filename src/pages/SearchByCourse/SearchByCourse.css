@@ -29,20 +29,14 @@
 
 .insight-item--danger {
   background: var(--va-insight-danger-background);
-  color: var(--va-insight-danger-text);
-  border-color: var(--va-insight-danger-border);
 }
 
 .insight-item--success {
   background: var(--va-insight-success-background);
-  color: var(--va-insight-success-text);
-  border-color: var(--va-insight-success-border);
 }
 
 .insight-item--warning {
   background: var(--va-insight-warning-background);
-  color: var(--va-insight-warning-text);
-  border-color: var(--va-insight-warning-border);
 }
 
 .heatmap-block {
