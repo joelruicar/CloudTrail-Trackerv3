@@ -22,6 +22,7 @@
     <div class="search-controls mb-6">
       <div class="user-select-fixed">
         <VaSelect
+          v-if="authStore.isProfessor"
           ref="userSelect"
           v-model="user_name"
           v-model:search="userSearch"
@@ -43,6 +44,12 @@
             </span>
           </template>
         </VaSelect>
+        <VaInput
+          v-else
+          :model-value="currentUser"
+          label="USERNAME"
+          readonly
+        />
       </div>
       <div class="date-filter-fixed">
         <DateFilter v-model="range" />
@@ -87,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { VaProgressCircle, VaButton, VaCard, VaCardTitle } from 'vuestic-ui'
+import { VaProgressCircle, VaButton, VaCard, VaCardTitle, VaInput } from 'vuestic-ui'
 import { useAcademicYear } from '../../composables/useAcademicYear'
 import { ref, onMounted, computed, nextTick } from 'vue'
 import InfoWidgets from '../../components/InfoWidgets.vue'

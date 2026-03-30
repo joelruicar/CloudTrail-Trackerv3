@@ -19,6 +19,14 @@ export default {
       },
     },
     {
+      name: 'oteador',
+      displayName: 'menu.oteador',
+      meta: {
+        icon: 'vuestic-iconset-components'
+      }
+
+    },
+    {
       name: 'search-by-user',
       displayName: 'menu.searchByUser',
       meta: {
@@ -30,13 +38,6 @@ export default {
       displayName: 'menu.searchByCourse',
       meta: {
         icon: 'vuestic-iconset-statistics',
-      },
-    },
-    {
-      name: '404',
-      displayName: 'menu.404',
-      meta: {
-        icon: 'vuestic-iconset-files',
       },
     },
   ] as INavigationRoute[],

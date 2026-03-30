@@ -5,8 +5,11 @@ import { API_CONFIG } from './config'
 const apiClient = axios.create({
   baseURL: API_CONFIG.GENERAL,
 })
-// Interceptor para inyectar el token automáticamente
-apiClient.interceptors.request.use(async (config) => {
+const oteadorClient = axios.create({
+  baseURL: API_CONFIG.OTEADOR,
+})
+
+const addAuthHeader = async (config: any) => {
   const session = await fetchAuthSession()
   const token = session.tokens?.idToken?.toString()
 
@@ -14,10 +17,14 @@ apiClient.interceptors.request.use(async (config) => {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
-})
+}
+// Interceptor para inyectar el token automáticamente
+apiClient.interceptors.request.use(addAuthHeader)
+oteadorClient.interceptors.request.use(addAuthHeader)
 
 export default {
   client: apiClient,
+  oteadorClient,
   endpoints: {
     allUsers: () => `/users`,
     user: (id: string) => `/users/${id}`,

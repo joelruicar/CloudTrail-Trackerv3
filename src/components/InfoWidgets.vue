@@ -1,17 +1,19 @@
 <template>
   <div class="metrics-grid">
     <VaCard
-      v-for="(val, key) in data"
-      :key="key"
+      v-for="item in metricItems"
+      :key="item.key"
       class="metric-card"
+      :class="{ 'card-zero': item.value === 0 }"
     >
       <VaCardContent class="card-layout">
         <div class="stats-area">
           <div class="stats-number">
-            {{ val }}
+            {{ item.value }}
           </div>
           <div class="stats-title">
-            {{ key }}
+            {{ item.key }}
+            <span v-if="item.price !== null"> - {{ item.price.toFixed(4) }} USD/h</span>
           </div>
         </div>
       </VaCardContent>
@@ -22,10 +24,51 @@
 <script setup>
 import { computed } from 'vue'
 import { useAwsStore } from '../stores/aws'
+import { useOteadorStore } from '../stores/oteador'
+
+const props = defineProps({
+  source: {
+    type: String,
+    default: 'aws',
+    validator: (value) => ['aws', 'oteador'].includes(value),
+  },
+
+})
 
 const awsStore = useAwsStore()
+const oteadorStore = useOteadorStore()
 
-const data = computed(() => awsStore.metrics)
+const displayData = computed(() => {
+  if (props.source === 'oteador') {
+    const metrics = oteadorStore.globalMetrics;
+    const prices = oteadorStore.prices;
+    const formatted = {};
+
+    Object.keys(metrics).forEach((key) => {
+      const label = key === 'elasticIP' ? 'Elastic IP' : key.toUpperCase();
+      formatted[label] = {
+        value: metrics[key], // Cambiado 'count' por 'value' para consistencia
+        price: prices[key] || 0
+      };
+    });
+    return formatted;
+  }
+  
+  // Para AWS, normalizamos el formato para que siempre sea un objeto con 'value'
+  const awsFormatted = {};
+  Object.entries(awsStore.metrics).forEach(([key, val]) => {
+    awsFormatted[key] = { value: val, price: null };
+  });
+  return awsFormatted;
+});
+
+const metricItems = computed(() => {
+  return Object.entries(displayData.value).map(([key, data]) => ({
+    key,
+    value: Number(data.value ?? 0),
+    price: data.price
+  }));
+});
 </script>
 <style scoped>
 .metrics-grid {
@@ -57,13 +100,22 @@ const data = computed(() => awsStore.metrics)
   box-shadow: 0 8px 20px var(--va-widget-metric);
 }
 
+.metric-card.card-zero {
+  background-color: var(--va-widget-zero);
+  border-color: var(--va-widget-zero);
+}
+
+.metric-card.card-zero .card-layout {
+  background-color: var(--va-widget-zero);
+}
+
 .card-layout {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
   height: 100%;
-  background-color: var(--va-background-border);
+  background-color: var(--va-widget-background);
 }
 
 .stats-area {

@@ -18,6 +18,11 @@ const routes: Array<RouteRecordRaw> = [
     redirect: { name: 'dashboard' },
     children: [
       {
+        name: 'oteador',
+        path: 'oteador',
+        component: () => import('../pages/Oteador/Oteador.vue'),
+      },
+      {
         name: 'dashboard',
         path: 'dashboard',
         component: () => import('../pages/Dashboard/Dashboard.vue'),
