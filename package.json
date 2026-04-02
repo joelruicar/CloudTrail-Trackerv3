@@ -26,7 +26,9 @@
   },
   "dependencies": {
     "@aws-amplify/ui-vue": "^4.4.1",
-    "@aws-sdk/client-pricing": "^3.1019.0",
+    "@aws-sdk/client-ec2": "^3.1021.0",
+    "@aws-sdk/client-pricing": "^3.1021.0",
+    "@aws-sdk/credential-providers": "^3.1021.0",
     "@vuestic/compiler": "0.2.10",
     "aws-amplify": "^6.16.2",
     "axios": "^1.13.6",

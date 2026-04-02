@@ -8,11 +8,12 @@ import {
   confirmResetPassword,
   resetPassword,
 } from 'aws-amplify/auth'
-
+import { clearCredentialCache } from './oteador'
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as any,
     accessToken: null as string | null,
+    token: null as string | null | undefined
   }),
 
   getters: {
@@ -26,38 +27,65 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async refreshUser() {
-      try {
-        const currentUser = await getCurrentUser()
-        const session = await fetchAuthSession()
+async refreshUser() {
+  try {
+    const session = await fetchAuthSession()
+    const { username } = await getCurrentUser()
+    
+    this.token = session.tokens?.idToken?.toString()
+    this.user = { username }
+    if (this.token) {
+      const sessionData = {
+        user: {
+          username: username,
+          token: this.token
+        }
+      }
+      window.localStorage.setItem('session', JSON.stringify(sessionData))
+    }
+  } catch (error) {
+    this.user = null
+    this.token = null
+    window.localStorage.removeItem('session') 
+  }
+},
+async login(email: string, password: string) {
+  try {
+    await signIn({ username: email, password })
+    await this.refreshUser()
+    if (this.user && this.token) {
+      const sessionData = {
+        user: {
+          username: this.user.username, 
+          token: this.token
+        }
+      }
+      window.localStorage.setItem('session', JSON.stringify(sessionData))
+    }
 
-        this.user = currentUser
-        this.accessToken = session.tokens?.accessToken?.toString() || null
-      } catch (error) {
-        this.user = null
-        this.accessToken = null
-      }
-    },
-    async login(email: string, password: string) {
-      try {
-        await signIn({ username: email, password })
-        await this.refreshUser()
-        return true
-      } catch (error) {
-        console.error('Login error:', error)
-        throw error
-      }
-    },
-    async logout() {
-      try {
-        await signOut()
-      } catch (error) {
-        console.error('Error al cerrar sesión en Amplify:', error)
-      } finally {
-        this.user = null
-        this.accessToken = null
-      }
-    },
+    return true
+  } catch (error) {
+    console.error('Login error:', error)
+    throw error
+  }
+},
+  async logout() {
+    try {
+      await signOut() 
+      this.user = null
+      this.token = null
+      this.accessToken = null
+      window.localStorage.removeItem('session')
+      window.localStorage.removeItem('EC2 instances_regions')
+      clearCredentialCache()
+      return true
+    } catch (error) {
+      console.error('Logout error:', error)
+      this.user = null
+      window.localStorage.removeItem('session')
+      throw error
+    }
+  },
     async changePassword(oldPass: string, newPass: string) {
       try {
         await updatePassword({

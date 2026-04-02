@@ -182,16 +182,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  VaCard,
-  VaCardTitle,
-  VaButton,
-  VaProgressCircle,
-  VaDataTable,
-  VaInput,
-  VaSelect,
-  VaPagination,
-} from 'vuestic-ui'
 import { useColors } from 'vuestic-ui'
 import { useAcademicYear } from '../../composables/useAcademicYear'
 import RangeSelector from '../../components/RangeSelector.vue'
