@@ -7,8 +7,6 @@ import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers'
 import { fetchAuthSession } from 'aws-amplify/auth'
 import { amplifyConfig } from '../amplifyConfig'
 
-// ─── Types (declarados ANTES de SERVICE_COLUMNS) ──────────────────────────────
-
 export type ServiceOption =
   | 'EC2 instances'
   | 'RDS instances'
@@ -27,54 +25,49 @@ export const SERVICE_OPTIONS: ServiceOption[] = [
 
 export const SERVICE_COLUMNS: Record<ServiceOption, { key: string; label: string; sortable?: boolean }[]> = {
   'EC2 instances': [
-    { key: 'Id',          label: 'ID',          sortable: true },
-    { key: 'Owner',       label: 'Owner' },
-    { key: 'Type',        label: 'Type' },
-    { key: 'State',       label: 'State' },
-    { key: 'Launch time', label: 'Launch Time' },
-    { key: 'Region name', label: 'Region' },
+    { key: 'Id',          label: 'ID',  sortable: true },
+    { key: 'Owner',       label: 'Owner' , sortable: true },
+    { key: 'Type',        label: 'Type'  , sortable: true },
+    { key: 'State',       label: 'State'  , sortable: true },
+    { key: 'Launch time', label: 'Launch Time'  , sortable: true },
   ],
   'RDS instances': [
-    { key: 'DBInstanceIdentifierId', label: 'ID',      sortable: true },
-    { key: 'MasterUsername',         label: 'Owner' },
-    { key: 'DBInstanceClass',        label: 'Type' },
-    { key: 'DBInstanceStatus',       label: 'State' },
-    { key: 'Intance Create Time',    label: 'Created' },
-    { key: 'Region name',            label: 'Region' },
+    { key: 'DBInstanceIdentifierId', label: 'ID', sortable: true},
+    { key: 'MasterUsername',         label: 'Owner'  , sortable: true },
+    { key: 'DBInstanceClass',        label: 'Type'  , sortable: true },
+    { key: 'DBInstanceStatus',       label: 'State'  , sortable: true },
+    { key: 'Intance Create Time',    label: 'Created'  , sortable: true },
   ],
   'Auto Scaling Groups': [
-    { key: 'AutoScalingGroupName', label: 'Name',    sortable: true },
-    { key: 'DesiredCapacity',      label: 'Desired' },
-    { key: 'MinSize',              label: 'Min' },
-    { key: 'MaxSize',              label: 'Max' },
-    { key: 'CreatedTime',          label: 'Created' },
+    { key: 'AutoScalingGroupName', label: 'Name', sortable: true },
+    { key: 'DesiredCapacity',      label: 'Desired'  , sortable: true },
+    { key: 'MinSize',              label: 'Min'  , sortable: true },
+    { key: 'MaxSize',              label: 'Max'  , sortable: true },
+    { key: 'CreatedTime',          label: 'Created'  , sortable: true },
   ],
   'Elastic IPs': [
-    { key: 'PublicIp',         label: 'Public IP',   sortable: true },
-    { key: 'InstanceId',       label: 'Instance ID' },
-    { key: 'PrivateIpAddress', label: 'Private IP' },
+    { key: 'PublicIp',         label: 'Public IP', sortable: true },
+    { key: 'InstanceId',       label: 'Instance ID' , sortable: true },
+    { key: 'PrivateIpAddress', label: 'Private IP'  , sortable: true },
   ],
   'Buckets S3': [
     { key: 'Name', label: 'Bucket Name', sortable: true },
   ],
   'Elastic Load Balancers': [
     { key: 'LoadBalancerName', label: 'Name',    sortable: true },
-    { key: 'Type',             label: 'Type' },
-    { key: 'State',            label: 'State' },
-    { key: 'CreatedTime',      label: 'Created' },
-    { key: 'Region name',      label: 'Region' },
+    { key: 'Type',             label: 'Type'  , sortable: true },
+    { key: 'State',            label: 'State'  , sortable: true },
+    { key: 'CreatedTime',      label: 'Created' , sortable: true },
+    { key: 'Region name',      label: 'Region'  , sortable: true },
   ],
   'Lambda Functions': [
     { key: 'FunctionName', label: 'Name',         sortable: true },
-    { key: 'Runtime',      label: 'Runtime' },
-    { key: 'CodeSize',     label: 'Code Size' },
-    { key: 'MemorySize',   label: 'Memory (MB)' },
-    { key: 'LastModified', label: 'Last Modified' },
-    { key: 'Region name',  label: 'Region' },
+    { key: 'Runtime',      label: 'Runtime'  , sortable: true },
+    { key: 'CodeSize',     label: 'Code Size'  , sortable: true },
+    { key: 'MemorySize',   label: 'Memory (MB)'  , sortable: true },
+    { key: 'LastModified', label: 'Last Modified'  , sortable: true },
   ],
 }
-
-// ─── Endpoint map por servicio ────────────────────────────────────────────────
 
 const ENDPOINT_MAP: Record<ServiceOption, string> = {
   'EC2 instances':          'AllInstancesEC2',
@@ -166,35 +159,32 @@ export function clearCredentialCache() {
   cachedCredentialsProvider = null
 }
 
+// ─── Helper: extrae precio OnDemand USD de un item de PriceList ───────────────
+
 function extractOnDemandPrice(priceListItem: any): number {
   try {
-    if (!priceListItem) return 0;
-
-    // 1. Forzar conversión a string y luego parsear
-    // Esto resuelve el problema de los índices numéricos en Object.keys
-    const itemStr = typeof priceListItem === 'string' ? priceListItem : priceListItem.toString();
-    const parsed = JSON.parse(itemStr);
+    let raw = priceListItem;
+    // Aseguramos que trabajamos con un string para el parseo inicial
+    if (typeof raw !== 'string') raw = JSON.stringify(raw);
     
-    // 2. Acceder a OnDemand (ignorando mayúsculas/minúsculas)
-    const terms = parsed?.terms || parsed?.Terms;
-    const onDemand = terms?.OnDemand || terms?.ondemand;
-    if (!onDemand) return 0;
+    let parsed = JSON.parse(raw);
+    // Doble parseo: el SDK v3 a veces devuelve el objeto como un string escapado
+    if (typeof parsed === 'string') parsed = JSON.parse(parsed);
 
-    // 3. Obtener la oferta (clave dinámica SKU.OfferTermCode)
-    const firstOffer = Object.values(onDemand)[0] as any;
+    const terms = parsed?.terms?.OnDemand || parsed?.Terms?.OnDemand;
+    if (!terms) return 0;
+
+    const firstOffer = Object.values(terms)[0] as any;
     if (!firstOffer?.priceDimensions) return 0;
 
-    // 4. Buscar el Tier 1 (beginRange "0")
-    // Tu JSON tiene varios Tiers; el precio base siempre es el que empieza en "0"
+    // Buscamos el Tier 1 (beginRange: "0") para evitar precios de volumen (Tier 2/3)
     const dimensions = Object.values(firstOffer.priceDimensions) as any[];
     const tier1 = dimensions.find(d => d.beginRange === "0") || dimensions[0];
     
     const priceStr = tier1?.pricePerUnit?.USD || tier1?.pricePerUnit?.usd || "0";
-    
-    // 5. Convertir a número manteniendo todos los decimales
     return Number(priceStr);
   } catch (error) {
-    console.error('[Oteador] Error crítico en extractOnDemandPrice:', error);
+    console.error('[Oteador] Error crítico en extracción:', error);
     return 0;
   }
 }
@@ -230,8 +220,8 @@ export const useOteadorStore = defineStore('oteador', {
         datasets: [{
           label: '#Services',
           data: Object.values(counts),
-          backgroundColor: 'rgba(248, 0, 0, 0.2)',
-          borderColor: 'rgb(0, 24, 102)',
+          backgroundColor: 'rgba(74,227,135,0.2)',
+          borderColor: 'rgba(0,102,0,1)',
           borderWidth: 1,
         }],
       }
@@ -285,17 +275,6 @@ export const useOteadorStore = defineStore('oteador', {
     // ── calculatePrices ────────────────────────────────────────────────────
 
     async calculatePrices(summary: Record<string, any>) {
-      // Limpiar entradas de caché con precio 0 
-      const priceKeyPrefixes = ['ec2price_', 'rdsprice_', 'elbprice_', 'lambdaprice_']
-      Object.keys(window.localStorage)
-        .filter(k => priceKeyPrefixes.some(p => k.startsWith(p)))
-        .forEach(k => {
-          try {
-            const stored = JSON.parse(window.localStorage.getItem(k) ?? '{}')
-            if (!stored.price || stored.price === 0) window.localStorage.removeItem(k)
-          } catch { window.localStorage.removeItem(k) }
-        })
-
       const credentials = await getV3Credentials()
       if (!credentials) {
         console.warn('[Oteador] calculatePrices: sin credenciales, precios quedan en 0')
@@ -313,16 +292,14 @@ export const useOteadorStore = defineStore('oteador', {
         const price = JSON.parse(v).price as number
         return price > 0 ? price : null
       }
-      const cacheSet = (key: string, price: number) => {
-        if (price > 0) window.localStorage.setItem(key, JSON.stringify({ price }))
-      }
+       const cacheSet = (key: string, price: number) => {
+         if (price > 0) window.localStorage.setItem(key, JSON.stringify({ price }))
+       }
 
       const promises: Promise<{ service: string; price: number }>[] = []
 
       // ── EC2 ──────────────────────────────────────────────────────────────
       const ec2Info = summary.ec2?.info ?? []
-      console.log(`[Oteador] EC2 instances en summary: ${ec2Info.length}`,
-        ec2Info[0] ? `primer item: Type=${ec2Info[0]['Type']}, Region name=${ec2Info[0]['Region name']}` : '(vacío)')
 
       const ec2Groups: Record<string, { location: string; count: number }> = {}
       for (const inst of ec2Info) {
@@ -346,12 +323,18 @@ export const useOteadorStore = defineStore('oteador', {
                 { Type: 'TERM_MATCH', Field: 'location',        Value: location },
                 { Type: 'TERM_MATCH', Field: 'operatingSystem', Value: 'Linux' },
                 { Type: 'TERM_MATCH', Field: 'tenancy',         Value: 'Shared' },
+                { Type: 'TERM_MATCH', Field: 'capacitystatus',  Value: 'Used' },
+                { Type: 'TERM_MATCH', Field: 'preInstalledSw',  Value: 'NA' },
               ],
+            
             })).then(res => {
-              console.log(`[Oteador][DIAG] EC2 PriceList.length para ${instanceType}:`, res.PriceList?.length)
-              const price = extractOnDemandPrice(res.PriceList?.[0])
-              console.log(`[Oteador] EC2 ${instanceType} @ ${location}: $${price}/hr`)
-              cacheSet(cacheKey, price)
+        
+                let raw = res.PriceList?.[0]
+  if (typeof raw !== 'string') raw = JSON.stringify(raw)
+  let obj = JSON.parse(raw)
+  if (typeof obj === 'string') obj = JSON.parse(obj)
+  const price = extractOnDemandPrice(res.PriceList?.[0])
+              // cacheSet(cacheKey, price)
               return { service: 'ec2', price: price * count }
             }).catch(err => {
               console.error(`[Oteador] EC2 pricing error (${instanceType} @ ${location}):`, err)
@@ -387,7 +370,6 @@ export const useOteadorStore = defineStore('oteador', {
               ],
             })).then(res => {
               const price = extractOnDemandPrice(res.PriceList?.[0])
-              console.log(`[Oteador] RDS ${instanceType} @ ${location}: $${price}/hr`)
               cacheSet(cacheKey, price)
               return { service: 'rds', price: price * count }
             }).catch(err => {
@@ -429,7 +411,6 @@ export const useOteadorStore = defineStore('oteador', {
               ],
             })).then(res => {
               const price = extractOnDemandPrice(res.PriceList?.[0])
-              console.log(`[Oteador] ELB ${type} @ ${location}: $${price}/hr`)
               cacheSet(cacheKey, price)
               return { service: 'elb', price: price * count }
             }).catch(err => {
@@ -456,24 +437,18 @@ export const useOteadorStore = defineStore('oteador', {
           promises.push(Promise.resolve({ service: 'lambda', price: cached * count }))
         } else {
           promises.push(
-          client.send(new GetProductsCommand({
-            ServiceCode: 'AWSLambda', FormatVersion: 'aws_v1', MaxResults: 1,
-            Filters: [
-              { Type: 'TERM_MATCH', Field: 'location',  Value: location },
-              { Type: 'TERM_MATCH', Field: 'usagetype', Value: 'Lambda-GB-Second' },
-            ],
-          })).then(res => {
-              const pricePerGbSecond = extractOnDemandPrice(res.PriceList?.[0])
-              
-              // Cálculo: (Memoria en GB) * (Precio/GB-s) * (3600s/h)
-              const pricePerHour = (memorySize / 1024) * pricePerGbSecond 
-              const totalForGroup = pricePerHour * count
-
-              console.log(`[Oteador] Lambda ${memorySize}MB: $${totalForGroup.toFixed(6)}/h`)
-              cacheSet(cacheKey, pricePerHour)
-              return { service: 'lambda', price: totalForGroup }
+            client.send(new GetProductsCommand({
+              ServiceCode: 'AWSLambda', FormatVersion: 'aws_v1', MaxResults: 1,
+              Filters: [
+                { Type: 'TERM_MATCH', Field: 'location',  Value: location },
+                { Type: 'TERM_MATCH', Field: 'usagetype', Value: 'Lambda-GB-Second' },
+              ],
+            })).then(res => {
+              const pricePerUnit = extractOnDemandPrice(res.PriceList?.[0])
+              const price        = (memorySize / 1024) * pricePerUnit
+               cacheSet(cacheKey, price)
+              return { service: 'lambda', price: price * count }
             }).catch(err => {
-              console.error(`[Oteador] Lambda pricing error (${memorySize}MB @ ${location}):`, err)
               return { service: 'lambda', price: 0 }
             }),
           )
@@ -487,37 +462,67 @@ export const useOteadorStore = defineStore('oteador', {
           newPrices[res.value.service] += res.value.price
         }
       })
-
-      console.log('[Oteador] Precios calculados:', newPrices)
       this.prices = newPrices
     },
 
     // ── fetchAllData ───────────────────────────────────────────────────────
 
-    async fetchAllData() {
+async fetchAllData() {
       this.setLoadingService(true)
       try {
-        const { data: summary } = await api.oteadorClient.get(`services/region/${this.selectedRegion}`)
-
+        // ── Widgets: sumatorio de TODAS las regiones disponibles ──────────
+        // Se llama a services/region/{r} para cada región y se suman los contadores
+        // y se acumula el info completo para calcular precios globales.
         const metricsMap: Record<string, string> = {
           ec2: 'ec2', rds: 'rds', autoscaling: 'autoscaling',
           elb: 'elb', elasticIP: 'elasticIP', lambda: 'lamb',
         }
-        Object.keys(this.globalMetrics).forEach(key => {
-          this.globalMetrics[key] = summary[metricsMap[key]]?.number ?? 0
+ 
+        const globalMetrics: Record<string, number> = {
+          ec2: 0, rds: 0, autoscaling: 0, elb: 0, elasticIP: 0, lambda: 0,
+        }
+        // Sumario combinado para calculatePrices (info de todas las regiones)
+        const combinedSummary: Record<string, { number: number; info: any[] }> = {
+          ec2:        { number: 0, info: [] },
+          rds:        { number: 0, info: [] },
+          autoscaling:{ number: 0, info: [] },
+          elb:        { number: 0, info: [] },
+          elasticIP:  { number: 0, info: [] },
+          lamb:       { number: 0, info: [] },
+        }
+ 
+        // Peticiones paralelas a todas las regiones
+        const regionResults = await Promise.allSettled(
+          this.availableRegions.map(r => api.oteadorClient.get(`services/region/${r}`))
+        )
+ 
+        regionResults.forEach(result => {
+          if (result.status !== 'fulfilled') return
+          const summary = result.value.data
+          Object.keys(globalMetrics).forEach(key => {
+            const apiKey = metricsMap[key]
+            globalMetrics[key] += summary[apiKey]?.number ?? 0
+            const info = summary[apiKey]?.info ?? []
+            combinedSummary[apiKey].number += summary[apiKey]?.number ?? 0
+            combinedSummary[apiKey].info.push(...info)
+          })
         })
-
-        await this.calculatePrices(summary)
-
+ 
+        this.globalMetrics = globalMetrics
+        // Calcular precios con el info combinado de todas las regiones
+        await this.calculatePrices(combinedSummary)
+ 
+        // ── Tabla: solo la región seleccionada ────────────────────────────
         const endpoint = ENDPOINT_MAP[this.selectedService]
         const { data: detail } = await api.oteadorClient.get(
           `services/${endpoint}/region/${this.selectedRegion}`,
         )
-
+ 
+        // S3 devuelve array de strings → normalizar a objetos
         this.items = this.selectedService === 'Buckets S3'
           ? (detail as any[]).map(item => (typeof item === 'string' ? { Name: item } : item))
           : detail
-
+ 
       } catch (error) {
         console.error('[Oteador] fetchAllData error:', error)
       } finally {

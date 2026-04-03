@@ -21,6 +21,7 @@ export default {
       notaText:'#000',
       plainText: '#000',
       widgetMetric: '#00000014',
+      widgetBackground: '#c9f7e1',
       widgetZero: '#9ae9c4',
       widgetText: '#265822',
       emptyState: '#94a3b8',

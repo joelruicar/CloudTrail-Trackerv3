@@ -88,6 +88,10 @@
       <Table
         v-if="!display"
         ref="eventsTable"
+        :items="awsStore.formattedEvents"
+        :columns="eventColumns"
+        :loading="awsStore.loading"
+        :enable-event-link-with-popover="true"
       />
     </Transition>
   </VaCard>
@@ -104,6 +108,14 @@ import { useAwsStore } from '../../stores/aws'
 import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
 import dayjs from 'dayjs'
+
+const eventColumns = [
+  { key: 'id', label: '#', sortable: true },
+  { key: 'user', label: 'User', sortable: true },
+  { key: 'eventName', label: 'Event', sortable: true },
+  { key: 'formatedTime', label: 'Timestamp', sortable: true },
+]
+
 const authStore = useAuthStore()
 const awsStore = useAwsStore()
 const { range } = useAcademicYear()

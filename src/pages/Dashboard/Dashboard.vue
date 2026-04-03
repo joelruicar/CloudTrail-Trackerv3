@@ -60,6 +60,10 @@
       <Table
         v-if="!display"
         ref="eventsTable"
+        :items="awsStore.formattedEvents"
+        :columns="eventColumns"
+        :loading="awsStore.loading"
+        :enable-event-link-with-popover="true"
       />
     </Transition>
   </VaCard>
@@ -72,6 +76,13 @@ import { useAwsStore } from '../../stores/aws'
 import { ref, onMounted, watch } from 'vue'
 import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
+
+const eventColumns = [
+  { key: 'id', label: '#', sortable: true },
+  { key: 'user', label: 'User', sortable: true },
+  { key: 'eventName', label: 'Event', sortable: true },
+  { key: 'formatedTime', label: 'Timestamp', sortable: true },
+]
 
 const options = ['last hour', 'last six hours', 'last day', 'last week']
 const timeRange = ref('last hour')

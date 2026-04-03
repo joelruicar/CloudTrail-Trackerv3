@@ -31,25 +31,35 @@
           <VaDataTable
             v-model:sort-by="sortBy"
             v-model:sorting-order="sortingOrder"
-            :items="awsStore.formattedEvents"
+            :items="filteredItems"
             :columns="columns"
+            :loading="loading"
             :disable-client-side-sorting="false"
-            :filter="searchQuery"
             :per-page="perPage"
             :current-page="currentPage"
             hoverable
+            striped
           >
             <template #cell(eventName)="{ rowData }">
-              <!-- <VaPopover :message="rowData.description" trigger="hover" placement="right" color="info">
+              <slot
+                v-if="!enableEventLinkWithPopover"
+                name="cell-eventName"
+                :row-data="rowData"
+              >
                 <a
-                  :href="rowData.eventLink"
+                  v-if="enableEventLink"
+                  :href="String(rowData.eventLink || '#')"
                   target="_blank"
                   class="event-link"
                 >
                   {{ rowData.eventName }}
                 </a>
-              </VaPopover> -->
+                <span v-else>
+                  {{ rowData.eventName }}
+                </span>
+              </slot>
               <VaPopover
+                v-else
                 :message="rowData.description"
                 trigger="hover"
                 placement="right"
@@ -83,9 +93,21 @@
 </template>
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, ComponentPublicInstance } from 'vue'
-import { useAwsStore } from '../stores/aws'
 
-const awsStore = useAwsStore()
+type TableColumn = { key: string; label: string; sortable?: boolean }
+
+const props = withDefaults(defineProps<{
+  items: Array<Record<string, any>>
+  columns: TableColumn[]
+  loading?: boolean
+  enableEventLinkWithPopover?: boolean
+  enableEventLink?: boolean
+}>(), {
+  loading: false,
+  enableEventLinkWithPopover: false,
+  enableEventLink: false,
+})
+
 const tableCard = ref<ComponentPublicInstance | null>(null)
 
 const sortingOrder = ref<'asc' | 'desc' | null>(null)
@@ -94,14 +116,23 @@ const perPage = ref(10)
 const searchQuery = ref('')
 const currentPage = ref(1)
 
-const columns = [
-  { key: 'id', label: '#', sortable: true },
-  { key: 'user', label: 'User', sortable: true },
-  { key: 'eventName', label: 'Event', sortable: true },
-  { key: 'formatedTime', label: 'Timestamp', sortable: true },
-]
+const columns = computed(() => props.columns)
+const loading = computed(() => props.loading)
+const enableEventLinkWithPopover = computed(() => props.enableEventLinkWithPopover)
+const enableEventLink = computed(() => props.enableEventLink)
 
-const pages = computed(() => Math.ceil(awsStore.events.length / perPage.value))
+const filteredItems = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase()
+  if (!query) return props.items
+  return props.items.filter((item) => {
+    return Object.values(item).some((value) => String(value ?? '').toLowerCase().includes(query))
+  })
+})
+
+const pages = computed(() => {
+  const count = Math.ceil(filteredItems.value.length / perPage.value)
+  return count > 0 ? count : 1
+})
 
 const scrollToTable = () => {
   const el = tableCard.value?.$el as HTMLElement | undefined
@@ -111,6 +142,14 @@ const scrollToTable = () => {
 watch(currentPage, async () => {
   await nextTick()
   scrollToTable()
+})
+
+watch([perPage, searchQuery], () => {
+  currentPage.value = 1
+})
+
+watch(pages, (newPages) => {
+  if (currentPage.value > newPages) currentPage.value = newPages
 })
 
 defineExpose({ scrollToTable })

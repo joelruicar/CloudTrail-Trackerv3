@@ -66,12 +66,10 @@
           </p>
         </div>
 
-        <VaDataTable
+        <Table
           :items="filteredRows"
           :columns="store.currentColumns"
           :loading="store.loadingService"
-          striped
-          hoverable
         />
       </VaCardContent>
     </VaCard>
@@ -83,6 +81,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useOteadorStore, SERVICE_OPTIONS } from '../../stores/oteador'
 import InfoWidgets from '../../components/InfoWidgets.vue'
 import Chart from '../../components/Chart.vue'
+import Table from '../../components/Table.vue'
 
 const store = useOteadorStore()
 const activeFilter = ref('')
