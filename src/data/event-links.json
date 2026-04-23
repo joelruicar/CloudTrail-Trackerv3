@@ -1243,8 +1243,8 @@
     "eventName": "RotateKey",
     "url": "https://docs.aws.amazon.com/kms/latest/developerguide/ct-rotatekey.html",
     "description": {
-      "es": "Enlace a ejemplos",
-      "en": "Link to examples"
+      "es": "Enlace a ejemplos de rotacion de llave",
+      "en": "Link to key rotation examples"
     }
   },
   {

@@ -17,7 +17,7 @@
             <VaAvatar
               :size="32"
               color="warning"
-            > 😍 </VaAvatar>
+            > 👨🏻‍🎓 </VaAvatar>
           </span>
         </VaButton>
       </template>

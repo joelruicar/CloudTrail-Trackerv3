@@ -42,47 +42,41 @@ const displayData = computed(() => {
   if (props.source === 'oteador') {
     const metrics = oteadorStore.globalMetrics;
     const prices = oteadorStore.prices;
-    const formatted = {};
-
-    Object.keys(metrics).forEach((key) => {
-      const label = key === 'elasticIP' ? 'Elastic IP' : key.toUpperCase();
-      formatted[label] = {
-        value: metrics[key], // Cambiado 'count' por 'value' para consistencia
-        price: prices[key] || 0
+    return Object.keys(metrics).map((storeKey) => {
+      const label = storeKey === 'elasticIP' ? 'Elastic IP' : storeKey.toUpperCase();
+      return {
+        storeKey,          // clave original del store ('ec2', 'elasticIP', 'lambda'…)
+        label,             // etiqueta visible ('EC2', 'Elastic IP', 'LAMBDA'…)
+        value: metrics[storeKey] ?? 0,
+        price: prices[storeKey] ?? null,
       };
     });
-    return formatted;
   }
-  
-  // Para AWS, normalizamos el formato para que siempre sea un objeto con 'value'
-  const awsFormatted = {};
-  Object.entries(awsStore.metrics).forEach(([key, val]) => {
-    awsFormatted[key] = { value: val, price: null };
-  });
-  return awsFormatted;
-});
 
-const metricItems = computed(() => {
-  return Object.entries(displayData.value).map(([key, data]) => ({
-    key,
-    value: Number(data.value ?? 0),
-    price: data.price
+  return Object.entries(awsStore.metrics).map(([key, val]) => ({
+    storeKey: key,
+    label: key,
+    value: val,
+    price: null,
   }));
 });
+
+const metricItems = computed(() =>
+  displayData.value.map(item => ({
+    key:      item.label,     // lo que muestra el template
+    storeKey: item.storeKey,  // lo que usa el store para filtros/clicks
+    value:    Number(item.value ?? 0),
+    price:    item.price,
+  }))
+);
 </script>
 <style scoped>
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.75rem;
   width: 100%;
   box-sizing: border-box;
-}
-
-@media (min-width: 768px) {
-  .metrics-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
 }
 
 .metric-card {
@@ -116,6 +110,11 @@ const metricItems = computed(() => {
   padding: 1.5rem;
   height: 100%;
   background-color: var(--va-widget-background);
+  -webkit-user-select: none;        
+  -moz-user-select: none; 
+  -ms-user-select: none; 
+  user-select: none; 
+  cursor: pointer
 }
 
 .stats-area {

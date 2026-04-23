@@ -127,12 +127,11 @@ const chartOptions = computed(() => ({
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    // Configuración detallada de datalabels
     datalabels: {
       display: (context) => {
         return context.dataset.data[context.dataIndex]?.x === 'Nota'
       },
-      formatter: (value) => value.v, // Muestra el valor numérico (la nota)
+      formatter: (value) => value.v, 
        color: heatmapColors.value.notaText,
       font: {
         weight: 'bold',

@@ -1,9 +1,9 @@
 import { REFERDATA } from '../data/evenprac'
 import { defineStore } from 'pinia'
 import { AwsEvent, AwsMetrics } from './interfaces/aws'
-import { StudentProgress } from './interfaces/StudentProgress'
+import { StudentProgress } from './interfaces/studentProgress'
 import eventLinksJson from '../data/event-links.json'
-import { EventLinkItem } from './interfaces/types'
+import { EventLinkItem } from './interfaces/eventLink'
 import api from '../services/api'
 
 const formatLocal = (date: Date, includeTime: boolean) => {

@@ -82,7 +82,7 @@ const ENDPOINT_MAP: Record<ServiceOption, string> = {
 // ─── Conversión código región → nombre largo para Pricing API ─────────────────
 // La AWS Pricing API exige el nombre largo ("US East (N. Virginia)") como filtro
 // de location. El backend puede enviar el código corto ("us-east-1") o el nombre
-// largo directamente. Este mapa cubre ambos casos.
+// largo directamente.
 
 const REGION_TO_LOCATION: Record<string, string> = {
   'us-east-1':      'US East (N. Virginia)',
@@ -110,13 +110,44 @@ const REGION_TO_LOCATION: Record<string, string> = {
  */
 function toLocationDescription(regionName: string): string {
   if (!regionName) return ''
-  // Si ya es nombre largo (contiene paréntesis o espacios), usarlo directamente
   if (regionName.includes('(') || regionName.includes(' ')) return regionName
-  // Es código corto → convertir
   return REGION_TO_LOCATION[regionName] ?? regionName
 }
 
-// ─── Constantes ───────────────────────────────────────────────────────────────
+function hasValue(value: unknown): boolean {
+  return value !== undefined && value !== null && String(value).trim() !== ''
+}
+
+function isEc2Running(item: any): boolean {
+  const rawState = item?.State?.Name ?? item?.State ?? item?.InstanceState?.Name
+  return String(rawState ?? '').trim().toLowerCase() === 'running'
+}
+
+function isElasticIpUnattached(item: any): boolean {
+  const hasDirectInstance = hasValue(item?.InstanceId)
+  return !hasDirectInstance
+}
+
+function applyServiceItemFilter(items: any[], serviceKey: string): any[] {
+  if (serviceKey === 'ec2') {
+    return items.filter(isEc2Running)
+  }
+  if (serviceKey === 'elasticIP') {
+    return items.filter(isElasticIpUnattached)
+  }
+  return items
+}
+
+function applyServiceItemFilterByName(items: any[], service: ServiceOption): any[] {
+  if (service === 'EC2 instances') {
+    return items.filter(isEc2Running)
+  }
+  if (service === 'Elastic IPs') {
+    return items.filter(isElasticIpUnattached)
+  }
+  return items
+}
+
 
 const REGIONS_CACHE_KEY = 'EC2 instances_regions'
 
@@ -124,8 +155,6 @@ const FALLBACK_REGIONS = [
   'us-east-1', 'us-east-2', 'us-west-1', 'us-west-2',
   'eu-west-1', 'eu-west-2', 'eu-central-1',
 ]
-
-// ─── Credenciales ─────────────────────────────────────────────────────────────
 
 let cachedCredentialsProvider: any = null
 
@@ -188,6 +217,31 @@ function extractOnDemandPrice(priceListItem: any): number {
     return 0;
   }
 }
+// ─── Helper: reintento con backoff para errores 504 ──────────────────────────
+// Reintenta la función hasta maxRetries veces si recibe un 504 (timeout Lambda).
+// Espera delayMs * intento antes de cada reintento.
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 1,
+  delayMs = 0,
+): Promise<T> {
+  let lastError: any
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn()
+    } catch (error: any) {
+      const status = error?.response?.status ?? error?.status
+      const is504  = status === 504 || error?.message?.includes('504')
+      if (!is504 || attempt === maxRetries) throw error
+      console.warn(`[Oteador] 504 en región (intento ${attempt}/${maxRetries}), reintentando...`)
+      await new Promise(resolve => setTimeout(resolve, delayMs * attempt))
+      lastError = error
+    }
+  }
+  throw lastError
+}
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const useOteadorStore = defineStore('oteador', {
@@ -196,12 +250,14 @@ export const useOteadorStore = defineStore('oteador', {
     selectedRegion:   'us-east-1',
     availableRegions: ['us-east-1'],
     items:            [] as any[],
+    allRegionItems:   [] as any[],  // items de todas las regiones (modo widget click)
+    widgetServiceFilter: '' as string, // servicio activo por click en widget ('ec2','rds'...)
     globalMetrics: {
       ec2: 0, rds: 0, autoscaling: 0, elb: 0, elasticIP: 0, lambda: 0,
     } as Record<string, number>,
     prices: {
-      ec2: 0, rds: 0, autoscaling: 0, elb: 0, elasticIP: 0, lambda: 0,
-    } as Record<string, number>,
+      ec2: 0, rds: 0, autoscaling: null, elb: 0, elasticIP: null, lambda: 0,
+    } as Record<string, number | null>,
     loadingService: false,
     loadingInitial: true,
   }),
@@ -242,6 +298,7 @@ export const useOteadorStore = defineStore('oteador', {
     setAvailableRegions(regions: string[])      { this.availableRegions = regions },
     setLoadingService(v: boolean)               { this.loadingService  = v       },
     setLoadingInitial(v: boolean)               { this.loadingInitial  = v       },
+    setWidgetServiceFilter(key: string)          { this.widgetServiceFilter = key  },
 
     // ── fetchRegions ───────────────────────────────────────────────────────
 
@@ -282,8 +339,8 @@ export const useOteadorStore = defineStore('oteador', {
       }
 
       const client    = new PricingClient({ region: 'us-east-1', credentials })
-      const newPrices: Record<string, number> = {
-        ec2: 0, rds: 0, autoscaling: 0, elb: 0, elasticIP: 0, lambda: 0,
+      const newPrices: Record<string, number | null> = {
+        ec2: 0, rds: 0, autoscaling: null, elb: 0, elasticIP: null, lambda: 0,
       }
 
       const cacheGet = (key: string): number | null => {
@@ -330,10 +387,10 @@ export const useOteadorStore = defineStore('oteador', {
             })).then(res => {
         
                 let raw = res.PriceList?.[0]
-  if (typeof raw !== 'string') raw = JSON.stringify(raw)
-  let obj = JSON.parse(raw)
-  if (typeof obj === 'string') obj = JSON.parse(obj)
-  const price = extractOnDemandPrice(res.PriceList?.[0])
+              if (typeof raw !== 'string') raw = JSON.stringify(raw)
+              let obj = JSON.parse(raw)
+              if (typeof obj === 'string') obj = JSON.parse(obj)
+              const price = extractOnDemandPrice(res.PriceList?.[0])
               // cacheSet(cacheKey, price)
               return { service: 'ec2', price: price * count }
             }).catch(err => {
@@ -459,29 +516,37 @@ export const useOteadorStore = defineStore('oteador', {
       const results = await Promise.allSettled(promises)
       results.forEach(res => {
         if (res.status === 'fulfilled') {
-          newPrices[res.value.service] += res.value.price
+          const currentPrice = newPrices[res.value.service]
+          if (typeof currentPrice === 'number') {
+            newPrices[res.value.service] = currentPrice + res.value.price
+          }
         }
       })
       this.prices = newPrices
     },
 
-    // ── fetchAllData ───────────────────────────────────────────────────────
+    // ── fetchGlobalData ────────────────────────────────────────────────────
+    // Llama a TODAS las regiones. Solo se ejecuta en el mount inicial.
+    // Actualiza widgets (métricas + precios) y precarga allRegionItems.
 
-async fetchAllData() {
+    async fetchGlobalData() {
       this.setLoadingService(true)
       try {
-        // ── Widgets: sumatorio de TODAS las regiones disponibles ──────────
-        // Se llama a services/region/{r} para cada región y se suman los contadores
-        // y se acumula el info completo para calcular precios globales.
-        const metricsMap: Record<string, string> = {
-          ec2: 'ec2', rds: 'rds', autoscaling: 'autoscaling',
-          elb: 'elb', elasticIP: 'elasticIP', lambda: 'lamb',
+        // El endpoint services/region/{r} devuelve un array plano de EC2,
+        // no un resumen por servicio. Por eso usamos los endpoints específicos
+        // de cada servicio en paralelo sobre todas las regiones.
+        const serviceEndpoints: Record<string, string> = {
+          ec2:        'AllInstancesEC2',
+          rds:        'AllInstancesRDS',
+          autoscaling:'AutoScalingGroups',
+          elb:        'ElasticLoadBalancing',
+          elasticIP:  'ElasticIP',
+          lambda:     'Lambda',
         }
- 
+
         const globalMetrics: Record<string, number> = {
           ec2: 0, rds: 0, autoscaling: 0, elb: 0, elasticIP: 0, lambda: 0,
         }
-        // Sumario combinado para calculatePrices (info de todas las regiones)
         const combinedSummary: Record<string, { number: number; info: any[] }> = {
           ec2:        { number: 0, info: [] },
           rds:        { number: 0, info: [] },
@@ -490,45 +555,130 @@ async fetchAllData() {
           elasticIP:  { number: 0, info: [] },
           lamb:       { number: 0, info: [] },
         }
- 
-        // Peticiones paralelas a todas las regiones
-        const regionResults = await Promise.allSettled(
-          this.availableRegions.map(r => api.oteadorClient.get(`services/region/${r}`))
+
+        // Para cada servicio, pedimos todas las regiones en paralelo
+        const serviceKeys = Object.keys(serviceEndpoints)
+        const allFetches = serviceKeys.flatMap(serviceKey =>
+          this.availableRegions.map(r => ({
+            serviceKey,
+            region: r,
+            promise: withRetry(() =>
+              api.oteadorClient.get(`services/${serviceEndpoints[serviceKey]}/region/${r}`)
+            ),
+          }))
         )
- 
-        regionResults.forEach(result => {
-          if (result.status !== 'fulfilled') return
-          const summary = result.value.data
-          Object.keys(globalMetrics).forEach(key => {
-            const apiKey = metricsMap[key]
-            globalMetrics[key] += summary[apiKey]?.number ?? 0
-            const info = summary[apiKey]?.info ?? []
-            combinedSummary[apiKey].number += summary[apiKey]?.number ?? 0
-            combinedSummary[apiKey].info.push(...info)
-          })
+
+        const results = await Promise.allSettled(allFetches.map(f => f.promise))
+
+        results.forEach((result, i) => {
+          const { serviceKey, region } = allFetches[i]
+          if (result.status !== 'fulfilled') {
+            console.warn(`[Oteador] ✗ ${serviceKey}/${region}:`,
+              (result.reason as any)?.response?.status ?? result.reason)
+            return
+          }
+
+          let items: any[] = result.value.data ?? []
+          if (!Array.isArray(items)) items = []
+          items = applyServiceItemFilter(items, serviceKey)
+
+          // Buckets S3: el backend devuelve strings, normalizamos
+          if (serviceKey === 'ec2' /* placeholder, S3 se añadiría aquí */) {
+            items = items.map(i => typeof i === 'string' ? { Name: i } : i)
+          }
+
+          globalMetrics[serviceKey] += items.length
+
+          // combinedSummary usa 'lamb' para lambda (clave legacy de calculatePrices)
+          const summaryKey = serviceKey === 'lambda' ? 'lamb' : serviceKey
+          combinedSummary[summaryKey].number += items.length
+          combinedSummary[summaryKey].info.push(...items)
         })
- 
-        this.globalMetrics = globalMetrics
-        // Calcular precios con el info combinado de todas las regiones
+
+        this.globalMetrics = { ...globalMetrics }
         await this.calculatePrices(combinedSummary)
- 
-        // ── Tabla: solo la región seleccionada ────────────────────────────
-        const endpoint = ENDPOINT_MAP[this.selectedService]
-        const { data: detail } = await api.oteadorClient.get(
-          `services/${endpoint}/region/${this.selectedRegion}`,
-        )
- 
-        // S3 devuelve array de strings → normalizar a objetos
-        this.items = this.selectedService === 'Buckets S3'
-          ? (detail as any[]).map(item => (typeof item === 'string' ? { Name: item } : item))
-          : detail
- 
+        await this.fetchTableData()
+
       } catch (error) {
-        console.error('[Oteador] fetchAllData error:', error)
+        console.error('[Oteador] fetchGlobalData error:', error)
       } finally {
         this.setLoadingService(false)
         this.setLoadingInitial(false)
       }
+    },
+
+    // ── fetchTableData ─────────────────────────────────────────────────────
+    // Carga solo los items de la región seleccionada para la tabla.
+    // Se llama al cambiar de región o servicio.
+
+    async fetchTableData() {
+      this.setLoadingService(true)
+      try {
+        this.setWidgetServiceFilter('')  // resetear modo widget al cambiar región/servicio
+        const endpoint = ENDPOINT_MAP[this.selectedService]
+        const { data: detail } = await withRetry(() =>
+          api.oteadorClient.get(`services/${endpoint}/region/${this.selectedRegion}`)
+        )
+        const normalized = this.selectedService === 'Buckets S3'
+          ? (detail as any[]).map(item => (typeof item === 'string' ? { Name: item } : item))
+          : (detail as any[])
+        this.items = applyServiceItemFilterByName(normalized, this.selectedService)
+        this.allRegionItems = []
+      } catch (error) {
+        console.error('[Oteador] fetchTableData error:', error)
+      } finally {
+        this.setLoadingService(false)
+      }
+    },
+
+    // ── fetchAllRegionItems ────────────────────────────────────────────────
+    // Al hacer click en un widget, carga los items de ESE servicio en
+    // TODAS las regiones y los muestra en la tabla.
+
+    async fetchAllRegionItems(serviceKey: string) {
+      const keyToService: Record<string, ServiceOption> = {
+        ec2:        'EC2 instances',
+        rds:        'RDS instances',
+        autoscaling:'Auto Scaling Groups',
+        elasticIP:  'Elastic IPs',
+        elb:        'Elastic Load Balancers',
+        lambda:     'Lambda Functions',
+      }
+      const service = keyToService[serviceKey]
+      if (!service) return
+
+      this.setLoadingService(true)
+      this.setWidgetServiceFilter(serviceKey)
+      this.setSelectedService(service)
+
+      try {
+        const endpoint = ENDPOINT_MAP[service]
+        const regionResults = await Promise.allSettled(
+          this.availableRegions.map(r =>
+            withRetry(() => api.oteadorClient.get(`services/${endpoint}/region/${r}`))
+          )
+        )
+
+        const allItems: any[] = []
+        regionResults.forEach(result => {
+          if (result.status !== 'fulfilled') return
+          const detail = result.value.data
+          const normalized = service === 'Buckets S3'
+            ? (detail as any[]).map(item => (typeof item === 'string' ? { Name: item } : item))
+            : (detail as any[])
+          allItems.push(...applyServiceItemFilterByName(normalized, service))
+        })
+
+        this.allRegionItems = allItems
+        this.items = allItems
+      } catch (error) {
+        console.error('[Oteador] fetchAllRegionItems error:', error)
+      } finally {
+        this.setLoadingService(false)
+      }
+    },
+    async fetchAllData() {
+      await this.fetchGlobalData()
     },
   },
 })

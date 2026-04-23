@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { fetchAuthSession } from 'aws-amplify/auth'
 import { API_CONFIG } from './config'
+import router from '../router'
+import { useAuthStore } from '../stores/auth'
 
 const apiClient = axios.create({
   baseURL: API_CONFIG.GENERAL,
@@ -18,9 +20,26 @@ const addAuthHeader = async (config: any) => {
   }
   return config
 }
+
+const handleAuthError = async (error: any) => {
+  const status = error?.response?.status
+
+  if (status === 401) {
+    const authStore = useAuthStore()
+    await authStore.logout().catch(() => null)
+
+    if (router.currentRoute.value.name !== 'login') {
+      await router.replace({ name: 'login' }).catch(() => null)
+    }
+  }
+
+  return Promise.reject(error)
+}
 // Interceptor para inyectar el token automáticamente
 apiClient.interceptors.request.use(addAuthHeader)
 oteadorClient.interceptors.request.use(addAuthHeader)
+apiClient.interceptors.response.use((response) => response, handleAuthError)
+oteadorClient.interceptors.response.use((response) => response, handleAuthError)
 
 export default {
   client: apiClient,

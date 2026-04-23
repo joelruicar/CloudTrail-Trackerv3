@@ -75,11 +75,11 @@ const routes: Array<RouteRecordRaw> = [
       },
     ],
   },
-  {
-    name: '404',
-    path: '/404',
-    component: () => import('../pages/404.vue'),
-  },
+  // {
+  //   name: '404',
+  //   path: '/404',
+  //   component: () => import('../pages/404.vue'),
+  // },
 ]
 
 const router = createRouter({
@@ -101,7 +101,7 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  if (!authStore.user) {
+  if (to.matched.some((record) => record.meta.requiresAuth) || authStore.user) {
     await authStore.refreshUser()
   }
 
@@ -111,6 +111,7 @@ router.beforeEach(async (to, from, next) => {
   if (requiresGuest && authStore.user) {
     next({ name: 'dashboard' })
   } else if (requiresAuth && !authStore.user) {
+    await authStore.logout().catch(() => null)
     next({ name: 'login' })
   } else {
     next()
