@@ -53,18 +53,6 @@
                 @barClick="onBarClick"
               />
             </div>
-            <p
-              v-if="activeFilter"
-              class="text-center mt-2 va-text-secondary"
-              style="font-size: 0.85rem;"
-            >
-              Filtering by <strong>{{ activeFilter }}</strong> —
-              <a
-                class="cursor-pointer"
-                style="color: var(--va-primary)"
-                @click="activeFilter = ''"
-              >clear</a>
-            </p>
           </div>
           <div
             v-if="!store.loadingService && store.items.length === 0"
@@ -81,6 +69,7 @@
             </p>
           </div>
           <Table
+            v-model:filter="searchQuery"
             :items="filteredRows"
             :columns="store.currentColumns"
             :loading="store.loadingService"
@@ -99,7 +88,7 @@ import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
 
 const store = useOteadorStore()
-const activeFilter = ref('')
+const searchQuery = ref('')
 const ALL_REGIONS_VALUE = 'all'
 
 const regionOptions = computed(() => [
@@ -111,17 +100,10 @@ const selectedRegionValue = computed(() =>
   store.widgetServiceFilter ? ALL_REGIONS_VALUE : store.selectedRegion
 )
 
-const filteredRows = computed(() => {
-  if (!activeFilter.value) return store.items
-  return store.items.filter(item => {
-    const status = item.State || item.DBInstanceStatus || item.Status || ''
-    const type   = item.Type  || item.DBInstanceClass  || item.Runtime || ''
-    return status === activeFilter.value || type === activeFilter.value
-  })
-})
+const filteredRows = computed(() => store.items)
 
 function onBarClick(label: string) {
-  activeFilter.value = activeFilter.value === label ? '' : label
+  searchQuery.value = searchQuery.value === label ? '' : label
 }
 
 // Usamos event delegation sobre el wrapper para detectar en qué card se hizo click.
@@ -154,23 +136,22 @@ async function onWidgetClick(serviceKey: string) {
     await clearWidgetFilter()
     return
   }
-  activeFilter.value = ''
   await store.fetchAllRegionItems(serviceKey)
 }
 
 async function clearWidgetFilter() {
-  activeFilter.value = ''
+  searchQuery.value = ''
   await store.fetchTableData()
 }
 
 async function onServiceChange(value: string) {
-  activeFilter.value = ''
+  searchQuery.value = ''
   store.setSelectedService(value as typeof SERVICE_OPTIONS[number])
   await store.fetchTableData()
 }
 
 async function onRegionChange(value: string) {
-  activeFilter.value = ''
+  searchQuery.value = ''
   if (value === ALL_REGIONS_VALUE) {
     const serviceToKey: Record<string, string> = {
       'EC2 instances':          'ec2',

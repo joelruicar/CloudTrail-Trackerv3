@@ -2,9 +2,11 @@
   <div class="chart-wrapper">
     <Bar
       v-if="chartData?.datasets?.[0]?.data?.length > 0"
+      ref="barRef"
       :key="chartRenderKey"
       :data="chartData"
       :options="chartOptions"
+      @click="onBarClick"
     />
     <div
       v-else
@@ -18,7 +20,7 @@
 <script setup>
 import { Bar } from 'vue-chartjs'
 import { Chart, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { useColors } from 'vuestic-ui'
 Chart.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ChartDataLabels)
@@ -30,6 +32,17 @@ const props = defineProps({
   yAxis: { type: String, default: '' },
 })
 
+const emit = defineEmits(['barClick'])
+const barRef = ref(null)
+
+function onBarClick(event) {
+  if (!barRef.value?.chart) return
+  const elements = barRef.value.chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, false)
+  if (!elements.length) return
+  const label = props.chartData.labels?.[elements[0].index]
+  if (label) emit('barClick', label)
+}
+
 const isLaboratoryChart = computed(() => props.title.toLowerCase().includes('laboratory'))
 const chartTextColor = computed(() => getColor('plainText'))
 const chartNumberColor = computed(() => getColor('chartColor'))
@@ -38,6 +51,20 @@ const chartRenderKey = computed(() => `${currentPresetName.value}-${props.title}
 const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
+  onClick: (event, elements, chart) => {
+    if (elements.length) return  
+    const xScale = chart.scales['x']
+    if (!xScale) return
+    const xPos = event.x
+    const ticks = xScale.ticks
+    const tickWidth = xScale.width / ticks.length
+    const startX = xScale.left
+    const index = Math.floor((xPos - startX) / tickWidth)
+    if (index >= 0 && index < ticks.length) {
+      const label = props.chartData.labels?.[index]
+      if (label) emit('barClick', label)
+    }
+  },
   datasets: {
     bar: {
       backgroundColor: colorToRgba(getColor('chartColor'), 0.8),
@@ -103,6 +130,7 @@ const chartOptions = computed(() => ({
   position: relative;
   height: 350px;
   width: 100%;
+  cursor: pointer;
 }
 
 .empty-state {

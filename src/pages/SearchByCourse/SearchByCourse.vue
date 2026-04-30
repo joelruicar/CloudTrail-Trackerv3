@@ -31,7 +31,7 @@
           </VaCardTitle>
           <div class="progress-stats">
             <div
-              v-if="selectedStudentsFrom == selectedStudentsTo"
+              v-if="singleStudentSelected"
               class="stat-item"
             >
               <span
@@ -51,7 +51,7 @@
               <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
             </div>
             <div
-              v-if="selectedStudentsFrom != selectedStudentsTo"
+              v-if="!singleStudentSelected"
               class="stat-item"
             >
               <span
@@ -61,7 +61,7 @@
               <span class="stat-value">{{ awsStore.averageProgressByRange.toFixed(2) }}%</span>
             </div>
             <div
-              v-if="selectedStudentsFrom === selectedStudentsTo && singleStudentFinalGrade !== null"
+              v-if="singleStudentSelected && singleStudentFinalGrade !== null"
               class="stat-item"
             >
               <span
@@ -72,7 +72,7 @@
             </div>
           </div>
           <div
-            v-if="courseInsights.length && selectedStudentsFrom != selectedStudentsTo"
+            v-if="courseInsights.length && !singleStudentSelected"
             class="mb-4"
           >
             <VaCard>
@@ -94,10 +94,11 @@
             x-axis="Práctica"
             y-axis="%"
             title="laboratory"
+            @barClick="handleBarClick"
           />
         </VaCard>
         <VaCard
-          v-if="heatmapData.students.length && selectedStudentsFrom != selectedStudentsTo"
+          v-if="heatmapData.students.length && !singleStudentSelected"
           class="mb-4"
         >
           <VaCardTitle style="color: var(--va-chart-title)">
@@ -113,7 +114,7 @@
         <VaButton
           color="buttonColor"
           class="mb-4"
-          @click="displayDetails = !displayDetails"
+          @click="display = !display"
         >
           Details
         </VaButton>
@@ -122,7 +123,7 @@
           @afterEnter="handleAfterEnter"
         >
           <div
-            v-if="!displayDetails"
+            v-if="!display"
             ref="tableContainerRef"
             class="table-container"
             :style="{ minHeight: `${perPage * 45 + 50}px` }"
@@ -145,25 +146,59 @@
                   entries
                 </label>
               </div>
-              <VaDataTable
-                v-model:sort-by="sortBy"
-                v-model:sorting-order="sortingOrder"
-                :items="practiceRows"
-                :columns="practiceColumns"
-                :filter="searchQuery"
-                :per-page="perPage"
-                :current-page="currentPage"
-                :disable-client-side-sorting="false"
-                hoverable
-                style="color: var(--va-plain-text)"
-              >
-                <template #cell(completionPercent)="{ rowData }">
-                  {{ rowData.completionPercent.toFixed(2) }}%
-                </template>
-                <template #cell(lastRelatedEventDate)="{ rowData }">
-                  {{ rowData.lastRelatedEventDate || '-' }}
-                </template>
-              </VaDataTable>
+              <template v-if="singleStudentSelected">
+                <VaDataTable
+                  v-model:sort-by="missingSortBy"
+                  v-model:sorting-order="missingSortingOrder"
+                  :items="missingEventsRows"
+                  :columns="missingEventColumns"
+                  :per-page="perPage"
+                  :current-page="currentPage"
+                  :filter="searchQuery"
+                  :disable-client-side-sorting="false"
+                  hoverable
+                  style="color: var(--va-plain-text)"
+                >
+                  <template #cell(practice)="{ rowData }">
+                    {{ rowData.practice }}
+                  </template>
+                  <template #cell(event)="{ rowData }">
+                    <a
+                      v-if="rowData.link"
+                      :href="rowData.link"
+                      target="_blank"
+                      class="event-link"
+                    >
+                      {{ rowData.event }}
+                    </a>
+                    <span v-else>{{ rowData.event }}</span>
+                  </template>
+                  <template #cell(missing)="{ rowData }">
+                    {{ rowData.missing }}
+                  </template>
+                </VaDataTable>
+              </template>
+              <template v-else>
+                <VaDataTable
+                  v-model:sort-by="sortBy"
+                  v-model:sorting-order="sortingOrder"
+                  :items="practiceRows"
+                  :columns="practiceColumns"
+                  :filter="searchQuery"
+                  :per-page="perPage"
+                  :current-page="currentPage"
+                  :disable-client-side-sorting="false"
+                  hoverable
+                  style="color: var(--va-plain-text)"
+                >
+                  <template #cell(completionPercent)="{ rowData }">
+                    {{ rowData.completionPercent.toFixed(2) }}%
+                  </template>
+                  <template #cell(lastRelatedEventDate)="{ rowData }">
+                    {{ rowData.lastRelatedEventDate || '-' }}
+                  </template>
+                </VaDataTable>
+              </template>
               <div class="pagination-footer">
                 <VaPagination
                   v-model="currentPage"
@@ -191,19 +226,22 @@ import { useAuthStore } from '../../stores/auth'
 import Chart from '../../components/Chart.vue'
 import { useAwsStore } from '../../stores/aws'
 import dayjs from 'dayjs'
+import { REFERDATA } from '../../data/evenprac'
+import eventLinksJson from '../../data/event-links.json'
 
 const awsStore = useAwsStore()
 const authStore = useAuthStore()
 const { getColor } = useColors()
 const { calculateRange } = useAcademicYear()
-const displayDetails = ref(true)
+const display = ref(true)
 const selectedCourseLabel = ref('')
 const selectedStudentsFrom = ref(0)
 const selectedStudentsTo = ref(0)
 const sortingOrder = ref<'asc' | 'desc' | null>(null)
 const sortBy = ref('index')
+const missingSortBy = ref('practice')
+const missingSortingOrder = ref<'asc' | 'desc' | null>('asc')
 const perPage = ref(10)
-const searchQuery = ref('')
 const currentPage = ref(1)
 const hasSearched = ref(false)
 
@@ -232,6 +270,9 @@ const courseSubjectsMap: Record<string, string[]> = {
 }
 
 const courseOptions = computed(() => Object.keys(courseSubjectsMap))
+const courseSubjects = computed(() =>
+  Array.from(new Set(courseSubjectsMap[selectedCourseLabel.value] || []))
+)
 
 const practiceColumns = [
   { key: 'practiceName', label: 'Practice', sortable: true },
@@ -240,34 +281,82 @@ const practiceColumns = [
   { key: 'lastRelatedEventDate', label: 'Timestamp', sortable: true },
 ]
 
-const practiceRows = computed(() => {
-  const rows: Array<{
-    practiceName: string
-    user: string
-    completionPercent: number
-    lastRelatedEventDate: string
-  }> = []
+const missingEventColumns = [
+  { key: 'practice', label: 'Practice', sortable: true },
+  { key: 'event', label: 'Event', sortable: true },
+  { key: 'missing', label: 'Number of missing events', sortable: true },
+]
 
-  awsStore.studentProgressData.forEach((studentRow) => {
+const practiceRows = computed(() =>
+  awsStore.studentProgressData.map((studentRow) => {
     const lastEvent = studentRow.events.reduce<string>((latest, event) => {
       if (!event.eventTime) return latest
       if (!latest) return event.eventTime
       return new Date(event.eventTime) > new Date(latest) ? event.eventTime : latest
     }, '')
 
-    rows.push({
+    return {
       practiceName: studentRow.subject,
       user: studentRow.studentName,
       completionPercent: Number(studentRow.progress.toFixed(2)),
       lastRelatedEventDate: lastEvent ? dayjs(lastEvent).format('HH:mm:ss DD-MM-YYYY') : 'N/A',
-    })
+    }
   })
+)
 
-  return rows
+const hasResults = computed(() => awsStore.studentProgressData.length > 0)
+
+const singleStudentSelected = computed(() => selectedStudentsFrom.value === selectedStudentsTo.value && awsStore.studentProgressData.length > 0)
+
+const missingEventsRows = computed(() => {
+  if (!singleStudentSelected.value) return []
+
+  const subjects = courseSubjects.value
+
+  const refer: Record<string, Record<string, number>> = (REFERDATA as any).REFERDATA ?? {}
+
+  const allServices: Record<string, number> = {}
+  for (const row of awsStore.studentProgressData) {
+    for (const ev of row.events || []) {
+      allServices[ev.eventName] = (allServices[ev.eventName] || 0) + 1
+    }
+  }
+
+  const rows: Array<{ practice: string; event: string; missing: number; link?: string }> = []
+  const eventLinkMap = (eventLinksJson || []).reduce((acc: Record<string, string>, it: any) => {
+    acc[it.eventName] = it.url
+    return acc
+  }, {})
+
+  for (const subject of subjects) {
+    const eventsForSub = refer[subject] || {}
+    for (const [ename, req] of Object.entries(eventsForSub)) {
+      if (ename === 'totalref') continue
+      const required = Number(req)
+
+      if (allServices[ename] > 0) {
+        if (allServices[ename] >= required) {
+          allServices[ename] -= required
+        } else {
+          const missing = required - allServices[ename]
+          rows.push({ practice: subject, event: ename, missing, link: eventLinkMap[ename] })
+          allServices[ename] = 0
+        }
+      } else if (required > 0) {
+        rows.push({ practice: subject, event: ename, missing: required, link: eventLinkMap[ename] })
+      }
+    }
+  }
+
+  return rows.sort((a, b) => a.practice.localeCompare(b.practice) || b.missing - a.missing)
 })
 
-const pages = computed(() => Math.max(1, Math.ceil(practiceRows.value.length / perPage.value)))
-const hasResults = computed(() => awsStore.studentProgressData.length > 0)
+const pages = computed(() => {
+  const len = singleStudentSelected.value
+    ? missingEventsRows.value.length
+    : practiceRows.value.length
+  return Math.max(1, Math.ceil(len / perPage.value))
+})
 
 const calculateFinalGrade = (subjects: string[], values: Record<string, number>) => {
   if (!subjects.length) return 0
@@ -276,7 +365,7 @@ const calculateFinalGrade = (subjects: string[], values: Record<string, number>)
 }
 
 const heatmapData = computed(() => {
-  const baseSubjects = Array.from(new Set(courseSubjectsMap[selectedCourseLabel.value] || []))
+  const baseSubjects = courseSubjects.value
 
   const subjectsSet = new Set(baseSubjects)
   const byStudent = new Map<string, { index: number; values: Record<string, number> }>()
@@ -321,7 +410,7 @@ const heatmapData = computed(() => {
 })
 
 const singleStudentFinalGrade = computed(() => {
-  const baseSubjects = Array.from(new Set(courseSubjectsMap[selectedCourseLabel.value] || []))
+  const baseSubjects = courseSubjects.value
   if (!baseSubjects.length || !awsStore.studentProgressData.length) return null
 
   const values: Record<string, number> = {}
@@ -334,25 +423,39 @@ const singleStudentFinalGrade = computed(() => {
 })
 
 const tableContainerRef = ref<HTMLElement | null>(null)
+const searchQuery = ref('')
 
 const scrollToTable = () => {
-  const el = tableContainerRef.value
-  el?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  tableContainerRef.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
 
 const handleAfterEnter = () => {
   scrollToTable()
 }
 
+const handleBarClick = (label: string) => {
+  if (searchQuery.value === label) {
+    searchQuery.value = ''
+  } else {
+    searchQuery.value = label
+  }
+  display.value = false
+  nextTick(() => scrollToTable())
+}
+
 watch(currentPage, () => {
-  if (displayDetails.value) return
+  if (display.value) return
   nextTick(() => {
     scrollToTable()
   })
 })
 
+watch(singleStudentSelected, () => {
+  currentPage.value = 1
+})
+
 const courseInsights = computed(() => {
-  const subjects = Array.from(new Set(courseSubjectsMap[selectedCourseLabel.value] || []))
+  const subjects = courseSubjects.value
 
   const subjectsSet = new Set(subjects)
   const rowsInCourse = awsStore.studentProgressData.filter((row) => subjectsSet.has(row.subject))
@@ -431,8 +534,7 @@ const courseInsights = computed(() => {
 })
 
 const averageProgressChart = computed(() => {
-  const subjectsInCourse = courseSubjectsMap[selectedCourseLabel.value] || []
-  const labels = Array.from(new Set(subjectsInCourse))
+  const labels = courseSubjects.value
 
   const myColors: Record<string, string> = {}
   const successColor = getColor('heatmapSuccess')
@@ -465,7 +567,6 @@ const averageProgressChart = computed(() => {
       {
         label: 'Promedio de Avance (%)',
         backgroundColor: labels.map((subject) => myColors[subject]),
-        // borderWidth: 1
         data,
       },
     ],
@@ -481,8 +582,9 @@ const handleFilterApplied = async (filter: {
   hasSearched.value = true
   selectedCourseLabel.value = filter.course
 
-  const rangeStart = filter.dateRange?.start ?? calculateRange().start
-  const rangeEnd = filter.dateRange?.end ?? calculateRange().end
+  const defaultRange = calculateRange()
+  const rangeStart = filter.dateRange?.start ?? defaultRange.start
+  const rangeEnd = filter.dateRange?.end ?? defaultRange.end
   const startDate = dayjs(rangeStart).format('YYYY-MM-DD')
   const endDate = dayjs(rangeEnd).format('YYYY-MM-DD')
 

@@ -140,4 +140,10 @@ const metricItems = computed(() =>
   letter-spacing: 0.05em;
   text-transform: capitalize;
 }
+
+@media (max-width: 790px) {
+  .metrics-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+}
 </style>

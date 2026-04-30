@@ -40,6 +40,22 @@
             hoverable
             striped
           >
+            <template
+              v-if="linkColumnKey && linkColumnKey !== 'eventName'"
+              #[`cell(${linkColumnKey})`]="{ rowData }"
+            >
+              <a
+                v-if="rowData.awsLink"
+                :href="rowData.awsLink"
+                target="_blank"
+                class="event-link"
+              >
+                {{ rowData[linkColumnKey] }}
+              </a>
+              <span v-else>
+                {{ rowData[linkColumnKey] }}
+              </span>
+            </template>
             <template #cell(eventName)="{ rowData }">
               <slot
                 v-if="!enableEventLinkWithPopover"
@@ -102,24 +118,35 @@ const props = withDefaults(defineProps<{
   loading?: boolean
   enableEventLinkWithPopover?: boolean
   enableEventLink?: boolean
+  linkColumnKey?: string
+  filter?: string
 }>(), {
   loading: false,
   enableEventLinkWithPopover: false,
   enableEventLink: false,
+  filter: '',
 })
+
+const emit = defineEmits<{
+  'update:filter': [value: string]
+}>()
 
 const tableCard = ref<ComponentPublicInstance | null>(null)
 
 const sortingOrder = ref<'asc' | 'desc' | null>(null)
 const sortBy = ref('')
 const perPage = ref(10)
-const searchQuery = ref('')
 const currentPage = ref(1)
+const searchQuery = computed({
+  get: () => props.filter,
+  set: (val: string) => emit('update:filter', val),
+})
 
 const columns = computed(() => props.columns)
 const loading = computed(() => props.loading)
 const enableEventLinkWithPopover = computed(() => props.enableEventLinkWithPopover)
 const enableEventLink = computed(() => props.enableEventLink)
+const linkColumnKey = computed(() => props.linkColumnKey || columns.value[0]?.key || '')
 
 const filteredItems = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
@@ -187,6 +214,28 @@ defineExpose({ scrollToTable })
 
 .search-input {
   width: 300px;
+}
+
+@media (max-width: 768px) {
+  .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .search-group {
+    width: 100%;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .per-page-label {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 }
 
 .table-container :deep(.va-data-table),

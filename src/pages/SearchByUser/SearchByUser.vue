@@ -72,6 +72,7 @@
           :chart-data="awsStore.chartDataServices"
           x-axis="Services"
           y-axis="#times"
+          @barClick="handleBarClick"
         />
       </VaCard>
     </div>
@@ -88,6 +89,7 @@
       <Table
         v-if="!display"
         ref="eventsTable"
+        v-model:filter="searchQuery"
         :items="awsStore.formattedEvents"
         :columns="eventColumns"
         :loading="awsStore.loading"
@@ -202,6 +204,18 @@ const search = () => {
 }
 
 const eventsTable = ref<InstanceType<typeof Table> | null>(null)
+const searchQuery = ref('')
+
+const handleBarClick = (label: string) => {
+  if (searchQuery.value === label) {
+    searchQuery.value = ''
+  } else {
+    searchQuery.value = label
+  }
+  display.value = false
+  nextTick(() => eventsTable.value?.scrollToTable())
+}
+
 const handleAfterEnter = () => {
   eventsTable.value?.scrollToTable()
 }
