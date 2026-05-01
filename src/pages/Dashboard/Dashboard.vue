@@ -8,17 +8,11 @@
       size="large"
     />
   </div>
-  <VaCard
-    v-else
-    class="p-4"
-  >
-    <h1
-      class="text-2xl font-bold mb-4"
-      style="color: var(--va-plain-text)"
-    >
-      Dashboard
-    </h1>
-    <InfoWidgets />
+  <template v-else-if="awsStore.events && awsStore.events.length > 0">
+    <VaCard class="p-4">
+      <InfoWidgets />
+    </VaCard>
+
     <VaSelect
       v-model="timeRange"
       :options="options"
@@ -73,7 +67,7 @@
         />
       </div>
     </Transition>
-  </VaCard>
+  </template>
 </template>
 
 <script setup lang="ts">

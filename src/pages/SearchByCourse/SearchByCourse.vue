@@ -125,90 +125,21 @@
           <div
             v-if="!display"
             ref="tableContainerRef"
-            class="table-container"
-            :style="{ minHeight: `${perPage * 45 + 50}px` }"
           >
-            <VaCard>
-              <div class="table-toolbar">
-                <VaInput
-                  v-model="searchQuery"
-                  class="search-input"
-                  placeholder="Search"
-                  clearable
-                />
-                <label class="per-page-label">
-                  Show
-                  <VaSelect
-                    v-model="perPage"
-                    :options="[10, 25, 50, 100]"
-                    class="page-select-inline"
-                  />
-                  entries
-                </label>
-              </div>
-              <template v-if="singleStudentSelected">
-                <VaDataTable
-                  v-model:sort-by="missingSortBy"
-                  v-model:sorting-order="missingSortingOrder"
-                  :items="missingEventsRows"
-                  :columns="missingEventColumns"
-                  :per-page="perPage"
-                  :current-page="currentPage"
-                  :filter="searchQuery"
-                  :disable-client-side-sorting="false"
-                  hoverable
-                  style="color: var(--va-plain-text)"
-                >
-                  <template #cell(practice)="{ rowData }">
-                    {{ rowData.practice }}
-                  </template>
-                  <template #cell(event)="{ rowData }">
-                    <a
-                      v-if="rowData.link"
-                      :href="rowData.link"
-                      target="_blank"
-                      class="event-link"
-                    >
-                      {{ rowData.event }}
-                    </a>
-                    <span v-else>{{ rowData.event }}</span>
-                  </template>
-                  <template #cell(missing)="{ rowData }">
-                    {{ rowData.missing }}
-                  </template>
-                </VaDataTable>
+            <Table
+              v-model:filter="searchQuery"
+              :items="singleStudentSelected ? missingEventsRows : practiceRows"
+              :columns="singleStudentSelected ? missingEventColumns : practiceColumns"
+              :enable-event-link-with-popover="singleStudentSelected"
+            >
+              <!-- Slots custom para practiceRows -->
+              <template #cell(completionPercent)="{ rowData }">
+                {{ rowData.completionPercent?.toFixed(2) }}%
               </template>
-              <template v-else>
-                <VaDataTable
-                  v-model:sort-by="sortBy"
-                  v-model:sorting-order="sortingOrder"
-                  :items="practiceRows"
-                  :columns="practiceColumns"
-                  :filter="searchQuery"
-                  :per-page="perPage"
-                  :current-page="currentPage"
-                  :disable-client-side-sorting="false"
-                  hoverable
-                  style="color: var(--va-plain-text)"
-                >
-                  <template #cell(completionPercent)="{ rowData }">
-                    {{ rowData.completionPercent.toFixed(2) }}%
-                  </template>
-                  <template #cell(lastRelatedEventDate)="{ rowData }">
-                    {{ rowData.lastRelatedEventDate || '-' }}
-                  </template>
-                </VaDataTable>
+              <template #cell(lastRelatedEventDate)="{ rowData }">
+                {{ rowData.lastRelatedEventDate || '-' }}
               </template>
-              <div class="pagination-footer">
-                <VaPagination
-                  v-model="currentPage"
-                  :pages="pages"
-                  active-page-color="remarkPrimary"
-                  color="buttonColor"
-                  size="small"
-                />
-              </div>
-            </VaCard>
+            </Table>
           </div>
         </Transition>
       </template>
@@ -225,6 +156,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import Chart from '../../components/Chart.vue'
 import { useAwsStore } from '../../stores/aws'
+import Table from '../../components/Table.vue'
 import dayjs from 'dayjs'
 import { REFERDATA } from '../../data/evenprac'
 import eventLinksJson from '../../data/event-links.json'
@@ -237,12 +169,6 @@ const display = ref(true)
 const selectedCourseLabel = ref('')
 const selectedStudentsFrom = ref(0)
 const selectedStudentsTo = ref(0)
-const sortingOrder = ref<'asc' | 'desc' | null>(null)
-const sortBy = ref('index')
-const missingSortBy = ref('practice')
-const missingSortingOrder = ref<'asc' | 'desc' | null>('asc')
-const perPage = ref(10)
-const currentPage = ref(1)
 const hasSearched = ref(false)
 
 const courseSubjectsMap: Record<string, string[]> = {
@@ -283,7 +209,7 @@ const practiceColumns = [
 
 const missingEventColumns = [
   { key: 'practice', label: 'Practice', sortable: true },
-  { key: 'event', label: 'Event', sortable: true },
+  { key: 'eventName', label: 'Event', sortable: true },
   { key: 'missing', label: 'Number of missing events', sortable: true },
 ]
 
@@ -322,9 +248,14 @@ const missingEventsRows = computed(() => {
     }
   }
 
-  const rows: Array<{ practice: string; event: string; missing: number; link?: string }> = []
-  const eventLinkMap = (eventLinksJson || []).reduce((acc: Record<string, string>, it: any) => {
-    acc[it.eventName] = it.url
+  const rows: Array<{ practice: string; eventName: string; missing: number; eventLink?: string; description?: string }> = []
+  const locale = navigator.language.startsWith('es') ? 'es' : 'en'
+  const eventLinkMap = (eventLinksJson || []).reduce((acc: Record<string, { url: string; description?: string }>, it: any) => {
+    const desc = it.description
+    acc[it.eventName] = {
+      url: it.url,
+      description: typeof desc === 'object' ? (desc[locale] ?? desc['en'] ?? '') : desc,
+    }
     return acc
   }, {})
 
@@ -339,23 +270,16 @@ const missingEventsRows = computed(() => {
           allServices[ename] -= required
         } else {
           const missing = required - allServices[ename]
-          rows.push({ practice: subject, event: ename, missing, link: eventLinkMap[ename] })
+          rows.push({ practice: subject, eventName: ename, missing, eventLink: eventLinkMap[ename]?.url, description: eventLinkMap[ename]?.description })
           allServices[ename] = 0
         }
       } else if (required > 0) {
-        rows.push({ practice: subject, event: ename, missing: required, link: eventLinkMap[ename] })
+        rows.push({ practice: subject, eventName: ename, missing: required, eventLink: eventLinkMap[ename]?.url, description: eventLinkMap[ename]?.description })
       }
     }
   }
 
   return rows.sort((a, b) => a.practice.localeCompare(b.practice) || b.missing - a.missing)
-})
-
-const pages = computed(() => {
-  const len = singleStudentSelected.value
-    ? missingEventsRows.value.length
-    : practiceRows.value.length
-  return Math.max(1, Math.ceil(len / perPage.value))
 })
 
 const calculateFinalGrade = (subjects: string[], values: Record<string, number>) => {
@@ -443,15 +367,9 @@ const handleBarClick = (label: string) => {
   nextTick(() => scrollToTable())
 }
 
-watch(currentPage, () => {
-  if (display.value) return
-  nextTick(() => {
-    scrollToTable()
-  })
-})
-
+// Al cambiar entre modo alumno único y rango, resetear el filtro
 watch(singleStudentSelected, () => {
-  currentPage.value = 1
+  searchQuery.value = ''
 })
 
 const courseInsights = computed(() => {
@@ -510,7 +428,7 @@ const courseInsights = computed(() => {
     insights.push({
       id: 'completed',
       tone: 'success',
-      message: `${topCompleted?.subject || 'N/A'} completado por ${Math.round(topCompleted?.ratio || 0)}% de alumnos`,
+      message: `${topCompleted?.subject || 'N/A'} completada por ${Math.round(topCompleted?.ratio || 0)}% de alumnos`,
     })
   }
 

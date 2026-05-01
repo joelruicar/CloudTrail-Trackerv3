@@ -92,6 +92,17 @@
                 </a>
               </VaPopover>
             </template>
+            <!-- Slot passthrough genérico: permite que el padre defina cell(cualquierColumna) -->
+            <template
+              v-for="(_, name) in cellSlots"
+              :key="name"
+              #[name]="slotProps"
+            >
+              <slot
+                :name="name"
+                v-bind="slotProps"
+              />
+            </template>
           </VaDataTable>
         </div>
         <div class="pagination-footer">
@@ -108,7 +119,7 @@
   </VaCard>
 </template>
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, ComponentPublicInstance } from 'vue'
+import { ref, computed, watch, nextTick, useSlots, ComponentPublicInstance } from 'vue'
 
 type TableColumn = { key: string; label: string; sortable?: boolean }
 
@@ -147,6 +158,17 @@ const loading = computed(() => props.loading)
 const enableEventLinkWithPopover = computed(() => props.enableEventLinkWithPopover)
 const enableEventLink = computed(() => props.enableEventLink)
 const linkColumnKey = computed(() => props.linkColumnKey || columns.value[0]?.key || '')
+
+const slots = useSlots()
+
+// Slots de celda pasados por el padre (cell(xxx)), excluyendo los que Table ya gestiona
+const cellSlots = computed(() =>
+  Object.fromEntries(
+    Object.entries(slots).filter(
+      ([name]) => name.startsWith('cell(') && name !== 'cell(eventName)',
+    ),
+  ),
+)
 
 const filteredItems = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
@@ -197,7 +219,6 @@ defineExpose({ scrollToTable })
 
 .chart-card {
   border-radius: 15px;
-  /* background: white; */
 }
 
 .per-page-label {
@@ -246,7 +267,7 @@ defineExpose({ scrollToTable })
 }
 
 .event-link {
-  color: var(--va-plain-text);
+  color: var(--va-primary);
   text-decoration: none;
   cursor: pointer;
 }
@@ -255,7 +276,7 @@ defineExpose({ scrollToTable })
 .event-link:focus,
 .event-link:visited,
 .event-link:active {
-  color: var(--va-plain-text);
+  color: var(--va-primary);
   text-decoration: none;
 }
 

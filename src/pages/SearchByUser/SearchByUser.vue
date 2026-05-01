@@ -8,95 +8,93 @@
       size="large"
     />
   </div>
-  <VaCard
-    v-else
-    class="p-2 sm:p-4 overflow-visible"
-  >
-    <h1
-      class="text-xl sm:text-2xl font-bold mb-4" 
-      style="color: var(--va-plain-text)"
-    >
-      Search by user
-    </h1>
-    <InfoWidgets class="mb-4" />
-    <div class="search-controls mb-6">
-      <div class="user-select-fixed">
-        <VaSelect
-          v-if="authStore.isProfessor"
-          ref="userSelect"
-          v-model="user_name"
-          v-model:search="userSearch"
-          label="USERNAME"
-          :options="selectOptions"
-          searchable
-          :highlight-matched-text="false"
-          @focus="handleSelectFocus"
-          @open="focusSearchInput"
+
+  <template v-else-if="awsStore.events && awsStore.events.length > 0">
+    <VaCard class="p-2 sm:p-4 overflow-visible mb-4">
+      <InfoWidgets />
+    </VaCard>
+
+
+    <VaCard class="p-2 sm:p-4 overflow-visible">
+      <div class="search-controls mb-6">
+        <div class="user-select-fixed">
+          <VaSelect
+            v-if="authStore.isProfessor"
+            ref="userSelect"
+            v-model="user_name"
+            v-model:search="userSearch"
+            label="USERNAME"
+            :options="selectOptions"
+            searchable
+            :highlight-matched-text="false"
+            @focus="handleSelectFocus"
+            @open="focusSearchInput"
+          >
+            <template #option-content="{ option }">
+              <span class="select-option-text">
+                <template
+                  v-for="(part, index) in getHighlightedParts(option)"
+                  :key="`${getUserOptionText(option)}-${index}`"
+                >
+                  <span :class="{ 'select-option-match': part.match }">{{ part.text }}</span>
+                </template>
+              </span>
+            </template>
+          </VaSelect>
+          <VaInput
+            v-else
+            :model-value="currentUser"
+            label="USERNAME"
+            readonly
+          />
+        </div>
+        <div class="date-filter-fixed">
+          <DateFilter v-model="range" />
+        </div>
+        <VaButton
+          icon="search"
+          color="buttonColor"
+          class="search-button-fixed"
+          @click="search"
         >
-          <template #option-content="{ option }">
-            <span class="select-option-text">
-              <template
-                v-for="(part, index) in getHighlightedParts(option)"
-                :key="`${getUserOptionText(option)}-${index}`"
-              >
-                <span :class="{ 'select-option-match': part.match }">{{ part.text }}</span>
-              </template>
-            </span>
-          </template>
-        </VaSelect>
-        <VaInput
-          v-else
-          :model-value="currentUser"
-          label="USERNAME"
-          readonly
-        />
+          Search
+        </VaButton>
       </div>
-      <div class="date-filter-fixed">
-        <DateFilter v-model="range" />
+      <div class="charts-column mb-4">
+        <VaCard>
+          <VaCardTitle style="color: var(--va-chart-title)">
+            AWS services used in the last hour
+          </VaCardTitle>
+          <Chart
+            :chart-data="awsStore.chartDataServices"
+            x-axis="Services"
+            y-axis="#times"
+            @barClick="handleBarClick"
+          />
+        </VaCard>
       </div>
       <VaButton
-        icon="search"
         color="buttonColor"
-        class="search-button-fixed"
-        @click="search"
+        @click="display = !display"
       >
-        Search
+        Details
       </VaButton>
-    </div>
-    <div class="charts-column mb-4">
-      <VaCard>
-        <VaCardTitle style="color: var(--va-chart-title)">
-          AWS services used in the last hour
-        </VaCardTitle>
-        <Chart
-          :chart-data="awsStore.chartDataServices"
-          x-axis="Services"
-          y-axis="#times"
-          @barClick="handleBarClick"
+      <Transition
+        name="expand"
+        @afterEnter="handleAfterEnter"
+      >
+        <Table
+          v-if="!display"
+          ref="eventsTable"
+          v-model:filter="searchQuery"
+          :items="awsStore.formattedEvents"
+          :columns="eventColumns"
+          :loading="awsStore.loading"
+          :enable-event-link-with-popover="true"
         />
-      </VaCard>
-    </div>
-    <VaButton
-      color="buttonColor"
-      @click="display = !display"
-    >
-      Details
-    </VaButton>
-    <Transition
-      name="expand"
-      @afterEnter="handleAfterEnter"
-    >
-      <Table
-        v-if="!display"
-        ref="eventsTable"
-        v-model:filter="searchQuery"
-        :items="awsStore.formattedEvents"
-        :columns="eventColumns"
-        :loading="awsStore.loading"
-        :enable-event-link-with-popover="true"
-      />
-    </Transition>
-  </VaCard>
+      </Transition>
+    </VaCard>
+  </template>
 </template>
 
 <script setup lang="ts">

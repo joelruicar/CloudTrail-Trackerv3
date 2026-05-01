@@ -347,9 +347,14 @@ export const useOteadorStore = defineStore('oteador', {
   getters: {
     chartData: (state) => {
       const counts = state.items.reduce((acc: Record<string, number>, item) => {
-        const key = state.selectedService === 'Elastic Load Balancers'
-          ? (item.Type  || 'unknown')
-          : (item.State || 'unknown')
+        let key: string
+        if (state.selectedService === 'Elastic Load Balancers') {
+          key = item.Type || 'unknown'
+        } else if (state.selectedService === 'Lambda Functions') {
+          key = item.Runtime || 'unknown'
+        } else {
+          key = item.State || 'unknown'
+        }
         acc[key] = (acc[key] || 0) + 1
         return acc
       }, {})
@@ -367,6 +372,7 @@ export const useOteadorStore = defineStore('oteador', {
 
     chartXAxis: (state) => {
       if (state.selectedService === 'Elastic Load Balancers') return 'Types'
+      if (state.selectedService === 'Lambda Functions') return 'Runtimes'
       if (['Auto Scaling Groups', 'Elastic IPs', 'Buckets S3'].includes(state.selectedService)) return 'Number'
       return 'States'
     },

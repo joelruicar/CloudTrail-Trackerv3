@@ -42,9 +42,9 @@
             v-if="store.items.length > 0 && !store.loadingService"
             class="mb-5"
           >
-            <h3 class="va-h3 text-center mb-4">
+            <h4 class="va-h3 text-center mb-4">
               Distribution by {{ store.chartXAxis }}
-            </h3>
+            </h4>
             <div style="height: 350px;">
               <Chart
                 :chart-data="store.chartData"
@@ -112,7 +112,7 @@ const WIDGET_KEY_MAP: Record<string, string> = {
   'RDS':           'rds',
   'AUTOSCALING':   'autoscaling',
   'ELB':           'elb',
-  'Elastic IP':    'elasticIP',
+  'ELASTIC IP':    'elasticIP',
   'LAMB':          'lambda',
   'LAMBDA':        'lambda',
 }
@@ -120,10 +120,9 @@ const WIDGET_KEY_MAP: Record<string, string> = {
 function onWidgetsAreaClick(event: MouseEvent) {
   const card = (event.target as HTMLElement).closest('.metric-card')
   if (!card) return
-  const titleEl = card.querySelector('.stats-title')
+  const titleEl = card.querySelector('.stats-label')
   if (!titleEl) return
-  // El título tiene formato 'EC2 - 0.1040 USD/h' o solo 'EC2'
-  const rawTitle = (titleEl.textContent ?? '').trim().split(' - ')[0].trim().toUpperCase()
+  const rawTitle = (titleEl.textContent ?? '').trim().toUpperCase()
   const serviceKey = Object.entries(WIDGET_KEY_MAP).find(
     ([label]) => label.toUpperCase() === rawTitle
   )?.[1]
@@ -160,7 +159,7 @@ async function onRegionChange(value: string) {
       'Elastic IPs':            'elasticIP',
       'Elastic Load Balancers': 'elb',
       'Lambda Functions':       'lambda',
-      'Buckets S3':             'ec2', // S3 es global, usamos cualquier clave
+      'Buckets S3':             'ec2', 
     }
     await store.fetchAllRegionItems(serviceToKey[store.selectedService] ?? 'ec2')
   } else {
