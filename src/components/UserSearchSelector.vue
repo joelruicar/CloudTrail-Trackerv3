@@ -9,6 +9,8 @@
       autocomplete
       :text-by="getUserOptionText"
       :value-by="getUserOptionText"
+      background="textInput"
+      color="primary"
       @update:modelValue="$emit('update:modelValue', $event)"
       @focus="openAllOptions"
       @click="openAllOptions"

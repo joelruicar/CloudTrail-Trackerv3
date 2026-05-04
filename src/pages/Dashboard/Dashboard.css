@@ -10,6 +10,10 @@
   flex-direction: column;
 }
 
+.widgets-card {
+  margin-bottom: 1rem;
+}
+
 .chart-card {
   border-radius: 15px;
   background: white;
@@ -26,7 +30,8 @@
 
 :deep(.date-select) {
   max-width: 250px;
-  margin-top: 1%;
+  margin-top: 3%;
+  margin-left: 3%;
 }
 @media (max-width: 1024px) {
   .main-content-grid {
@@ -38,4 +43,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+:deep(.details-button) {
+  margin-left: 3%;
 }

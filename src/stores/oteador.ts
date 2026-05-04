@@ -6,7 +6,7 @@ import { PricingClient, GetProductsCommand } from '@aws-sdk/client-pricing'
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers'
 import { fetchAuthSession } from 'aws-amplify/auth'
 import { amplifyConfig } from '../amplifyConfig'
-
+import dayjs from 'dayjs'
 export type ServiceOption =
   | 'EC2 instances'
   | 'RDS instances'
@@ -125,25 +125,13 @@ function toLocationDescription(regionName: string): string {
   return REGION_TO_LOCATION[regionName] ?? regionName
 }
 
-function hasValue(value: unknown): boolean {
-  return value !== undefined && value !== null && String(value).trim() !== ''
-}
-
-
-function isElasticIpUnattached(item: any): boolean {
-  return !hasValue(item?.InstanceId)
-}
-
-
-function applyServiceFilter(items: any[], service: ServiceOption): any[] {
-  if (service === 'Elastic IPs')   return items.filter(isElasticIpUnattached)
+function applyServiceFilter(items: any[], _service: ServiceOption): any[] {
   return items
 }
 
-// Variante para contextos que trabajan con serviceKey interno ('ec2', 'elasticIP'…)
-function applyServiceFilterByKey(items: any[], serviceKey: string): any[] {
-  const service = SERVICE_KEY_TO_OPTION[serviceKey]
-  return service ? applyServiceFilter(items, service) : items
+function isRunningEc2(item: any): boolean {
+  const state = item?.State ?? item?.state ?? item?.InstanceState?.Name
+  return String(state ?? '').toLowerCase() === 'running'
 }
 
 // ─── Normalización de items S3 (el backend devuelve strings) ──────────────────
@@ -169,9 +157,9 @@ function getAwsConsoleUrl(service: ServiceOption, item: any, region: string): st
   }
 
   if (service === 'Auto Scaling Groups') {
-    const groupName = item?.AutoScalingGroupName
+    const groupName = item?.AutoScalingGroupName || item?.Name || item?.AutoScalingGroupARN
     return groupName
-      ? `https://console.aws.amazon.com/ec2/autoscaling/home?region=${encodedRegion}#AutoScalingGroups:id=${encodeURIComponent(groupName)};filter=${encodeURIComponent(groupName)};view=details`
+      ? `https://console.aws.amazon.com/ec2/home?region=${encodedRegion}#AutoScalingGroups:id=${encodeURIComponent(groupName)};filter=${encodeURIComponent(groupName)};view=details`
       : null
   }
 
@@ -206,19 +194,37 @@ function getAwsConsoleUrl(service: ServiceOption, item: any, region: string): st
   return null
 }
 
-function decorateItemsWithAwsLink(service: ServiceOption, items: any[], region: string): any[] {
-  return items.map(item => ({
-    ...item,
-    awsLink: getAwsConsoleUrl(service, item, region),
-  }))
+const DATE_KEY_REGEX = /time|date|created|modified|launch/i
+
+function stripQuotes(val: any): string {
+  let s = typeof val === 'string' ? val.trim() : String(val)
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'")))
+    s = s.slice(1, -1)
+  return s
 }
 
+function decorateItemsWithAwsLink(service: ServiceOption, items: any[], region: string): any[] {
+  return items.map(orig => {
+    const item: any = { ...orig }
+
+    Object.keys(item).forEach(key => {
+      if (!item[key] || !DATE_KEY_REGEX.test(key.replace(/\s+/g, ''))) return
+      const cleaned = stripQuotes(item[key])
+      const parsed  = dayjs(cleaned)
+      if (parsed.isValid()) item[key] = parsed.format('DD-MM-YYYY HH:mm:ss')
+    })
+
+    item.awsLink = getAwsConsoleUrl(service, orig, region)
+    return item
+  })
+}
 function groupByTypeAndLocation<T extends Record<string, { location: string; count: number }>>(
   info: any[],
   typeField: string,
 ): T {
   const groups = {} as T
   for (const inst of info) {
+    if (!inst?.[typeField] || !inst?.['Region name']) continue
     const location = toLocationDescription(inst['Region name']).trim()
     const key      = `${inst[typeField]}_${location}`
     if (!groups[key]) (groups as any)[key] = { location, count: 0 }
@@ -347,6 +353,8 @@ export const useOteadorStore = defineStore('oteador', {
           key = item.Type || 'unknown'
         } else if (state.selectedService === 'Lambda Functions') {
           key = item.Runtime || 'unknown'
+        } else if (['Auto Scaling Groups', 'Elastic IPs', 'Buckets S3'].includes(state.selectedService)) {
+          key = 'Number'
         } else {
           key = item.State || 'unknown'
         }
@@ -372,7 +380,10 @@ export const useOteadorStore = defineStore('oteador', {
       return 'States'
     },
 
-    currentColumns: (state) => SERVICE_COLUMNS[state.selectedService],
+    currentColumns: (state) => {
+      const base = SERVICE_COLUMNS[state.selectedService] ?? []
+      return [...base]
+    },
   },
 
   actions: {
@@ -439,7 +450,8 @@ export const useOteadorStore = defineStore('oteador', {
       const promises: Promise<{ service: string; price: number }>[] = []
 
       // ── EC2 ──────────────────────────────────────────────────────────────
-      const ec2Groups = groupByTypeAndLocation(summary.ec2?.info ?? [], 'Type')
+      const ec2Info = (summary.ec2?.info ?? []).filter(isRunningEc2)
+      const ec2Groups = groupByTypeAndLocation(ec2Info, 'Type')
       for (const [key, { location, count }] of Object.entries(ec2Groups)) {
         const instanceType = key.split('_')[0]
         const cacheKey     = `ec2price_${key}`
@@ -594,80 +606,33 @@ export const useOteadorStore = defineStore('oteador', {
     },
 
     // ── fetchGlobalData ────────────────────────────────────────────────────
-    // Llama a TODAS las regiones. Solo se ejecuta en el mount inicial.
-    // Actualiza widgets (métricas + precios) y precarga allRegionItems.
+    // Carga solo la región seleccionada. Actualiza widgets (métricas + precios)
+    // y refresca la tabla del servicio activo.
 
-    async fetchGlobalData() {
-      this.setLoadingService(true)
+    async fetchGlobalData(options: { refreshPrices?: boolean; showLoading?: boolean } = {}) {
+      const { refreshPrices = true, showLoading = true } = options
+      if (showLoading) this.setLoadingService(true)
       try {
-        // El endpoint services/region/{r} devuelve un array plano de EC2,
-        // no un resumen por servicio. Por eso usamos los endpoints específicos
-        // de cada servicio en paralelo sobre todas las regiones.
-        const serviceEndpoints: Record<string, string> = {
-          ec2:         'AllInstancesEC2',
-          rds:         'AllInstancesRDS',
-          autoscaling: 'AutoScalingGroups',
-          elb:         'ElasticLoadBalancing',
-          elasticIP:   'ElasticIP',
-          lambda:      'Lambda',
-        }
-
-        const globalMetrics: Record<string, number> = {
-          ec2: 0, rds: 0, autoscaling: 0, elb: 0, elasticIP: 0, lambda: 0,
-        }
-        const combinedSummary: Record<string, { number: number; info: any[] }> = {
-          ec2:         { number: 0, info: [] },
-          rds:         { number: 0, info: [] },
-          autoscaling: { number: 0, info: [] },
-          elb:         { number: 0, info: [] },
-          elasticIP:   { number: 0, info: [] },
-          lamb:        { number: 0, info: [] },
-        }
-
-        // Para cada servicio, pedimos todas las regiones en paralelo
-        const serviceKeys = Object.keys(serviceEndpoints)
-        const allFetches  = serviceKeys.flatMap(serviceKey =>
-          this.availableRegions.map(r => ({
-            serviceKey,
-            region: r,
-            promise: withRetry(() =>
-              api.oteadorClient.get(`services/${serviceEndpoints[serviceKey]}/region/${r}`)
-            ),
-          }))
+        const { data: summary } = await withRetry(() =>
+          api.oteadorClient.get(`services/region/${this.selectedRegion}`)
         )
 
-        const results = await Promise.allSettled(allFetches.map(f => f.promise))
+        this.globalMetrics = {
+          ec2:         Number(summary?.ec2?.number ?? 0),
+          rds:         Number(summary?.rds?.number ?? 0),
+          autoscaling: Number(summary?.autoscaling?.number ?? 0),
+          elb:         Number(summary?.elb?.number ?? 0),
+          elasticIP:   Number(summary?.elasticIP?.number ?? 0),
+          lambda:      Number(summary?.lamb?.number ?? summary?.lambda?.number ?? 0),
+        }
 
-        results.forEach((result, i) => {
-          const { serviceKey, region } = allFetches[i]
-          if (result.status !== 'fulfilled') {
-            console.warn(`[Oteador] ✗ ${serviceKey}/${region}:`,
-              (result.reason as any)?.response?.status ?? result.reason)
-            return
-          }
-
-          let items: any[] = result.value.data ?? []
-          if (!Array.isArray(items)) items = []
-
-          if (serviceKey === 's3') items = normalizeS3Items(items)
-          items = applyServiceFilterByKey(items, serviceKey)
-
-          globalMetrics[serviceKey] += items.length
-
-          // combinedSummary usa 'lamb' para lambda (clave legacy de calculatePrices)
-          const summaryKey = serviceKey === 'lambda' ? 'lamb' : serviceKey
-          combinedSummary[summaryKey].number += items.length
-          combinedSummary[summaryKey].info.push(...items)
-        })
-
-        this.globalMetrics = { ...globalMetrics }
-        await this.calculatePrices(combinedSummary)
-        await this.fetchTableData()
+        if (refreshPrices) await this.calculatePrices(summary ?? {})
+        await this.fetchTableData({ showLoading })
 
       } catch (error) {
         console.error('[Oteador] fetchGlobalData error:', error)
       } finally {
-        this.setLoadingService(false)
+        if (showLoading) this.setLoadingService(false)
         this.setLoadingInitial(false)
       }
     },
@@ -676,8 +641,9 @@ export const useOteadorStore = defineStore('oteador', {
     // Carga solo los items de la región seleccionada para la tabla.
     // Se llama al cambiar de región o servicio.
 
-    async fetchTableData() {
-      this.setLoadingService(true)
+    async fetchTableData(options: { showLoading?: boolean } = {}) {
+      const { showLoading = true } = options
+      if (showLoading) this.setLoadingService(true)
       try {
         this.setWidgetServiceFilter('')  // resetear modo widget al cambiar región/servicio
         const endpoint         = ENDPOINT_MAP[this.selectedService]
@@ -696,13 +662,13 @@ export const useOteadorStore = defineStore('oteador', {
       } catch (error) {
         console.error('[Oteador] fetchTableData error:', error)
       } finally {
-        this.setLoadingService(false)
+        if (showLoading) this.setLoadingService(false)
       }
     },
 
     // ── fetchAllRegionItems ────────────────────────────────────────────────
     // Al hacer click en un widget, carga los items de ESE servicio en
-    // TODAS las regiones y los muestra en la tabla.
+    // la región seleccionada y los muestra en la tabla.
 
     async fetchAllRegionItems(serviceKey: string) {
       const service = SERVICE_KEY_TO_OPTION[serviceKey]
@@ -713,30 +679,20 @@ export const useOteadorStore = defineStore('oteador', {
       this.setSelectedService(service)
 
       try {
-        const endpoint      = ENDPOINT_MAP[service]
-        const regionResults = await Promise.allSettled(
-          this.availableRegions.map(r =>
-            withRetry(() => api.oteadorClient.get(`services/${endpoint}/region/${r}`))
-          )
+        const endpoint         = ENDPOINT_MAP[service]
+        const { data: detail } = await withRetry(() =>
+          api.oteadorClient.get(`services/${endpoint}/region/${this.selectedRegion}`)
         )
+        const normalized = service === 'Buckets S3'
+          ? normalizeS3Items(detail as any[])
+          : (detail as any[])
 
-        const allItems: any[] = []
-        regionResults.forEach((result, index) => {
-          if (result.status !== 'fulfilled') return
-          const detail     = result.value.data
-          const normalized = service === 'Buckets S3'
-            ? normalizeS3Items(detail as any[])
-            : (detail as any[])
-          const region = this.availableRegions[index]
-          allItems.push(...decorateItemsWithAwsLink(
-            service,
-            applyServiceFilter(normalized, service),
-            region,
-          ))
-        })
-
-        this.allRegionItems = allItems
-        this.items          = allItems
+        this.allRegionItems = []
+        this.items          = decorateItemsWithAwsLink(
+          service,
+          applyServiceFilter(normalized, service),
+          this.selectedRegion,
+        )
       } catch (error) {
         console.error('[Oteador] fetchAllRegionItems error:', error)
       } finally {

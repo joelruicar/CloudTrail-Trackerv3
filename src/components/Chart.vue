@@ -51,6 +51,11 @@ const chartRenderKey = computed(() => `${currentPresetName.value}-${props.title}
 const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
+  layout: {
+    padding: {
+      top: 25,
+    },
+  },
   onClick: (event, elements, chart) => {
     if (elements.length) return  
     const xScale = chart.scales['x']

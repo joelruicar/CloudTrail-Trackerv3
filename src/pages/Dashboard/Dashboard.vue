@@ -9,18 +9,19 @@
     />
   </div>
   <template v-else-if="awsStore.events && awsStore.events.length > 0">
-    <VaCard class="p-4">
+    <div class="p-4 widgets-card">
       <InfoWidgets />
-    </VaCard>
+    </div>
 
-    <VaSelect
-      v-model="timeRange"
-      :options="options"
-      label="Select time range"
-      class="date-select"
-    />
+   
     <div class="charts-column">
       <VaCard class="hart-card">
+        <VaSelect
+          v-model="timeRange"
+          :options="options"
+          label="Select time range"
+          class="date-select"
+        />
         <VaCardTitle style="color: var(--va-chart-title)">
           AWS services used in the last hour
         </VaCardTitle>
@@ -41,32 +42,33 @@
           y-axis="#times"
           @barClick="handleBarClick"
         />
+        <VaButton
+          color="buttonColor"
+          class="mb-4 details-button"
+          @click="display = !display"
+        >
+          Details
+        </VaButton>
+        <Transition
+          name="expand"
+          @afterEnter="handleAfterEnter"
+        >
+          <div
+            v-if="!display"
+            ref="tableContainerRef"
+          >
+            <Table
+              ref="eventsTable"
+              v-model:filter="searchQuery"
+              :items="awsStore.formattedEvents"
+              :columns="eventColumns"
+              :loading="awsStore.loading"
+              :enable-event-link-with-popover="true"
+            />
+          </div>
+        </Transition>
       </VaCard>
-    </div>
-    <VaButton
-      color="buttonColor"
-      @click="display = !display"
-    >
-      Details
-    </VaButton>
-    <Transition
-      name="expand"
-      @afterEnter="handleAfterEnter"
-    >
-      <div
-        v-if="!display"
-        ref="tableContainerRef"
-      >
-        <Table
-          ref="eventsTable"
-          v-model:filter="searchQuery"
-          :items="awsStore.formattedEvents"
-          :columns="eventColumns"
-          :loading="awsStore.loading"
-          :enable-event-link-with-popover="true"
-        />
-      </div>
-    </Transition>
+    </div>   
   </template>
 </template>
 

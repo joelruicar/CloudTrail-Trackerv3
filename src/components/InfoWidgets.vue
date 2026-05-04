@@ -22,15 +22,16 @@
         <!-- Textos (Título arriba, Valor abajo) -->
         <div class="text-container">
           <div class="stats-label">
-            {{ item.key }}
+            {{ item.displayLabel ?? item.key }}
           </div>
           <div class="value-row">
             <span class="stats-number">{{ item.value }}</span>
+            <!-- En InfoWidgets.vue, localiza la sección de stats-price -->
             <span
-              v-if="item.price !== null"
+              v-if="item.price !== null && !isNaN(Number(item.price))"
               class="stats-price"
             >
-              - {{ item.price.toFixed(4) }} <span class="currency">USD/h</span>
+              - {{ Number(item.price).toFixed(4) }} <span class="currency">USD/h</span>
             </span>
           </div>
         </div>
@@ -47,7 +48,7 @@ import { useOteadorStore } from '../stores/oteador'
 const props = defineProps({
   source: {
     type: String,
-    default: 'aws',
+    pointer: 'aws',
     validator: (value) => ['aws', 'oteador'].includes(value),
   },
 
@@ -61,12 +62,21 @@ const displayData = computed(() => {
     const metrics = oteadorStore.globalMetrics;
     const prices = oteadorStore.prices;
     return Object.keys(metrics).map((storeKey) => {
-      const label = storeKey;
+      const labelMap = {
+        ec2: 'EC2 running',
+        rds: 'RDS running',
+        autoscaling: 'Auto Scaling Groups',
+        elb: 'ELB',
+        elasticIP: 'Unattached Elastic IP',
+        lambda: 'Lambda functions',
+      }
+      const label = labelMap[storeKey] ?? storeKey;
       return {
-        storeKey,          // clave original del store ('ec2', 'elasticIP', 'lambda'…)
-        label,             // etiqueta visible ('EC2', 'Elastic IP', 'LAMBDA'…)
-        value: metrics[storeKey] ?? 0,
-        price: prices[storeKey] ?? null,
+        storeKey,
+        label,
+        displayLabel: label,
+        value: Number(metrics[storeKey] ?? 0), // Forzar número
+        price: prices[storeKey] !== null ? Number(prices[storeKey]) : null, // Validar antes de asignar
       };
     });
   }
@@ -74,6 +84,7 @@ const displayData = computed(() => {
   return Object.entries(awsStore.metrics).map(([key, val]) => ({
     storeKey: key,
     label: key,
+    displayLabel: key,
     value: val,
     price: null,
   }));
@@ -148,6 +159,7 @@ const getServiceIcon = (serviceKey) => {
   align-items: center; 
   gap: 1rem; 
   padding: 1rem 1.25rem !important;
+  cursor: default;
 }
 
 .card-content-compact.card-clickable { 
@@ -163,6 +175,16 @@ const getServiceIcon = (serviceKey) => {
   justify-content: center;
   background-color: var(--va-background-element); 
   color: var(--va-primary);
+  cursor: default;
+}
+
+.card-content-compact.card-clickable .icon-container,
+.card-content-compact.card-clickable .text-container,
+.card-content-compact.card-clickable .stats-label,
+.card-content-compact.card-clickable .stats-number,
+.card-content-compact.card-clickable .stats-price,
+.card-content-compact.card-clickable .currency {
+  cursor: pointer;
 }
 
 .icon-container.ec2 { background-color: #ffbeb2; color: #f51d00; }
@@ -185,7 +207,8 @@ const getServiceIcon = (serviceKey) => {
 .stats-label {
   font-size: 0.85rem;
   color: var(--va-text-secondary);
-  font-weight: 500;
+  font-weight: 500;  
+  text-transform: capitalize;
   cursor: default;
 }
 

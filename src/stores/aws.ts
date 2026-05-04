@@ -205,7 +205,7 @@ export const useAwsStore = defineStore('aws', {
           return {
             ...event,
             id: index + 1,
-            formatedTime: `${hh}:${mm}:${ss} ${day}-${month}-${year}`,
+            formatedTime: `${day}-${month}-${year} ${hh}:${mm}:${ss}`,
             user: event.userIdentity_userName,
           }
         })

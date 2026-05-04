@@ -60,12 +60,7 @@
           >
             <p class="va-text-secondary">
               No instances of <strong>{{ store.selectedService }}</strong>
-              <template v-if="selectedRegionValue !== 'all'">
-                in <strong>{{ store.selectedRegion }}</strong>
-              </template>
-              <template v-else>
-                across all regions
-              </template>.
+              in <strong>{{ store.selectedRegion }}</strong>.
             </p>
           </div>
           <Table
@@ -84,22 +79,19 @@
 <script setup lang="ts">
 import { useOteadorStore, SERVICE_OPTIONS } from '../../stores/oteador'
 import InfoWidgets from '../../components/InfoWidgets.vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
 
 const store = useOteadorStore()
 const searchQuery = ref('')
-const ALL_REGIONS_VALUE = 'all'
+const REFRESH_INTERVAL_MS = 12000
+let refreshInterval: ReturnType<typeof setInterval> | undefined
+let refreshInProgress = false
 
-const regionOptions = computed(() => [
-  ALL_REGIONS_VALUE,
-  ...store.availableRegions,
-])
+const regionOptions = computed(() => store.availableRegions)
 
-const selectedRegionValue = computed(() =>
-  store.widgetServiceFilter ? ALL_REGIONS_VALUE : store.selectedRegion
-)
+const selectedRegionValue = computed(() => store.selectedRegion)
 
 const filteredRows = computed(() => store.items)
 const linkColumnKey = computed(() => store.currentColumns[0]?.key ?? '')
@@ -137,26 +129,26 @@ async function onServiceChange(value: string) {
 
 async function onRegionChange(value: string) {
   searchQuery.value = ''
-  if (value === ALL_REGIONS_VALUE) {
-    const serviceToKey: Record<string, string> = {
-      'EC2 instances':          'ec2',
-      'RDS instances':          'rds',
-      'Auto Scaling Groups':    'autoscaling',
-      'Elastic IPs':            'elasticIP',
-      'Elastic Load Balancers': 'elb',
-      'Lambda Functions':       'lambda',
-      'Buckets S3':             'ec2', 
-    }
-    await store.fetchAllRegionItems(serviceToKey[store.selectedService] ?? 'ec2')
-  } else {
-    store.setSelectedRegion(value)
-    await store.fetchTableData()
-  }
+  store.setSelectedRegion(value)
+  await store.fetchGlobalData()
 }
 
 onMounted(async () => {
   await store.fetchRegions()
   await store.fetchGlobalData()
+  refreshInterval = setInterval(async () => {
+    if (refreshInProgress || store.loadingInitial || store.loadingService) return
+    refreshInProgress = true
+    try {
+      await store.fetchGlobalData({ refreshPrices: false, showLoading: false })
+    } finally {
+      refreshInProgress = false
+    }
+  }, REFRESH_INTERVAL_MS)
+})
+
+onUnmounted(() => {
+  if (refreshInterval) clearInterval(refreshInterval)
 })
 </script>
 
