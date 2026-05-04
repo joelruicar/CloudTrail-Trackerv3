@@ -8,225 +8,192 @@
       size="large"
     />
   </div>
-
-  <template v-else-if="awsStore.events && awsStore.events.length > 0">
-    <VaCard class="p-2 sm:p-4 overflow-visible mb-4">
+  <VaCard
+    v-else
+    class="p-2 sm:p-4 overflow-visible"
+  >
+    <h1
+      class="text-xl sm:text-2xl font-bold mb-4"
+      style="color: var(--va-plain-text)"
+    >
+      Search by user
+    </h1>
+    <div
+      class="widgets-click-wrapper mb-4"
+      @click.capture="onWidgetsAreaClick"
+    >
       <InfoWidgets />
-    </VaCard>
-
-
-    <VaCard class="p-2 sm:p-4 overflow-visible">
-      <div class="search-controls mb-6">
-        <div class="user-select-fixed">
-          <VaSelect
-            v-if="authStore.isProfessor"
-            ref="userSelect"
-            v-model="user_name"
-            v-model:search="userSearch"
-            label="USERNAME"
-            :options="selectOptions"
-            searchable
-            :highlight-matched-text="false"
-            @focus="handleSelectFocus"
-            @open="focusSearchInput"
-          >
-            <template #option-content="{ option }">
-              <span class="select-option-text">
-                <template
-                  v-for="(part, index) in getHighlightedParts(option)"
-                  :key="`${getUserOptionText(option)}-${index}`"
-                >
-                  <span :class="{ 'select-option-match': part.match }">{{ part.text }}</span>
-                </template>
-              </span>
-            </template>
-          </VaSelect>
-          <VaInput
-            v-else
-            :model-value="currentUser"
-            label="USERNAME"
-            readonly
-          />
-        </div>
-        <div class="date-filter-fixed">
-          <DateFilter v-model="range" />
-        </div>
-        <VaButton
-          icon="search"
-          color="buttonColor"
-          class="search-button-fixed"
-          @click="search"
+    </div>
+    <div class="search-controls mb-6">
+      <div class="user-select-fixed">
+        <VaSelect
+          v-if="authStore.isProfessor"
+          ref="userSelect"
+          v-model="user_name"
+          label="USERNAME"
+          :options="filteredOptions"
+          autocomplete
+          :text-by="getUserOptionText"
+          :value-by="getUserOptionText"
+          @focus="openAllOptions"
+          @click="openAllOptions"
+          @update:search="userSearch = $event"
         >
-          Search
-        </VaButton>
+          <template #option-content="{ option }">
+            <span class="select-option-text">
+              <template
+                v-for="(part, index) in getHighlightedParts(option)"
+                :key="`${getUserOptionText(option)}-${index}`"
+              >
+                <span :class="{ 'select-option-match': part.match }">{{ part.text }}</span>
+              </template>
+            </span>
+          </template>
+        </VaSelect>
+        <VaInput
+          v-else
+          :model-value="currentUser"
+          label="USERNAME"
+          readonly
+        />
       </div>
-      <div class="charts-column mb-4">
-        <VaCard>
-          <VaCardTitle style="color: var(--va-chart-title)">
-            AWS services used in the last hour
-          </VaCardTitle>
-          <Chart
-            :chart-data="awsStore.chartDataServices"
-            x-axis="Services"
-            y-axis="#times"
-            @barClick="handleBarClick"
-          />
-        </VaCard>
+      <div class="date-filter-fixed">
+        <DateFilter v-model="range" />
       </div>
       <VaButton
+        icon="search"
         color="buttonColor"
-        @click="display = !display"
+        class="search-button-fixed"
+        @click="search"
       >
-        Details
+        Search
       </VaButton>
-      <Transition
-        name="expand"
-        @afterEnter="handleAfterEnter"
-      >
-        <Table
-          v-if="!display"
-          ref="eventsTable"
-          v-model:filter="searchQuery"
-          :items="awsStore.formattedEvents"
-          :columns="eventColumns"
-          :loading="awsStore.loading"
-          :enable-event-link-with-popover="true"
+    </div>
+    <div class="charts-column mb-4">
+      <VaCard>
+        <VaCardTitle style="color: var(--va-chart-title)">
+          AWS services used in the last hour
+        </VaCardTitle>
+        <Chart
+          :chart-data="awsStore.chartDataServices"
+          x-axis="Services"
+          y-axis="#times"
+          @barClick="handleBarClick"
         />
-      </Transition>
-    </VaCard>
-  </template>
+      </VaCard>
+    </div>
+    <VaButton
+      color="buttonColor"
+      @click="display = !display"
+    >
+      Details
+    </VaButton>
+    <Transition
+      name="expand"
+      @afterEnter="handleAfterEnter"
+    >
+      <Table
+        v-if="!display"
+        ref="eventsTable"
+        v-model:filter="searchQuery"
+        :items="awsStore.formattedEvents"
+        :columns="eventColumns"
+        :loading="awsStore.loading"
+        :enable-event-link-with-popover="true"
+      />
+    </Transition>
+  </VaCard>
 </template>
 
 <script setup lang="ts">
 import { VaProgressCircle, VaButton, VaCard, VaCardTitle, VaInput } from 'vuestic-ui'
 import { useAcademicYear } from '../../composables/useAcademicYear'
+import { useUserSelect } from '../../composables/useUserSelect'
 import { ref, onMounted, computed, nextTick } from 'vue'
 import InfoWidgets from '../../components/InfoWidgets.vue'
 import DateFilter from '../../components/DateFilter.vue'
 import { useAuthStore } from '../../stores/auth'
 import { useAwsStore } from '../../stores/aws'
+import { useRoute } from 'vue-router'
 import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
 import dayjs from 'dayjs'
 
 const eventColumns = [
-  { key: 'id', label: '#', sortable: true },
-  { key: 'user', label: 'User', sortable: true },
-  { key: 'eventName', label: 'Event', sortable: true },
-  { key: 'formatedTime', label: 'Timestamp', sortable: true },
+  { key: 'id',           label: '#',         sortable: true },
+  { key: 'user',         label: 'User',       sortable: true },
+  { key: 'eventName',    label: 'Event',      sortable: true },
+  { key: 'formatedTime', label: 'Timestamp',  sortable: true },
 ]
 
-const authStore = useAuthStore()
-const awsStore = useAwsStore()
-const { range } = useAcademicYear()
+const WIDGET_EVENT_MAP: Record<string, string> = {
+  runInstances:       'RunInstances',
+  createDBInstance:   'CreateDBInstance',
+  createFunction:     'CreateFunction',
+  createLoadBalancer: 'CreateLoadBalancer',
+}
+
+const authStore  = useAuthStore()
+const awsStore   = useAwsStore()
+const route      = useRoute()
+const { range }  = useAcademicYear()
 const currentUser = authStore.username
-const user_name = ref(currentUser)
-const userSelect = ref<any>(null)
-const userSearch = ref('')
-const display = ref(true)
 
-const selectOptions = computed(() => {
-  if (awsStore.allUsers.length) {
-    return awsStore.allUsers
-  }
+const user_name   = ref(currentUser)
+const userSelect  = ref<any>(null)
+const display     = ref(true)
+const searchQuery = ref('')
+const eventsTable = ref<InstanceType<typeof Table> | null>(null)
 
-  return user_name.value ? [user_name.value] : []
+const { userSearch, filteredOptions, getUserOptionText, getHighlightedParts } = useUserSelect(
+  computed(() => awsStore.allUsers),
+  currentUser,
+)
+
+const openAllOptions = () => {
+  userSearch.value = ''
+  userSelect.value?.showDropdown?.()
+}
+
+const getDateStrings = () => ({
+  startStr: dayjs(range.value.start).format('YYYY-MM-DDTHH:mm:ss'),
+  endStr:   dayjs(range.value.end).format('YYYY-MM-DDTHH:mm:ss'),
 })
 
-const getUserOptionText = (option: unknown) => {
-  if (typeof option === 'string') return option
-  if (option && typeof option === 'object' && 'text' in option) {
-    return String((option as { text: unknown }).text ?? '')
-  }
-  return String(option ?? '')
-}
-
-const getHighlightedParts = (option: unknown) => {
-  const text = getUserOptionText(option)
-  const query = userSearch.value.trim()
-
-  if (!query) return [{ text, match: false }]
-
-  const lowerText = text.toLowerCase()
-  const lowerQuery = query.toLowerCase()
-  const parts: Array<{ text: string; match: boolean }> = []
-
-  let from = 0
-  while (from < text.length) {
-    const index = lowerText.indexOf(lowerQuery, from)
-
-    if (index === -1) {
-      parts.push({ text: text.slice(from), match: false })
-      break
-    }
-
-    if (index > from) {
-      parts.push({ text: text.slice(from, index), match: false })
-    }
-
-    parts.push({ text: text.slice(index, index + query.length), match: true })
-    from = index + query.length
-  }
-
-  return parts
-}
-
-const handleSelectFocus = async () => {
-  userSelect.value?.showDropdown()
-}
-
-const focusSearchInput = async () => {
-  await nextTick()
-  const searchInput = document.querySelector('[data-testid="searchInput"]') as HTMLInputElement
-  if (searchInput) {
-    searchInput.focus()
-    return
-  }
-  const dropdown = document.querySelector('[role="listbox"]')
-  if (dropdown && dropdown.parentElement) {
-    const inputs = dropdown.parentElement.querySelectorAll('input')
-    if (inputs.length > 0) {
-      ;(inputs[0] as HTMLInputElement).focus()
-    }
-  }
-}
-
 const search = () => {
-  const startStr = dayjs(range.value.start).format('YYYY-MM-DDTHH:mm:ss')
-  const endStr = dayjs(range.value.end).format('YYYY-MM-DDTHH:mm:ss')
-  if (user_name.value) {
-    awsStore.fetchUserDashboardData(user_name.value, startStr, endStr)
-  } else {
-    awsStore.fetchUserDashboardData(currentUser, startStr, endStr)
-  }
+  const { startStr, endStr } = getDateStrings()
+  awsStore.fetchUserDashboardData(user_name.value || currentUser, startStr, endStr)
 }
 
-const eventsTable = ref<InstanceType<typeof Table> | null>(null)
-const searchQuery = ref('')
+const handleAfterEnter = () => eventsTable.value?.scrollToTable()
 
 const handleBarClick = (label: string) => {
-  if (searchQuery.value === label) {
-    searchQuery.value = ''
-  } else {
-    searchQuery.value = label
-  }
+  searchQuery.value = searchQuery.value === label ? '' : label
   display.value = false
   nextTick(() => eventsTable.value?.scrollToTable())
 }
 
-const handleAfterEnter = () => {
-  eventsTable.value?.scrollToTable()
+const onWidgetsAreaClick = (event: MouseEvent) => {
+  const card = (event.target as HTMLElement).closest('.metric-card')
+  if (!card) return
+  const eventName = WIDGET_EVENT_MAP[card.getAttribute('data-store-key') || '']
+  if (!eventName) return
+  searchQuery.value = searchQuery.value === eventName ? '' : eventName
+  display.value = false
+  nextTick(() => eventsTable.value?.scrollToTable())
 }
 
 onMounted(async () => {
-  const startStr = dayjs(range.value.start).format('YYYY-MM-DDTHH:mm:ss')
-  const endStr = dayjs(range.value.end).format('YYYY-MM-DDTHH:mm:ss')
-  awsStore.fetchUserDashboardData(currentUser, startStr, endStr)
+  const routeUser = Array.isArray(route.query.user) ? route.query.user[0] : route.query.user
+  user_name.value = authStore.isProfessor && routeUser ? String(routeUser) : currentUser
+
+  const { startStr, endStr } = getDateStrings()
+  awsStore.fetchUserDashboardData(user_name.value, startStr, endStr)
+
   if (authStore.isProfessor) {
     await awsStore.getAllUsers()
   } else {
     awsStore.allUsers = [authStore.username]
-    user_name.value = authStore.username
   }
 })
 </script>

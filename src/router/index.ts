@@ -41,6 +41,12 @@ const routes: Array<RouteRecordRaw> = [
         name: 'search-by-course',
         path: 'search-by-course',
         component: () => import('../pages/SearchByCourse/SearchByCourse.vue'),
+      }, 
+      {
+        name: 'search-by-group',
+        path: 'search-by-group',
+        meta: { requiresProfessor: true },
+        component: () => import('../pages/SearchByGroup/SearchByGroup.vue'),
       },
     ],
   },
@@ -107,8 +113,11 @@ router.beforeEach(async (to, from, next) => {
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const requiresGuest = to.matched.some((record) => record.meta.requiresGuest)
+  const requiresProfessor = to.matched.some((record) => record.meta.requiresProfessor)
 
   if (requiresGuest && authStore.user) {
+    next({ name: 'dashboard' })
+  } else if (requiresProfessor && !authStore.isProfessor) {
     next({ name: 'dashboard' })
   } else if (requiresAuth && !authStore.user) {
     await authStore.logout().catch(() => null)

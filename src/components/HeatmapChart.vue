@@ -45,6 +45,8 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['student-click'])
+
 const hasData = computed(() => props.heatmapData.points.length > 0)
 const { getColor, currentPresetName } = useColors()
 
@@ -125,6 +127,14 @@ const chartData = computed(() => ({
 const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
+  onClick: (_event, activeElements, chart) => {
+    if (!activeElements?.length) return
+    const { datasetIndex, index } = activeElements[0]
+    const point = chart.data.datasets?.[datasetIndex]?.data?.[index]
+    const student = point?.y
+    if (!student) return
+    emit('student-click', student)
+  },
   plugins: {
     legend: { display: false },
     datalabels: {

@@ -13,6 +13,7 @@
     "searchByUser": "Search by user",
     "oteador": "Oteador",
     "searchByCourse": "Search by course",
+    "searchByGroup": "Search by group",
     "login": "Login",
     "signup": "Signup",
     "recover-password": "Recover password",
@@ -30,6 +31,7 @@
     "light": "Light"
   },
   "vuestic": {
-    "toggleDropdown": "toggle dropdown"
+    "toggleDropdown": "toggle dropdown",
+    "reset": "Reset"
   }
 }

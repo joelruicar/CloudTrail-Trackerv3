@@ -2,6 +2,7 @@ export interface INavigationRoute {
   name: string
   displayName: string
   meta: { icon: string }
+  requiresProfessor?: boolean
   children?: INavigationRoute[]
 }
 
@@ -40,5 +41,13 @@ export default {
         icon: 'vuestic-iconset-statistics',
       },
     },
+     {
+      name: 'search-by-group',
+      displayName: 'menu.searchByGroup',
+      meta: {
+        icon: 'vuestic-iconset-graph',
+      },
+      requiresProfessor: true,
+    }
   ] as INavigationRoute[],
 }

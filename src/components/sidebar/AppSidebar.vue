@@ -10,7 +10,7 @@
       multiple
     >
       <VaCollapse
-        v-for="(route, index) in navigationRoutes.routes"
+        v-for="(route, index) in visibleRoutes"
         :key="index"
       >
         <template #header="{ value: isCollapsed }">
@@ -75,6 +75,7 @@ import { useI18n } from 'vue-i18n'
 import { useColors } from 'vuestic-ui'
 
 import navigationRoutes, { type INavigationRoute } from './NavigationRoutes'
+import { useAuthStore } from '../../stores/auth'
 
 export default defineComponent({
   name: 'Sidebar',
@@ -88,6 +89,7 @@ export default defineComponent({
     const { getColor, colorToRgba } = useColors()
     const route = useRoute()
     const { t } = useI18n()
+    const authStore = useAuthStore()
 
     const value = ref<boolean[]>([])
 
@@ -106,8 +108,12 @@ export default defineComponent({
       return section.children.some(({ name }) => route.path.endsWith(`${name}`))
     }
 
+    const visibleRoutes = computed(() =>
+      navigationRoutes.routes.filter((route: INavigationRoute) => !route.requiresProfessor || authStore.isProfessor),
+    )
+
     const setActiveExpand = () =>
-      (value.value = navigationRoutes.routes.map((route: INavigationRoute) => routeHasActiveChild(route)))
+      (value.value = visibleRoutes.value.map((route: INavigationRoute) => routeHasActiveChild(route)))
 
     const sidebarWidth = computed(() => (props.mobile ? '100vw' : '280px'))
     const color = computed(() => getColor('background-secondary'))
@@ -129,6 +135,7 @@ export default defineComponent({
       routeHasActiveChild,
       isActiveChildRoute,
       t,
+      visibleRoutes,
       iconColor,
       textColor,
       arrowDirection,

@@ -44,14 +44,9 @@
         :style="popupStyle"
       >
         <div class="flex gap-4 min-w-max">
+          <VaDatePicker v-bind="pickerProps" />
           <VaDatePicker
-            v-model="internalRange"
-            mode="range"
-            class="w-64"
-          />
-          <VaDatePicker
-            v-model="internalRange"
-            mode="range"
+            v-bind="pickerProps"
             class="w-64 hidden md:block"
           />
         </div>
@@ -91,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAcademicYear } from '../composables/useAcademicYear'
 
 const props = defineProps<{
@@ -108,24 +103,31 @@ const popup = ref<HTMLElement | null>(null)
 const popupStyle = ref<Record<string, string>>({ top: '0px', left: '0px' })
 
 const internalRange = ref(props.modelValue ? { ...props.modelValue } : null)
+const appliedText = ref(formatRange(props.modelValue))
 
-const appliedText = ref('')
-const inputText = ref('')
+// inputText refleja internalRange en tiempo real (durante edición)
+const inputText = computed(() => formatRange(internalRange.value))
 
-const formatDate = (date: Date | null) => {
+// pickerProps compartido entre los dos VaDatePicker
+const pickerProps = computed(() => ({
+  modelValue: internalRange.value,
+  'onUpdate:modelValue': (v: any) => { internalRange.value = v },
+  mode: 'range' as const,
+  class: 'w-64',
+}))
+
+function formatDate(date: Date | null) {
   if (!date || isNaN(date.getTime())) return ''
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-const formatRange = (r: any) => (r?.start && r?.end ? `${formatDate(r.start)} - ${formatDate(r.end)}` : '')
-
-appliedText.value = formatRange(props.modelValue)
-inputText.value = appliedText.value
+function formatRange(r: any) {
+  return r?.start && r?.end ? `${formatDate(r.start)} - ${formatDate(r.end)}` : ''
+}
 
 watch(open, (isOpen) => {
   if (isOpen) {
     internalRange.value = props.modelValue ? { ...props.modelValue } : null
-    inputText.value = formatRange(internalRange.value)
   }
 })
 
@@ -155,27 +157,6 @@ watch([open, showInput], async ([isOpen, isShown]) => {
   if (!isOpen || !isShown) return
   await nextTick()
   updatePopupPosition()
-  requestAnimationFrame(updatePopupPosition)
-})
-
-watch(
-  internalRange,
-  (val) => {
-    inputText.value = formatRange(val)
-  },
-  { deep: true },
-)
-
-watch(inputText, (newVal) => {
-  const match = newVal.match(/^(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})$/)
-  if (match) {
-    const [d1, m1, y1] = match[1].split('/').map(Number)
-    const [d2, m2, y2] = match[2].split('/').map(Number)
-    internalRange.value = {
-      start: new Date(y1, m1 - 1, d1),
-      end: new Date(y2, m2 - 1, d2),
-    }
-  }
 })
 
 const apply = () => {
@@ -186,14 +167,12 @@ const apply = () => {
 
 const cancel = () => {
   internalRange.value = props.modelValue ? { ...props.modelValue } : null
-  inputText.value = formatRange(props.modelValue)
-  appliedText.value = inputText.value
+  appliedText.value = formatRange(props.modelValue)
   open.value = false
 }
 
 const resetToDefault = () => {
-  const defaultRange = calculateRange()
-  internalRange.value = defaultRange
+  internalRange.value = calculateRange()
 }
 
 const handleClickOutside = (e: MouseEvent) => {

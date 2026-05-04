@@ -13,6 +13,7 @@
     "searchByUser": "Buscar por usuario",
     "oteador": "Oteador",
     "searchByCourse": "Buscar por curso",
+    "searchByGroup": "Buscar por grupo",
     "login": "Iniciar sesión",
     "preferences": "Preferencias",
     "login-singup": "Iniciar sesión/Registrarse"
@@ -28,6 +29,7 @@
     "light": "Claro"
   },
   "vuestic": {
-    "toggleDropdown": "alternar menú desplegable"
+    "toggleDropdown": "alternar menú desplegable",
+    "reset": "Restablecer"
   }
 }

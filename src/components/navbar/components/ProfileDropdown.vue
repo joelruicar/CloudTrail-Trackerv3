@@ -61,7 +61,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useColors } from 'vuestic-ui'
-import { useAuthStore } from '../../../../stores/auth'
+import { useAuthStore } from '../../../stores/auth'
 const { colors, setHSLAColor, applyPreset, currentPresetName } = useColors()
 const hoverColor = computed(() => setHSLAColor(colors.focus, { a: 0.1 }))
 const THEME_STORAGE_KEY = 'theme-preset'

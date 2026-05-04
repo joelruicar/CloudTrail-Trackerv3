@@ -73,6 +73,7 @@
             :items="filteredRows"
             :columns="store.currentColumns"
             :loading="store.loadingService"
+            :link-column-key="linkColumnKey"
           />
         </VaCardContent>
       </VaCard>
@@ -101,33 +102,18 @@ const selectedRegionValue = computed(() =>
 )
 
 const filteredRows = computed(() => store.items)
+const linkColumnKey = computed(() => store.currentColumns[0]?.key ?? '')
 
 function onBarClick(label: string) {
   searchQuery.value = searchQuery.value === label ? '' : label
 }
 
-// Usamos event delegation sobre el wrapper para detectar en qué card se hizo click.
-const WIDGET_KEY_MAP: Record<string, string> = {
-  'EC2':           'ec2',
-  'RDS':           'rds',
-  'AUTOSCALING':   'autoscaling',
-  'ELB':           'elb',
-  'ELASTIC IP':    'elasticIP',
-  'LAMB':          'lambda',
-  'LAMBDA':        'lambda',
-}
-
 function onWidgetsAreaClick(event: MouseEvent) {
   const card = (event.target as HTMLElement).closest('.metric-card')
   if (!card) return
-  const titleEl = card.querySelector('.stats-label')
-  if (!titleEl) return
-  const rawTitle = (titleEl.textContent ?? '').trim().toUpperCase()
-  const serviceKey = Object.entries(WIDGET_KEY_MAP).find(
-    ([label]) => label.toUpperCase() === rawTitle
-  )?.[1]
-  if (!serviceKey) return
-  onWidgetClick(serviceKey)
+  const serviceKeyFromAttr = card.getAttribute('data-store-key')
+  if (!serviceKeyFromAttr) return
+  onWidgetClick(serviceKeyFromAttr)
 }
 
 async function onWidgetClick(serviceKey: string) {

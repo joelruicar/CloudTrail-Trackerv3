@@ -129,10 +129,6 @@ function hasValue(value: unknown): boolean {
   return value !== undefined && value !== null && String(value).trim() !== ''
 }
 
-function isEc2Running(item: any): boolean {
-  const rawState = item?.State?.Name ?? item?.State ?? item?.InstanceState?.Name
-  return String(rawState ?? '').trim().toLowerCase() === 'running'
-}
 
 function isElasticIpUnattached(item: any): boolean {
   return !hasValue(item?.InstanceId)
@@ -140,7 +136,6 @@ function isElasticIpUnattached(item: any): boolean {
 
 
 function applyServiceFilter(items: any[], service: ServiceOption): any[] {
-  if (service === 'EC2 instances') return items.filter(isEc2Running)
   if (service === 'Elastic IPs')   return items.filter(isElasticIpUnattached)
   return items
 }

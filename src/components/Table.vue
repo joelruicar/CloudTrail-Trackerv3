@@ -25,15 +25,15 @@
           </label>
         </div>
         <div
-          class="table-container"
+          class="table-body"
           :style="{ minHeight: `${perPage * 45 + 50}px` }"
         >
           <VaDataTable
             v-model:sort-by="sortBy"
             v-model:sorting-order="sortingOrder"
             :items="filteredItems"
-            :columns="columns"
-            :loading="loading"
+            :columns="props.columns"
+            :loading="props.loading"
             :disable-client-side-sorting="false"
             :per-page="perPage"
             :current-page="currentPage"
@@ -58,41 +58,44 @@
             </template>
             <template #cell(eventName)="{ rowData }">
               <slot
-                v-if="!enableEventLinkWithPopover"
+                v-if="!props.enableEventLinkWithPopover"
                 name="cell-eventName"
                 :row-data="rowData"
               >
                 <a
-                  v-if="enableEventLink"
+                  v-if="props.enableEventLink"
                   :href="String(rowData.eventLink || '#')"
                   target="_blank"
                   class="event-link"
                 >
                   {{ rowData.eventName }}
                 </a>
-                <span v-else>
-                  {{ rowData.eventName }}
-                </span>
+                <span v-else>{{ rowData.eventName }}</span>
               </slot>
               <VaPopover
                 v-else
+                :key="`popover-${rowData.eventLink || rowData.eventName}`"
                 :message="rowData.description"
-                trigger="hover"
-                placement="right"
+                :trigger="popoverTrigger"
+                :placement="popoverPlacement"
                 color="info"
                 content-class="event-popover-content"
                 stick-to-edges
+                :hover-over-timeout="0"
+                :hover-out-timeout="50"
+                @open="handlePopoverOpen(rowData.eventLink)"
+                @close="handlePopoverClose(rowData.eventLink)"
               >
                 <a
                   :href="rowData.eventLink"
                   target="_blank"
                   class="event-link"
+                  @click.capture="handleEventLinkTap(rowData.eventLink, $event)"
                 >
                   {{ rowData.eventName }}
                 </a>
               </VaPopover>
             </template>
-            <!-- Slot passthrough genérico: permite que el padre defina cell(cualquierColumna) -->
             <template
               v-for="(_, name) in cellSlots"
               :key="name"
@@ -118,8 +121,10 @@
     </VaCardContent>
   </VaCard>
 </template>
+
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, useSlots, ComponentPublicInstance } from 'vue'
+import { useBreakpoint } from 'vuestic-ui'
 
 type TableColumn = { key: string; label: string; sortable?: boolean }
 
@@ -143,25 +148,26 @@ const emit = defineEmits<{
 }>()
 
 const tableCard = ref<ComponentPublicInstance | null>(null)
+const breakpoints = useBreakpoint()
 
 const sortingOrder = ref<'asc' | 'desc' | null>(null)
 const sortBy = ref('')
 const perPage = ref(10)
 const currentPage = ref(1)
+
 const searchQuery = computed({
   get: () => props.filter,
   set: (val: string) => emit('update:filter', val),
 })
 
-const columns = computed(() => props.columns)
-const loading = computed(() => props.loading)
-const enableEventLinkWithPopover = computed(() => props.enableEventLinkWithPopover)
-const enableEventLink = computed(() => props.enableEventLink)
-const linkColumnKey = computed(() => props.linkColumnKey || columns.value[0]?.key || '')
+const popoverTrigger = computed(() => (breakpoints.smDown ? 'click' : 'hover'))
+const popoverPlacement = computed(() => (breakpoints.smDown ? 'bottom-start' : 'right'))
+const activeMobilePopoverLink = ref<string | null>(null)
+
+const linkColumnKey = computed(() => props.linkColumnKey ?? '')
 
 const slots = useSlots()
 
-// Slots de celda pasados por el padre (cell(xxx)), excluyendo los que Table ya gestiona
 const cellSlots = computed(() =>
   Object.fromEntries(
     Object.entries(slots).filter(
@@ -173,9 +179,9 @@ const cellSlots = computed(() =>
 const filteredItems = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   if (!query) return props.items
-  return props.items.filter((item) => {
-    return Object.values(item).some((value) => String(value ?? '').toLowerCase().includes(query))
-  })
+  return props.items.filter((item) =>
+    Object.values(item).some((value) => String(value ?? '').toLowerCase().includes(query)),
+  )
 })
 
 const pages = computed(() => {
@@ -188,15 +194,33 @@ const scrollToTable = () => {
   el?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
 
+const handleEventLinkTap = (link: string, event: MouseEvent) => {
+  if (!breakpoints.smDown || !link) return
+  event.preventDefault()
+  if (activeMobilePopoverLink.value === link) {
+    activeMobilePopoverLink.value = null
+    window.open(link, '_blank', 'noopener')
+  }
+}
+
+const handlePopoverOpen = (link: string) => {
+  if (breakpoints.smDown && link) {
+    activeMobilePopoverLink.value = link
+  }
+}
+
+const handlePopoverClose = (link: string) => {
+  if (breakpoints.smDown && activeMobilePopoverLink.value === link) {
+    activeMobilePopoverLink.value = null
+  }
+}
+
 watch(currentPage, async () => {
   await nextTick()
   scrollToTable()
 })
 
-watch([perPage, searchQuery], () => {
-  currentPage.value = 1
-})
-
+watch(perPage, () => { currentPage.value = 1 })
 watch(pages, (newPages) => {
   if (currentPage.value > newPages) currentPage.value = newPages
 })
@@ -217,20 +241,11 @@ defineExpose({ scrollToTable })
   border-radius: 15px;
 }
 
-.chart-card {
-  border-radius: 15px;
-}
-
 .per-page-label {
   display: flex;
   align-items: center;
   gap: 8px;
   white-space: nowrap;
-}
-
-.page-select {
-  width: 30px !important;
-  min-width: 20px !important;
 }
 
 .search-input {
@@ -272,12 +287,8 @@ defineExpose({ scrollToTable })
   cursor: pointer;
 }
 
-.event-link:hover,
-.event-link:focus,
-.event-link:visited,
-.event-link:active {
+.event-link:visited {
   color: var(--va-primary);
-  text-decoration: none;
 }
 
 :global(.event-popover-content) {
