@@ -1,11 +1,11 @@
 <template>
+  <h1
+    class="sm:text-2xl font-bold text-center mb-3"
+    style="color: var(--va-plain-text)"
+  >
+    Search by Group
+  </h1>
   <VaCard class="p-2 sm:p-4 overflow-visible">
-    <h1
-      class="text-xl sm:text-2xl font-bold mb-4"
-      style="color: var(--va-plain-text)"
-    >
-      Search by group
-    </h1>
     <RangeSelector
       :total-students="awsStore.allUsers.filter((u) => u.startsWith('alucloud')).length"
       :courses="courseOptions"

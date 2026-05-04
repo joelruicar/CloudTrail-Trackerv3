@@ -30,8 +30,8 @@
 
 :deep(.date-select) {
   max-width: 250px;
-  margin-top: 3%;
-  margin-left: 3%;
+  margin-top: 2rem;
+  margin-left: 1rem;
 }
 @media (max-width: 1024px) {
   .main-content-grid {

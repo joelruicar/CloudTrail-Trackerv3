@@ -9,7 +9,16 @@
     />
   </div>
   <template v-else-if="awsStore.events && awsStore.events.length > 0">
-    <div class="p-4 widgets-card">
+    <h1
+      class="sm:text-2xl font-bold text-center mb-3"
+      style="color: var(--va-plain-text)"
+    >
+      Dashboard
+    </h1>
+    <div
+      class="p-4 widgets-card"
+      @click.capture="onWidgetsAreaClick"
+    >
       <InfoWidgets />
     </div>
 
@@ -31,8 +40,6 @@
           y-axis="#times"
           @barClick="handleBarClick"
         />
-      </VaCard>
-      <VaCard class="chart-card">
         <VaCardTitle style="color: var(--va-chart-title)">
           Users who have used AWS services
         </VaCardTitle>
@@ -103,6 +110,29 @@ const eventsTable = ref<InstanceType<typeof Table> | null>(null)
 const tableContainerRef = ref<HTMLElement | null>(null)
 
 const searchQuery = ref('')
+const widgetEventFilterMap: Record<string, string> = {
+  runInstances: 'RunInstances',
+  createDBInstance: 'CreateDBInstance',
+  createFunction: 'CreateFunction',
+  createLoadBalancer: 'CreateLoadBalancer',
+}
+
+function onWidgetsAreaClick(event: MouseEvent) {
+  const card = (event.target as HTMLElement).closest('.metric-card')
+  if (!card) return
+
+  const storeKey = card.getAttribute('data-store-key')
+  const eventName = storeKey ? widgetEventFilterMap[storeKey] : undefined
+  if (!eventName) return
+
+  searchQuery.value = searchQuery.value === eventName ? '' : eventName
+  display.value = false
+
+  nextTick(() => {
+    eventsTable.value?.scrollToTable?.()
+  })
+}
+
 const handleBarClick = (label: string) => {
   if (searchQuery.value === label) {
     searchQuery.value = ''

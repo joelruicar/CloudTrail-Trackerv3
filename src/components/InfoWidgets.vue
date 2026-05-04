@@ -60,7 +60,10 @@ const oteadorStore = useOteadorStore()
 const displayData = computed(() => {
   if (props.source === 'oteador') {
     const metrics = oteadorStore.globalMetrics;
-    const prices = oteadorStore.prices;
+    const prices = oteadorStore.prices; 
+    console.log('metrics:', JSON.parse(JSON.stringify(metrics)))
+    console.log('prices:', JSON.parse(JSON.stringify(prices)))
+    
     return Object.keys(metrics).map((storeKey) => {
       const labelMap = {
         ec2: 'EC2 running',
@@ -76,7 +79,7 @@ const displayData = computed(() => {
         label,
         displayLabel: label,
         value: Number(metrics[storeKey] ?? 0), // Forzar número
-        price: prices[storeKey] !== null ? Number(prices[storeKey]) : null, // Validar antes de asignar
+        price: (prices[storeKey] != null && !isNaN(Number(prices[storeKey]))) ? Number(prices[storeKey]) : null,
       };
     });
   }

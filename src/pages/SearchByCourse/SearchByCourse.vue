@@ -1,11 +1,11 @@
-<template>
+<template> 
+  <h1
+    class="sm:text-2xl font-bold text-center mb-3"
+    style="color: var(--va-plain-text)"
+  >
+    Search by Course
+  </h1>
   <VaCard class="p-2 sm:p-4 overflow-visible">
-    <h1
-      class="text-xl sm:text-2xl font-bold mb-4"
-      style="color: var(--va-plain-text)"
-    >
-      Search by course
-    </h1>
     <div class="search-controls mb-6">
       <UserSearchSelector
         v-model="user_name"

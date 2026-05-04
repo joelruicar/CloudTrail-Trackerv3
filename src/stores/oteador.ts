@@ -339,7 +339,7 @@ export const useOteadorStore = defineStore('oteador', {
       ec2: 0, rds: 0, autoscaling: 0, elb: 0, elasticIP: 0, lambda: 0,
     } as Record<string, number>,
     prices: {
-      ec2: 0, rds: 0, autoscaling: null, elb: 0, elasticIP: null, lambda: 0,
+      ec2: 0, rds: 0, autoscaling: 0, elb: 0, elasticIP: 0, lambda: 0,
     } as Record<string, number | null>,
     loadingService: false,
     loadingInitial: true,
@@ -617,13 +617,16 @@ export const useOteadorStore = defineStore('oteador', {
           api.oteadorClient.get(`services/region/${this.selectedRegion}`)
         )
 
+        // El backend puede devolver null para regiones sin recursos — usar || 0
+        // para convertir tanto null como undefined a 0 (a diferencia de ??)
+        // El backend devuelve { ec2: { number, info[] }, ..., lamb: { number, info[] } }
         this.globalMetrics = {
-          ec2:         Number(summary?.ec2?.number ?? 0),
-          rds:         Number(summary?.rds?.number ?? 0),
-          autoscaling: Number(summary?.autoscaling?.number ?? 0),
-          elb:         Number(summary?.elb?.number ?? 0),
-          elasticIP:   Number(summary?.elasticIP?.number ?? 0),
-          lambda:      Number(summary?.lamb?.number ?? summary?.lambda?.number ?? 0),
+          ec2:         Number(summary?.ec2?.number         || 0),
+          rds:         Number(summary?.rds?.number         || 0),
+          autoscaling: Number(summary?.autoscaling?.number || 0),
+          elb:         Number(summary?.elb?.number         || 0),
+          elasticIP:   Number(summary?.elasticIP?.number   || 0),
+          lambda:      Number(summary?.lamb?.number        || 0),
         }
 
         if (refreshPrices) await this.calculatePrices(summary ?? {})

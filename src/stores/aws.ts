@@ -168,28 +168,23 @@ export const useAwsStore = defineStore('aws', {
       try {
         const { start, end } = calculateDateRange(range)
 
-        const [runRes, dbRes, funcRes, lbRes] = await Promise.all([
-          api.client.get('/scan', { params: { from: start, to: end, eventName: 'RunInstances', count: 'True' } }),
-          api.client.get('/scan', {
-            params: { from: start, to: end, eventName: 'CreateDBInstance', count: 'True', begin_with: 'True' },
-          }),
-          api.client.get('/scan', {
-            params: { from: start, to: end, eventName: 'CreateFunction', count: 'True', begin_with: 'True' },
-          }),
-          api.client.get('/scan', { params: { from: start, to: end, eventName: 'CreateLoadBalancer', count: 'True' } }),
-        ])
+        const eventsRes = await api.client.get('/scan', { params: { from: start, to: end } })
+        const rawEvents = Array.isArray(eventsRes.data) ? eventsRes.data : []
+
+        const countExact = (eventName: string) =>
+          rawEvents.filter((event: any) => event.eventName === eventName).length
+
+        const countStartsWith = (eventName: string) =>
+          rawEvents.filter((event: any) => String(event.eventName ?? '').startsWith(eventName)).length
 
         this.metrics = {
-          runInstances: runRes.data,
-          createDBInstance: dbRes.data,
-          createFunction: funcRes.data,
-          createLoadBalancer: lbRes.data,
+          runInstances: countExact('RunInstances'),
+          createDBInstance: countStartsWith('CreateDBInstance'),
+          createFunction: countStartsWith('CreateFunction'),
+          createLoadBalancer: countExact('CreateLoadBalancer'),
         }
 
-        // si se hacen a la vez es demasiado pesado y da error timeout
-        const eventsRes = await api.client.get('/scan', { params: { from: start, to: end } })
-
-        this.events = eventsRes.data.map((event: any, index: number) => {
+        this.events = rawEvents.map((event: any, index: number) => {
           const rawDate = event.eventTime
           const dateObj = new Date(rawDate)
 

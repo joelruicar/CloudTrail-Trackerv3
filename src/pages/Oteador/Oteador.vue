@@ -11,6 +11,12 @@
     </div>
 
     <template v-else>
+      <h1
+        class="sm:text-2xl font-bold text-center mb-3"
+        style="color: var(--va-plain-text)"
+      >
+        Oteador
+      </h1>
       <div
         class="widgets-click-wrapper"
         @click.capture="onWidgetsAreaClick"
@@ -134,6 +140,7 @@ async function onRegionChange(value: string) {
 }
 
 onMounted(async () => {
+  store.setLoadingInitial(true)
   await store.fetchRegions()
   await store.fetchGlobalData()
   refreshInterval = setInterval(async () => {
