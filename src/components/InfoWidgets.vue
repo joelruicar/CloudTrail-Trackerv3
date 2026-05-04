@@ -186,7 +186,6 @@ const getServiceIcon = (serviceKey) => {
   font-size: 0.85rem;
   color: var(--va-text-secondary);
   font-weight: 500;
-  text-transform: capitalize;
   cursor: default;
 }
 
