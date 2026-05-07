@@ -1,7 +1,7 @@
 <template>
   <h1
-    class="sm:text-2xl font-bold text-center mb-3"
-    style="color: var(--va-plain-text)"
+    class="relative top-5 sm:top-0 text-3xl sm:text-2xl font-bold text-center mb-10"
+    style="color: var(--va-heading)"
   >
     Search by Group
   </h1>
@@ -37,7 +37,7 @@
               <span
                 class="stat-label"
                 style="color: var(--va-plain-text)"
-              >Alumno:</span>
+              >Usuario:</span>
               <span class="stat-value">alucloud{{ selectedStudentsFrom }}</span>
             </div>
             <div
@@ -47,7 +47,7 @@
               <span
                 class="stat-label"
                 style="color: var(--va-plain-text)"
-              >Alumnos en rango:</span>
+              >Usuarios en rango:</span>
               <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
             </div>
             <div
@@ -102,12 +102,12 @@
           class="mb-4"
         >
           <VaCardTitle style="color: var(--va-chart-title)">
-            Heatmap de Progreso por Alumno
+            Heatmap de Progreso por Usario
           </VaCardTitle>
           <HeatmapChart
             :heatmap-data="heatmapData"
             x-axis="Práctica"
-            y-axis="Alumno"
+            y-axis="Usuario"
             class="heatmap-block"
             @studentClick="handleStudentRowClick"
           />
@@ -310,11 +310,11 @@ const courseInsights = computed(() => {
 
   const insights: Array<{ id: string; tone: 'success' | 'danger' | 'warning'; message: string }> = []
   if ((topCompleted?.ratio || 0) > 0)
-    insights.push({ id: 'completed', tone: 'success', message: `${topCompleted.subject} completada por ${Math.round(topCompleted.ratio)}% de alumnos` })
+    insights.push({ id: 'completed', tone: 'success', message: `${topCompleted.subject} completada por ${Math.round(topCompleted.ratio)}% de usuarios` })
   if ((topStuck?.ratio || 0) > 0)
-    insights.push({ id: 'stuck', tone: 'danger', message: `${topStuck.subject} tiene ${Math.round(topStuck.ratio)}% de alumnos atascados` })
+    insights.push({ id: 'stuck', tone: 'danger', message: `${topStuck.subject} tiene ${Math.round(topStuck.ratio)}% de usuarios atascados` })
   if (nonStarted > 0)
-    insights.push({ id: 'not-started', tone: 'warning', message: `${nonStarted} alumno(s) no han empezado ninguna práctica` })
+    insights.push({ id: 'not-started', tone: 'warning', message: `${nonStarted} usuario(s) no han empezado ninguna práctica` })
 
   return insights
 })

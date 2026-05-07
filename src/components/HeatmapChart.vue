@@ -41,7 +41,7 @@ const props = defineProps({
   },
   yAxis: {
     type: String,
-    default: 'Alumno',
+    default: 'Usuario',
   },
 })
 

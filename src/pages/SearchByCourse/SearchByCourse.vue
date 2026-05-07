@@ -1,7 +1,7 @@
 <template> 
   <h1
     class="sm:text-2xl font-bold text-center mb-3"
-    style="color: var(--va-plain-text)"
+    style="color: var(--va-heading)"
   >
     Search by Course
   </h1>
@@ -12,16 +12,16 @@
         :all-users="awsStore.allUsers"
       />
       <div class="filter-group">
-        <label style="color: var(--va-plain-text); font-weight: 600">Curso:</label>
         <VaSelect
           v-model="selectedCourse"
           :options="courseOptions"
+          label="Curso"
           class="interactive-field"
           background="textInput"
           color="primary"
         />
       </div>
-      <div class="filter-group">
+      <div class="date-filter-row">
         <DateFilter v-model="selectedDateRange" />
       </div>
       <VaButton

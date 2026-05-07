@@ -31,6 +31,7 @@ export default {
         shadow: 'var(--va-shadow)',
         focus: 'var(--va-focus)',
         tableText: 'var(--va-table-text)',
+        heading: 'var(--va-heading)'
       },
       screens: {
         xs: '0px',

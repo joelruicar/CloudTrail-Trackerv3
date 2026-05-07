@@ -1,47 +1,59 @@
 <template>
   <VaLayout
-    :top="{ fixed: true, order: 2 }"
-    :left="{ fixed: true, absolute: breakpoints.mdDown, order: 1, overlay: breakpoints.mdDown && !isSidebarMinimized }"
+    :left="{ fixed: false, absolute: breakpoints.mdDown, order: 1, overlay: breakpoints.mdDown && !isSidebarMinimized }"
     @leftOverlayClick="isSidebarMinimized = true"
   >
-    <template #top>
-      <AppNavbar :is-mobile="isMobile" />
-    </template>
-
     <template #left>
       <AppSidebar
         :minimized="isSidebarMinimized"
         :animated="!isMobile"
         :mobile="isMobile"
+        @toggle="isSidebarMinimized = !isSidebarMinimized"
       />
     </template>
 
     <template #content>
-      <div
-        :class="{ minimized: isSidebarMinimized }"
-        class="app-layout__sidebar-wrapper"
-      >
-        <div
-          v-if="isFullScreenSidebar"
-          class="flex justify-end"
-        >
-          <VaButton
-            class="px-4 py-4"
-            icon="md_close"
-            preset="plain"
-            @click="onCloseSidebarButtonClick"
-          />
+      <div class="content-wrapper">
+        <!-- Botón hamburguesa en mobile (sidebar cerrado) -->
+        <VaIcon
+          v-if="isMobile && isSidebarMinimized"
+          color="primary"
+          name="menu"
+          size="24px"
+          class="mobile-menu-btn"
+          @click="isSidebarMinimized = false"
+        />
+        <!-- ProfileDropdown arriba a la derecha, se mueve con el scroll -->
+        <div class="profile-top-right">
+          <ProfileDropdown />
         </div>
+
+        <div
+          :class="{ minimized: isSidebarMinimized }"
+          class="app-layout__sidebar-wrapper"
+        >
+          <div
+            v-if="isFullScreenSidebar"
+            class="flex justify-end"
+          >
+            <VaButton
+              class="px-4 py-4"
+              icon="md_close"
+              preset="plain"
+              @click="onCloseSidebarButtonClick"
+            />
+          </div>
+        </div>
+        <AppLayoutNavigation
+          v-if="!isMobile"
+          class="p-4"
+        />
+        <main class="p-4 pt-0">
+          <article>
+            <RouterView />
+          </article>
+        </main>
       </div>
-      <AppLayoutNavigation
-        v-if="!isMobile"
-        class="p-4"
-      />
-      <main class="p-4 pt-0">
-        <article>
-          <RouterView />
-        </article>
-      </main>
     </template>
   </VaLayout>
 </template>
@@ -55,8 +67,8 @@ import { useBreakpoint } from 'vuestic-ui'
 import { useGlobalStore } from '../stores/global-store'
 
 import AppLayoutNavigation from '../components/app-layout-navigation/AppLayoutNavigation.vue'
-import AppNavbar from '../components/navbar/AppNavbar.vue'
 import AppSidebar from '../components/sidebar/AppSidebar.vue'
+import ProfileDropdown from '../components/navbar/components/ProfileDropdown.vue'
 
 const GlobalStore = useGlobalStore()
 
@@ -105,5 +117,24 @@ const onCloseSidebarButtonClick = () => {
 .va-sidebar {
   width: unset !important;
   min-width: unset !important;
+}
+
+.content-wrapper {
+  position: relative;
+}
+
+.mobile-menu-btn {
+  position: absolute;
+  top: 0.75rem;
+  left: 1rem;
+  cursor: pointer;
+  z-index: 100;
+}
+
+.profile-top-right {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  z-index: 100;
 }
 </style>

@@ -352,7 +352,7 @@ export const useAwsStore = defineStore('aws', {
               })
             }
           } catch (error) {
-            console.error(`Error obteniendo datos del alumno ${username}:`, error)
+            console.error(`Error obteniendo datos del usuario ${username}:`, error)
           }
         }
 

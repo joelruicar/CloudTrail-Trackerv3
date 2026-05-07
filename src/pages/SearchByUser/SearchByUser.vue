@@ -11,7 +11,7 @@
   <template v-else>
     <h1
       class="sm:text-2xl font-bold text-center"
-      style="color: var(--va-plain-text)"
+      style="color: var(--va-heading)"
     >
       Search by User
     </h1>

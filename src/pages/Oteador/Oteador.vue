@@ -13,7 +13,7 @@
     <template v-else>
       <h1
         class="sm:text-2xl font-bold text-center mb-3"
-        style="color: var(--va-plain-text)"
+        style="color: var(--va-heading)"
       >
         Oteador
       </h1>
@@ -69,13 +69,26 @@
               in <strong>{{ store.selectedRegion }}</strong>.
             </p>
           </div>
-          <Table
-            v-model:filter="searchQuery"
-            :items="filteredRows"
-            :columns="store.currentColumns"
-            :loading="store.loadingService"
-            :link-column-key="linkColumnKey"
-          />
+          <VaButton
+            color="buttonColor"
+            class="mb-4 details-button"
+            @click="display = !display"
+          >
+            Details
+          </VaButton>
+          <Transition
+            name="expand"
+          >
+            <div v-if="!display">
+              <Table
+                v-model:filter="searchQuery"
+                :items="filteredRows"
+                :columns="store.currentColumns"
+                :loading="store.loadingService"
+                :link-column-key="linkColumnKey"
+              />
+            </div>
+          </Transition>
         </VaCardContent>
       </VaCard>
     </template>
@@ -86,11 +99,13 @@
 import { useOteadorStore, SERVICE_OPTIONS } from '../../stores/oteador'
 import InfoWidgets from '../../components/InfoWidgets.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { VaButton } from 'vuestic-ui'
 import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
 
 const store = useOteadorStore()
 const searchQuery = ref('')
+const display = ref(true)
 const REFRESH_INTERVAL_MS = 12000
 let refreshInterval: ReturnType<typeof setInterval> | undefined
 let refreshInProgress = false
@@ -120,6 +135,7 @@ async function onWidgetClick(serviceKey: string) {
     return
   }
   await store.fetchAllRegionItems(serviceKey)
+  display.value = false
 }
 
 async function clearWidgetFilter() {
@@ -147,7 +163,7 @@ onMounted(async () => {
     if (refreshInProgress || store.loadingInitial || store.loadingService) return
     refreshInProgress = true
     try {
-      await store.fetchGlobalData({ refreshPrices: false, showLoading: false })
+      await store.fetchGlobalData({ refreshPrices: true, showLoading: false })
     } finally {
       refreshInProgress = false
     }

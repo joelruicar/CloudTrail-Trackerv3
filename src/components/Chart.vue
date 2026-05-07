@@ -75,6 +75,7 @@ const chartOptions = computed(() => ({
       backgroundColor: colorToRgba(getColor('chartColor'), 0.8),
       borderColor: 'transparent',
       borderWidth: 0,
+      borderRadius: 15,
       maxBarThickness: 50,
       barPercentage: 0.5,
       categoryPercentage: 0.8,

@@ -1,145 +1,163 @@
 <template>
   <VaSidebar
-    v-model="writableVisible"
     :width="sidebarWidth"
-    :color="color"
-    minimized-width="0"
+    color="backgroundSecondary"
+    class="app-sidebar"
+    :class="{ 'sidebar-hidden': minimized }"
   >
-    <VaAccordion
-      v-model="value"
-      multiple
-    >
-      <VaCollapse
-        v-for="(route, index) in visibleRoutes"
-        :key="index"
+    <!-- Logo en la parte superior del sidebar -->
+    <div class="sidebar-logo">
+      <VaIcon
+        v-if="mobile"
+        color="primary"
+        name="close"
+        size="24px"
+        class="mobile-toggle"
+        @click="$emit('toggle')"
+      />
+      <RouterLink
+        to="/"
+        aria-label="Visit home page"
       >
-        <template #header="{ value: isCollapsed }">
-          <VaSidebarItem
-            :to="route.children ? undefined : { name: route.name }"
-            :active="routeHasActiveChild(route)"
-            :active-color="activeColor"
-            :text-color="textColor(route)"
-            :aria-label="`${route.children ? 'Open category ' : 'Visit'} ${t(route.displayName)}`"
-            role="button"
-            hover-opacity="0.10"
-          >
-            <VaSidebarItemContent class="py-3 pr-2 pl-4">
-              <VaIcon
-                v-if="route.meta.icon"
-                aria-hidden="true"
-                :name="route.meta.icon"
-                size="20px"
-                :color="iconColor(route)"
-              />
-              <VaSidebarItemTitle class="flex justify-between items-center leading-5 font-semibold">
-                {{ t(route.displayName) }}
-                <VaIcon
-                  v-if="route.children"
-                  :name="arrowDirection(isCollapsed)"
-                  size="20px"
-                />
-              </VaSidebarItemTitle>
-            </VaSidebarItemContent>
-          </VaSidebarItem>
-        </template>
-        <template #body>
-          <div
-            v-for="(childRoute, index2) in route.children"
-            :key="index2"
-          >
-            <VaSidebarItem
-              :to="{ name: childRoute.name }"
-              :active="isActiveChildRoute(childRoute)"
-              :active-color="activeColor"
-              :text-color="textColor(childRoute)"
-              :aria-label="`Visit ${t(route.displayName)}`"
-              hover-opacity="0.10"
-            >
-              <VaSidebarItemContent class="py-3 pr-2 pl-11">
-                <VaSidebarItemTitle class="leading-5 font-semibold">
-                  {{ t(childRoute.displayName) }}
-                </VaSidebarItemTitle>
-              </VaSidebarItemContent>
-            </VaSidebarItem>
-          </div>
-        </template>
-      </VaCollapse>
-    </VaAccordion>
+        <VuesticLogo />
+      </RouterLink>
+    </div>
+
+    <VaSidebarItem
+      v-for="route in routes"
+      :key="route.name"
+      class="sidebar-item-wrapper"
+    >
+      <VaSidebarItemContent
+        class="sidebar-item"
+        :class="{ active: isActive(route) }"
+        :style="isActive(route)
+          ? { background: gradientBg, '--arrow-color': arrow }
+          : {}"
+        @click="navigate(route)"
+      >
+        <VaIcon
+          v-if="iconFor(route.name)"
+          :name="iconFor(route.name)"
+          class="mr-2"
+          size="20px"
+        />
+        <span>{{ formatName(route.name) }}</span>
+      </VaSidebarItemContent>
+    </VaSidebarItem>
   </VaSidebar>
 </template>
-<script lang="ts">
-import { defineComponent, watch, ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
 
-import { useI18n } from 'vue-i18n'
+<script setup>
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useColors } from 'vuestic-ui'
 
-import navigationRoutes, { type INavigationRoute } from './NavigationRoutes'
-import { useAuthStore } from '../../stores/auth'
+import navigationRoutes from './NavigationRoutes'
+import VuesticLogo from '../VuesticLogo.vue'
 
-export default defineComponent({
-  name: 'Sidebar',
-  props: {
-    visible: { type: Boolean, default: true },
-    mobile: { type: Boolean, default: false },
-  },
-  emits: ['update:visible'],
-
-  setup: (props, { emit }) => {
-    const { getColor, colorToRgba } = useColors()
-    const route = useRoute()
-    const { t } = useI18n()
-    const authStore = useAuthStore()
-
-    const value = ref<boolean[]>([])
-
-    const writableVisible = computed({
-      get: () => props.visible,
-      set: (v: boolean) => emit('update:visible', v),
-    })
-
-    const isActiveChildRoute = (child: INavigationRoute) => route.name === child.name
-
-    const routeHasActiveChild = (section: INavigationRoute) => {
-      if (!section.children) {
-        return route.path.endsWith(`${section.name}`)
-      }
-
-      return section.children.some(({ name }) => route.path.endsWith(`${name}`))
-    }
-
-    const visibleRoutes = computed(() =>
-      navigationRoutes.routes.filter((route: INavigationRoute) => !route.requiresProfessor || authStore.isProfessor),
-    )
-
-    const setActiveExpand = () =>
-      (value.value = visibleRoutes.value.map((route: INavigationRoute) => routeHasActiveChild(route)))
-
-    const sidebarWidth = computed(() => (props.mobile ? '100vw' : '280px'))
-    const color = computed(() => getColor('background-secondary'))
-    const activeColor = computed(() => colorToRgba(getColor('focus'), 0.1))
-
-    const iconColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'secondary')
-    const textColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'plainText')
-    const arrowDirection = (state: boolean) => (state ? 'va-arrow-up' : 'va-arrow-down')
-
-    watch(() => route.fullPath, setActiveExpand, { immediate: true })
-
-    return {
-      writableVisible,
-      sidebarWidth,
-      value,
-      color,
-      activeColor,
-      navigationRoutes,
-      routeHasActiveChild,
-      isActiveChildRoute,
-      t,
-      visibleRoutes,
-      iconColor,
-      textColor,
-      arrowDirection,
-    }
-  },
+const props = defineProps({
+  minimized: { type: Boolean, default: false },
+  animated: { type: Boolean, default: true },
+  mobile: { type: Boolean, default: false },
 })
+
+defineEmits(['toggle'])
+
+const sidebarWidth = computed(() => props.minimized ? '0px' : '250px')
+
+const router = useRouter()
+const currentRoute = useRoute()
+const { getColor } = useColors()
+
+const routes = router.options.routes
+  .find(r => r.name === 'admin')
+  .children
+  .filter(route => route.name !== 'change-password')
+
+const iconByName = Object.fromEntries(
+  navigationRoutes.routes.map((route) => [route.name, route.meta?.icon]),
+)
+
+const gradientStart = computed(() => getColor('primary'))
+const arrow = computed(() => getColor('arrow'))
+const gradientEnd = computed(() => getColor('gradientEnd'))
+const gradientBg = computed(() => `linear-gradient(90deg, ${gradientStart.value}, ${gradientEnd.value})`)
+
+const iconFor = (name) => iconByName[name]
+
+const navigate = (route) => {
+  router.push(`/${route.path}`)
+}
+
+const isActive = (route) => {
+  return currentRoute.name === route.name
+}
+
+const formatName = (name) => {
+  return name
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, l => l.toUpperCase())
+}
 </script>
+
+<style scoped>
+.app-sidebar {
+  overflow: hidden;
+  transition: width 0.3s ease;
+  min-height: 100vh;
+}
+
+.sidebar-hidden {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid var(--va-background-border);
+  margin-bottom: 0.5rem;
+}
+
+.mobile-toggle {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.sidebar-item-wrapper {
+  margin: 4px 0;
+}
+
+.sidebar-item {
+  position: relative;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  color: var(--va-plain-text);
+  font-weight: bold;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.sidebar-item.active {
+  color: var(--va-arrow-color);
+}
+
+.sidebar-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 15px solid transparent;
+  border-bottom: 15px solid transparent;
+  border-left: 12px solid var(--arrow-color);
+  z-index: 1;
+}
+</style>

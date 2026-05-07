@@ -10,8 +10,8 @@
   </div>
   <template v-else-if="awsStore.events && awsStore.events.length > 0">
     <h1
-      class="sm:text-2xl font-bold text-center mb-3"
-      style="color: var(--va-plain-text)"
+      class="sm:text-4xl font-bold  mb-3"
+      style="color: var(--va-heading)"
     >
       Dashboard
     </h1>

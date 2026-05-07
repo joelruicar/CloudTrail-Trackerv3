@@ -366,8 +366,6 @@ export const useOteadorStore = defineStore('oteador', {
         datasets: [{
           label: '#Services',
           data: Object.values(counts),
-          backgroundColor: 'rgba(74,227,135,0.2)',
-          borderColor: 'rgba(0,102,0,1)',
           borderWidth: 1,
         }],
       }

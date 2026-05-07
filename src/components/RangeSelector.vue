@@ -61,8 +61,12 @@
 
       <div
         v-if="authStore.isProfessor"
-        class="admin-checkbox"
+        class="input-group admin-checkbox"
       >
+        <label
+          style="color: transparent; user-select: none;"
+          aria-hidden="true"
+        >_</label>
         <VaCheckbox
           v-model="singleStudentMode"
           label="Buscar por alumno"
@@ -189,7 +193,7 @@ const applyFilter = () => {
   font-size: 0.875rem;
 }
 
-:deep(.admin-checkbox .va-checkbox__square) {
+.admin-checkbox :deep(.va-checkbox__square) {
   background-color: #ffffff;
   border: 1px solid rgb(15, 23, 42);
 }

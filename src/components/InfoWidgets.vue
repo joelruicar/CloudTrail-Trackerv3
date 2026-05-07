@@ -61,9 +61,6 @@ const displayData = computed(() => {
   if (props.source === 'oteador') {
     const metrics = oteadorStore.globalMetrics;
     const prices = oteadorStore.prices; 
-    console.log('metrics:', JSON.parse(JSON.stringify(metrics)))
-    console.log('prices:', JSON.parse(JSON.stringify(prices)))
-    
     return Object.keys(metrics).map((storeKey) => {
       const labelMap = {
         ec2: 'EC2 running',
