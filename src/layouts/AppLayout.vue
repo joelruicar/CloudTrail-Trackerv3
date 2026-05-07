@@ -48,7 +48,7 @@
           v-if="!isMobile"
           class="p-4"
         />
-        <main class="p-4 pt-0">
+        <main :class="[{ 'with-sidebar': !isSidebarMinimized && !isMobile }, 'p-4', 'pt-0']">
           <article>
             <RouterView />
           </article>
@@ -74,7 +74,7 @@ const GlobalStore = useGlobalStore()
 
 const breakpoints = useBreakpoint()
 
-const sidebarWidth = ref('16rem')
+const sidebarWidth = ref('15rem')
 const sidebarMinimizedWidth = ref(undefined)
 
 const isMobile = ref(false)
@@ -86,7 +86,7 @@ const onResize = () => {
   isMobile.value = breakpoints.smDown
   isTablet.value = breakpoints.mdDown
   sidebarMinimizedWidth.value = isMobile.value ? '0' : '4.5rem'
-  sidebarWidth.value = isTablet.value ? '100%' : '16rem'
+  sidebarWidth.value = isTablet.value ? '100%' : '15rem'
 }
 
 onMounted(() => {
@@ -136,5 +136,16 @@ const onCloseSidebarButtonClick = () => {
   top: 0.75rem;
   right: 1rem;
   z-index: 100;
+}
+
+main.with-sidebar {
+  margin-left: 1rem; 
+  transition: margin-left 200ms ease;
+}
+
+@media (max-width: 768px) {
+  main.with-sidebar {
+    margin-left: 0;
+  }
 }
 </style>

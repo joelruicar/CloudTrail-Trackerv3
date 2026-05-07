@@ -1,150 +1,162 @@
 <template>
-  <h1
-    class="relative top-5 sm:top-0 text-3xl sm:text-2xl font-bold text-center mb-10"
-    style="color: var(--va-heading)"
-  >
-    Search by Group
-  </h1>
-  <VaCard class="p-2 sm:p-4 overflow-visible">
-    <RangeSelector
-      :total-students="awsStore.allUsers.filter((u) => u.startsWith('alucloud')).length"
-      :courses="courseOptions"
-      @filterApplied="handleFilterApplied"
-    />
-    <div
-      v-if="awsStore.loading"
-      class="loading-overlay"
+  <section class="search-group-page">
+    <h1
+      class="search-group-title"
+      style="color: var(--va-heading)"
     >
-      <VaProgressCircle
-        indeterminate
-        size="large"
+      Search by group
+    </h1>
+    <VaCard class="search-group-shell p-2 sm:p-4 overflow-visible">
+      <RangeSelector
+        :total-students="awsStore.allUsers.filter((u) => u.startsWith('alucloud')).length"
+        :courses="courseOptions"
+        @filterApplied="handleFilterApplied"
       />
-    </div>
-    <div
-      v-else-if="hasSearched"
-      class="mb-4"
-    >
-      <template v-if="hasResults">
-        <VaCard>
-          <VaCardTitle style="color: var(--va-chart-title)">
-            Promedio de Avance por Práctica de laboratorio - {{ selectedCourseLabel || 'Sin curso' }}
-          </VaCardTitle>
-          <div class="progress-stats">
+      <div
+        v-if="awsStore.loading"
+        class="loading-overlay"
+      >
+        <VaProgressCircle
+          indeterminate
+          size="large"
+        />
+      </div>
+      <div
+        v
+        else-if="hasSearched"
+        class="mb-4"
+      >
+        <template v-if="hasResults">
+          <VaCard class="content-card">
+            <VaCardTitle style="color: var(--va-chart-title)">
+              Promedio de Avance por Práctica de laboratorio - {{ selectedCourseLabel || 'Sin curso' }}
+            </VaCardTitle>
             <div
-              v-if="singleStudentSelected"
-              class="stat-item"
+              class="progress-stats group-stats"
+              :class="{ 'single-student': singleStudentSelected }"
             >
-              <span
-                class="stat-label"
-                style="color: var(--va-plain-text)"
-              >Usuario:</span>
-              <span class="stat-value">alucloud{{ selectedStudentsFrom }}</span>
-            </div>
-            <div
-              v-else
-              class="stat-item"
-            >
-              <span
-                class="stat-label"
-                style="color: var(--va-plain-text)"
-              >Usuarios en rango:</span>
-              <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
-            </div>
-            <div
-              v-if="!singleStudentSelected"
-              class="stat-item"
-            >
-              <span
-                class="stat-label"
-                style="color: var(--va-plain-text)"
-              >Promedio:</span>
-              <span class="stat-value">{{ awsStore.averageProgressByRange.toFixed(2) }}%</span>
-            </div>
-            <div
-              v-if="singleStudentSelected && singleStudentFinalGrade !== null"
-              class="stat-item"
-            >
-              <span
-                class="stat-label"
-                style="color: var(--va-plain-text)"
-              >Nota:</span>
-              <span class="stat-value">{{ singleStudentFinalGrade.toFixed(1) }}/1</span>
-            </div>
-          </div>
-          <div
-            v-if="courseInsights.length && !singleStudentSelected"
-            class="mb-4"
-          >
-            <VaCard>
-              <div class="insights-list">
-                <div
-                  v-for="insight in courseInsights"
-                  :key="insight.id"
-                  class="insight-item"
-                  :class="`insight-item--${insight.tone}`"
+              <div
+                v-if="singleStudentSelected"
+                class="stat-item stat-item--wide"
+              >
+                <span
+                  class="stat-label"
                   style="color: var(--va-plain-text)"
-                >
-                  {{ insight.message }}
+                >Usuario:</span>
+                <span class="stat-value">alucloud{{ selectedStudentsFrom }}</span>
+              </div>
+              <div
+                v-if="!singleStudentSelected"
+                class="stat-item-group"
+              >
+                <div class="stat-item stat-item--wide">
+                  <span
+                    class="stat-label"
+                    style="color: var(--va-plain-text)"
+                  >Usuarios en rango:</span>
+                  <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
+                </div>
+                <div class="stat-item stat-item--avg">
+                  <Doughnut 
+                    :number="Number(awsStore.averageProgressByRange.toFixed(0))" 
+                    color="#6DADD1" 
+                  />
+                  <span
+                    class="stat-label"
+                    style="color: var(--va-plain-text)"
+                  >Promedio:</span>
+                  <span class="stat-value">{{ awsStore.averageProgressByRange.toFixed(2) }}%</span>
                 </div>
               </div>
-            </VaCard>
-          </div>
-          <Chart
-            :chart-data="averageProgressChart"
-            x-axis="Práctica"
-            y-axis="%"
-            title="laboratory"
-            @barClick="handleBarClick"
-          />
-        </VaCard>
-        <VaCard
-          v-if="heatmapData.students.length && !singleStudentSelected"
-          class="mb-4"
-        >
-          <VaCardTitle style="color: var(--va-chart-title)">
-            Heatmap de Progreso por Usario
-          </VaCardTitle>
-          <HeatmapChart
-            :heatmap-data="heatmapData"
-            x-axis="Práctica"
-            y-axis="Usuario"
-            class="heatmap-block"
-            @studentClick="handleStudentRowClick"
-          />
-        </VaCard>
-        <VaButton
-          color="buttonColor"
-          class="mb-4"
-          @click="display = !display"
-        >
-          Details
-        </VaButton>
-        <Transition
-          name="expand"
-          @afterEnter="handleAfterEnter"
-        >
-          <div
-            v-if="!display"
-            ref="tableContainerRef"
-          >
-            <Table
-              v-model:filter="searchQuery"
-              :items="singleStudentSelected ? missingEventsRows : practiceRows"
-              :columns="singleStudentSelected ? missingEventColumns : practiceColumns"
-              :enable-event-link-with-popover="singleStudentSelected"
+              <div
+                v-if="singleStudentSelected && singleStudentFinalGrade !== null"
+                class="stat-item stat-item--avg"
+              >
+                <span
+                  class="stat-label"
+                  style="color: var(--va-plain-text)"
+                >Nota:</span>
+                <span class="stat-value">{{ singleStudentFinalGrade.toFixed(1) }}/1</span>
+              </div>
+              <div
+                v-if="!singleStudentSelected && miniStats.length"
+                class="mini-stat-row"
+              >
+                <div
+                  v-for="stat in miniStats"
+                  :key="stat.id"
+                  class="stat-item mini-stat"
+                  :class="{ 'mini-stat--center': !stat.hasDonut }"
+                >
+                  <div
+                    v-if="stat.hasDonut"
+                    class="donut-placeholder donut-placeholder--small"
+                    :class="stat.donutClass"
+                  >
+                    <span>{{ stat.valueLabel }}</span>
+                  </div>
+                  <span
+                    v-else
+                    class="stat-value"
+                  >{{ stat.valueLabel }}</span>
+                  <span class="stat-label">{{ stat.label }}</span>
+                </div>
+              </div>
+              <Chart
+                :chart-data="averageProgressChart"
+                x-axis="Práctica"
+                y-axis="%"
+                title="laboratory"
+                @barClick="handleBarClick"
+              />
+            </div>
+            <div v-if="heatmapData.students.length && !singleStudentSelected">
+              <VaCardTitle style="color: var(--va-chart-title)">
+                Heatmap de Progreso por Usario
+              </VaCardTitle>
+              <HeatmapChart
+                :heatmap-data="heatmapData"
+                x-axis="Práctica"
+                y-axis="Usuario"
+                class="heatmap-block"
+                @studentClick="handleStudentRowClick"
+              />
+            </div>
+            <VaButton
+              color="buttonColor"
+              class="mb-4"
+              @click="display = !display"
             >
-              <template #cell(completionPercent)="{ rowData }">
-                {{ rowData.completionPercent?.toFixed(2) }}%
-              </template>
-              <template #cell(lastRelatedEventDate)="{ rowData }">
-                {{ rowData.lastRelatedEventDate || '-' }}
-              </template>
-            </Table>
-          </div>
-        </Transition>
-      </template>
-    </div>
-  </VaCard>
+              Details
+            </VaButton>
+            <Transition
+              name="expand"
+              @afterEnter="handleAfterEnter"
+            >
+              <div
+                v-if="!display"
+                ref="tableContainerRef"
+              >
+                <Table
+                  v-model:filter="searchQuery"
+                  :items="singleStudentSelected ? missingEventsRows : practiceRows"
+                  :columns="singleStudentSelected ? missingEventColumns : practiceColumns"
+                  :enable-event-link-with-popover="singleStudentSelected"
+                >
+                  <template #cell(completionPercent)="{ rowData }">
+                    {{ rowData.completionPercent?.toFixed(2) }}%
+                  </template>
+                  <template #cell(lastRelatedEventDate)="{ rowData }">
+                    {{ rowData.lastRelatedEventDate || '-' }}
+                  </template>
+                </Table>
+              </div>
+            </Transition>
+          </VaCard>
+        </template>
+      </div>
+    </VaCard>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -152,6 +164,7 @@ import { useColors } from 'vuestic-ui'
 import { useAcademicYear } from '../../composables/useAcademicYear'
 import { useMissingEvents } from '../../composables/useMissingEvents'
 import { courseSubjectsMap, courseOptions } from '../../data/courseSubjectsMap'
+import Doughnut from '../../components/Doughnut.vue'
 import RangeSelector from '../../components/RangeSelector.vue'
 import HeatmapChart from '../../components/HeatmapChart.vue'
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
@@ -319,6 +332,45 @@ const courseInsights = computed(() => {
   return insights
 })
 
+const miniStats = computed(() => {
+  const completed = courseInsights.value.find((item) => item.id === 'completed')
+  const stuck = courseInsights.value.find((item) => item.id === 'stuck')
+  const notStarted = courseInsights.value.find((item) => item.id === 'not-started')
+
+  const parsePercent = (message?: string) => {
+    const match = message?.match(/(\d+)%/)
+    return match ? `${match[1]}%` : '0%'
+  }
+  const parseCount = (message?: string) => {
+    const match = message?.match(/^(\d+)/)
+    return match ? match[1] : '0'
+  }
+
+  return [
+    {
+      id: 'completed',
+      hasDonut: true,
+      valueLabel: parsePercent(completed?.message),
+      label: completed?.message || 'Sin datos de completado',
+      donutClass: 'donut-warning',
+    },
+    {
+      id: 'not-started',
+      hasDonut: false,
+      valueLabel: parseCount(notStarted?.message),
+      label: notStarted?.message || 'Sin datos de no iniciados',
+      donutClass: '',
+    },
+    {
+      id: 'stuck',
+      hasDonut: true,
+      valueLabel: parsePercent(stuck?.message),
+      label: stuck?.message || 'Sin datos de atascados',
+      donutClass: 'donut-danger',
+    },
+  ]
+})
+
 const averageProgressChart = computed(() => {
   const labels = courseSubjects.value
   const successColor = getColor('heatmapSuccess')
@@ -381,3 +433,172 @@ onMounted(async () => {
 </script>
 
 <style scoped src="../SearchByCourse/SearchByCourse.css" />
+<style scoped>
+.search-group-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 0.85rem;
+}
+ 
+.search-group-shell {
+  border-radius: 12px;
+  padding: 1rem !important;
+  background: transparent !important;
+}
+ 
+.content-card {
+  border-radius: 10px;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+ 
+:deep(.content-card .va-card__title) {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  padding: 1.25rem 1.25rem 0 1.25rem;
+}
+ 
+/* ── Stats area ─────────────────────────────────────────────────────────── */
+ 
+:deep(.progress-stats) {
+  background: var(--va-background-secondary) ;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0 !important;
+}
+ 
+/* Tarjeta superior: usuarios en rango + donut — fila horizontal */
+:deep(.stat-item-group) {
+  border-radius: 10px;
+  background: var(--va-background-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  gap: 1rem;
+  flex: 1 1 100%;
+}
+ 
+:deep(.stat-item-group .stat-item) {
+  min-height: auto;
+  padding: 0;
+  flex: unset;
+}
+ 
+/* Texto "usuarios en rango" + rango en negrita */
+:deep(.stat-item--wide) {
+  flex: 1 1 auto;
+}
+ 
+
+/* Mini stats row — 3 columnas iguales */
+.mini-stat-row {
+  width: 90%;
+  display: grid;
+  justify-content: space-between;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+ 
+:deep(.stat-item) {
+  border-radius: 10px;
+  background: var(--va-background-primary);
+  min-height: 96px;
+  flex: 1 1 auto;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+ 
+/* Single student: vista lista vertical sin tarjetas */
+:deep(.progress-stats.single-student) {
+  padding: 1.2rem 1.25rem;
+  gap: 0;
+  flex-direction: column;
+  margin: 0 !important;
+}
+ 
+:deep(.progress-stats.single-student .stat-item) {
+  border-radius: 0;
+  background: transparent !important;
+  flex: 1 1 auto;
+  min-height: auto;
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+ 
+/* ── Chart / heatmap padding ─────────────────────────────────────────────── */
+ 
+:deep(.content-card > div:nth-child(n+3)) {
+  padding: 0 1.25rem;
+}
+ 
+:deep(.content-card .heatmap-block) {
+  padding: 1rem 0;
+}
+ 
+:deep(.content-card .va-button) {
+  margin: 1rem 0;
+}
+ 
+/* ── Mini stat inside card ───────────────────────────────────────────────── */
+ 
+.mini-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+ 
+.mini-stat--center {
+  justify-content: center;
+}
+ 
+/* ── Donuts ──────────────────────────────────────────────────────────────── */
+ 
+.donut-placeholder {
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: var(--va-plain-text);
+  border: 5px solid #69b2da;
+  border-right-color: transparent;
+  flex-shrink: 0;
+}
+ 
+.donut-placeholder--large {
+  width: 80px;
+  height: 80px;
+}
+ 
+.donut-placeholder--small {
+  width: 52px;
+  height: 52px;
+  border-width: 4px;
+}
+ 
+.donut-warning {
+  border-color: #f0b43a;
+}
+ 
+.donut-danger {
+  border-color: #6276f1;
+}
+ 
+@media (max-width: 900px) {
+  .search-group-title {
+    font-size: 2rem;
+    text-align: center;
+  }
+ 
+  .mini-stat-row {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

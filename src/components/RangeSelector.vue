@@ -5,7 +5,7 @@
         <label
           for="course"
           style="color: var(--va-plain-text)"
-        >Curso:</label>
+        >Course</label>
         <VaSelect
           id="course"
           v-model="selectedCourse"
@@ -23,7 +23,7 @@
         <label
           for="fromStudent"
           style="color: var(--va-plain-text)"
-        >Desde alumno:</label>
+        >From user</label>
         <VaInput
           id="fromStudent"
           v-model.number="localRange.from"
@@ -44,7 +44,7 @@
         <label
           for="toStudent"
           style="color: var(--va-plain-text)"
-        >Hasta alumno:</label>
+        >To user</label>
         <VaInput
           id="toStudent"
           v-model.number="localRange.to"
@@ -69,7 +69,7 @@
         >_</label>
         <VaCheckbox
           v-model="singleStudentMode"
-          label="Buscar por alumno"
+          label="Search by user"
           style="color: var(--va-plain-text)"
         />
       </div>
@@ -169,16 +169,16 @@ const applyFilter = () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1.5rem;
-  background: var(--va-background-border);
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
+  padding: 1.15rem 1.2rem;
+  background: var(--va-background-secondary) ;
+  border-radius: 10px;
+  margin-bottom: 1.2rem;
 }
 
 .range-inputs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(5, minmax(130px, 1fr));
+  gap: 0.7rem 0.9rem;
   align-items: end;
 }
 
@@ -190,12 +190,25 @@ const applyFilter = () => {
 
 .input-group label {
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.72rem;
+}
+
+:deep(.interactive-field .va-input-wrapper),
+:deep(.interactive-field .va-select-content) {
+  background: #d0d1d3 !important;
 }
 
 .admin-checkbox :deep(.va-checkbox__square) {
   background-color: #ffffff;
   border: 1px solid rgb(15, 23, 42);
+}
+
+.apply-btn {
+  grid-column: 2 / 5;
+  justify-self: center;
+  min-width: 170px;
+  min-height: 30px;
+  border-radius: 999px;
 }
 
 @media (max-width: 768px) {
@@ -204,6 +217,7 @@ const applyFilter = () => {
   }
 
   .apply-btn {
+    grid-column: auto;
     align-self: stretch;
   }
 }

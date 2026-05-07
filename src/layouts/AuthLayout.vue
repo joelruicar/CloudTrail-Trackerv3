@@ -1,7 +1,7 @@
 <template>
   <VaLayout
     v-if="breakpoint.lgUp"
-    class="h-screen bg-[var(--va-background-secondary)]"
+    class="h-screen"
   >
     <template #right>
       <div
@@ -23,7 +23,7 @@
 
   <VaLayout
     v-else
-    class="h-screen bg-[var(--va-background-secondary)]"
+    class="h-screen"
   >
     <template #content>
       <div class="flex h-full flex-col">
