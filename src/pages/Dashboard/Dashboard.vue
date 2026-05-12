@@ -3,9 +3,10 @@
     v-if="awsStore.loading"
     class="loading-overlay"
   >
-    <VaProgressCircle
-      indeterminate
-      size="large"
+    <AtomSpinner
+      :animation-duration="1000"
+      :size="60"
+      color="var(--va-primary)"
     />
   </div>
   <template v-else-if="awsStore.events && awsStore.events.length > 0">
@@ -24,11 +25,15 @@
 
    
     <div class="charts-column">
-      <VaCard class="hart-card">
+      <VaCard class="chart-card">
+        <label
+          style="color: var(--va-plain-text)"
+        >Select time range</label>
         <VaSelect
           v-model="timeRange"
           :options="options"
-          label="Select time range"
+          background="textInput"
+          color="primary"
           class="date-select"
         />
         <VaCardTitle style="color: var(--va-chart-title)">
@@ -80,13 +85,13 @@
 </template>
 
 <script setup lang="ts">
-import { VaCard, VaSelect, VaProgressCircle } from 'vuestic-ui'
+import { VaCard, VaSelect } from 'vuestic-ui'
 import InfoWidgets from '../../components/InfoWidgets.vue'
 import { useAwsStore } from '../../stores/aws'
 import { ref, onMounted, watch, nextTick } from 'vue'
 import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
-
+import { AtomSpinner } from 'epic-spinners'
 const eventColumns = [
   { key: 'id', label: '#', sortable: true },
   { key: 'user', label: 'User', sortable: true },

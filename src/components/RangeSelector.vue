@@ -2,10 +2,7 @@
   <div class="range-selector">
     <div class="range-inputs">
       <div class="input-group">
-        <label
-          for="course"
-          style="color: var(--va-plain-text)"
-        >Course</label>
+        <label for="course">Course</label>
         <VaSelect
           id="course"
           v-model="selectedCourse"
@@ -20,10 +17,7 @@
         v-if="authStore.isProfessor"
         class="input-group"
       >
-        <label
-          for="fromStudent"
-          style="color: var(--va-plain-text)"
-        >From user</label>
+        <label for="fromStudent">From user</label>
         <VaInput
           id="fromStudent"
           v-model.number="localRange.from"
@@ -41,10 +35,7 @@
         v-if="authStore.isProfessor"
         class="input-group"
       >
-        <label
-          for="toStudent"
-          style="color: var(--va-plain-text)"
-        >To user</label>
+        <label for="toStudent">To user</label>
         <VaInput
           id="toStudent"
           v-model.number="localRange.to"
@@ -63,14 +54,9 @@
         v-if="authStore.isProfessor"
         class="input-group admin-checkbox"
       >
-        <label
-          style="color: transparent; user-select: none;"
-          aria-hidden="true"
-        >_</label>
         <VaCheckbox
           v-model="singleStudentMode"
           label="Search by user"
-          style="color: var(--va-plain-text)"
         />
       </div>
 
@@ -110,54 +96,43 @@ const emit = defineEmits<{
 
 const { calculateRange } = useAcademicYear()
 
-const localRange = ref({ from: 0, to: 0 })
-const selectedCourse = ref<string>(props.courses[0] ?? '')
+const localRange        = ref({ from: 0, to: 0 })
+const selectedCourse    = ref<string>(props.courses[0] ?? '')
 const selectedDateRange = ref<{ start: Date; end: Date } | null>(calculateRange())
 const singleStudentMode = ref(false)
 
-const maxStudents = computed(() => Math.max(0, props.totalStudents))
-const maxIndex = computed(() => Math.max(0, maxStudents.value - 1))
+const maxIndex      = computed(() => Math.max(0, props.totalStudents - 1))
 const hasValidBounds = computed(() => localRange.value.from >= 0 && localRange.value.to <= maxIndex.value)
 
+const clamp = (v: number) => Math.max(0, Math.min(Math.trunc(v), maxIndex.value))
+
 const normalizeRange = () => {
-  const fromRaw = Number(localRange.value.from)
-  const toRaw = Number(localRange.value.to)
-
-  let from = Number.isFinite(fromRaw) ? Math.trunc(fromRaw) : 0
-  let to = Number.isFinite(toRaw) ? Math.trunc(toRaw) : maxIndex.value
-
-  from = Math.max(0, Math.min(from, maxIndex.value))
-  to = singleStudentMode.value ? from : Math.max(0, Math.min(to, maxIndex.value))
-
+  const from = clamp(Number(localRange.value.from))
+  const to   = singleStudentMode.value ? from : clamp(Number(localRange.value.to))
   localRange.value = { from, to }
 }
 
-watch(
-  () => props.courses,
-  (courses) => {
-    if (!selectedCourse.value && courses.length > 0) {
-      selectedCourse.value = courses[0]
-    }
-  },
-  { immediate: true },
-)
+// Keep selectedCourse in sync if courses load asynchronously
+watch(() => props.courses, (courses) => {
+  if (!selectedCourse.value && courses.length) selectedCourse.value = courses[0]
+}, { immediate: true })
 
+// Mirror "to" when in single-student mode
 watch([singleStudentMode, () => localRange.value.from], ([enabled, from]) => {
-  if (enabled) localRange.value.to = from
+  if (enabled) localRange.value.to = from as number
 })
 
 const applyFilter = () => {
   normalizeRange()
 
+  // Ensure from ≤ to for range mode
   if (!singleStudentMode.value) {
-    const lower = Math.min(localRange.value.from, localRange.value.to)
-    const upper = Math.max(localRange.value.from, localRange.value.to)
-    localRange.value = { from: lower, to: upper }
+    const { from, to } = localRange.value
+    if (from > to) localRange.value = { from: to, to: from }
   }
 
   emit('filterApplied', {
-    from: localRange.value.from,
-    to: localRange.value.to,
+    ...localRange.value,
     course: selectedCourse.value,
     dateRange: selectedDateRange.value,
   })
@@ -173,6 +148,13 @@ const applyFilter = () => {
   background: var(--va-background-secondary) ;
   border-radius: 10px;
   margin-bottom: 1.2rem;
+}
+
+@media (min-width: 790px) {
+  .range-selector {
+    margin-left: 2rem;
+    margin-right: 2rem;
+  }
 }
 
 .range-inputs {
@@ -191,11 +173,11 @@ const applyFilter = () => {
 .input-group label {
   font-weight: 600;
   font-size: 0.72rem;
+  color: var(--va-plain-text);
 }
 
-:deep(.interactive-field .va-input-wrapper),
-:deep(.interactive-field .va-select-content) {
-  background: #d0d1d3 !important;
+.admin-checkbox {
+  justify-content: flex-end;
 }
 
 .admin-checkbox :deep(.va-checkbox__square) {

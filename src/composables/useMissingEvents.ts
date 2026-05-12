@@ -8,13 +8,19 @@ interface StudentProgressRow {
   [key: string]: any
 }
 
-interface MissingEventRow {
+export interface MissingEventRow {
   practice: string
   eventName: string
   missing: number
   eventLink?: string
   description?: string
 }
+
+export const missingEventColumns = [
+  { key: 'practice',  label: 'Practice',                sortable: true },
+  { key: 'eventName', label: 'Event',                   sortable: true },
+  { key: 'missing',   label: 'Number of missing events', sortable: true },
+]
 
 const locale = navigator.language.startsWith('es') ? 'es' : 'en'
 
@@ -32,48 +38,51 @@ const eventLinkMap = (eventLinksJson as any[]).reduce(
 
 const referData: Record<string, Record<string, number>> = (REFERDATA as any).REFERDATA ?? {}
 
+// El orden de subjects viene de REFERDATA, igual que en aws.ts,
+// para que el consumo de eventos entre prácticas sea siempre determinista.
+const subjectOrder = Object.keys(referData)
+
 export function useMissingEvents(
   subjects: Ref<string[]>,
   studentProgressData: Ref<StudentProgressRow[]>,
 ) {
   const missingEventsRows = computed((): MissingEventRow[] => {
     if (!subjects.value.length || !studentProgressData.value.length) return []
-    const allServices: Record<string, number> = {}
+
+    const eventCounts: Record<string, number> = {}
     for (const row of studentProgressData.value) {
       for (const ev of row.events || []) {
-        allServices[ev.eventName] = (allServices[ev.eventName] || 0) + 1
+        eventCounts[ev.eventName] = (eventCounts[ev.eventName] || 0) + 1
       }
     }
 
+    const remaining = { ...eventCounts }
+    const subjectsSet = new Set(subjects.value)
     const rows: MissingEventRow[] = []
 
-    for (const subject of subjects.value) {
+    for (const subject of subjectOrder) {
+      if (!subjectsSet.has(subject)) continue
+
       const eventsForSub = referData[subject] || {}
+
       for (const [ename, req] of Object.entries(eventsForSub)) {
         if (ename === 'totalref') continue
         const required = Number(req)
+        const available = remaining[ename] ?? 0
 
-        if (allServices[ename] > 0) {
-          if (allServices[ename] >= required) {
-            allServices[ename] -= required
-          } else {
+        if (available >= required) {
+          remaining[ename] = available - required
+        } else {
+          remaining[ename] = 0
+          if (required - available > 0) {
             rows.push({
               practice: subject,
               eventName: ename,
-              missing: required - allServices[ename],
+              missing: required - available,
               eventLink: eventLinkMap[ename]?.url,
               description: eventLinkMap[ename]?.description,
             })
-            allServices[ename] = 0
           }
-        } else if (required > 0) {
-          rows.push({
-            practice: subject,
-            eventName: ename,
-            missing: required,
-            eventLink: eventLinkMap[ename]?.url,
-            description: eventLinkMap[ename]?.description,
-          })
         }
       }
     }

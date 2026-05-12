@@ -3,118 +3,93 @@
     v-if="awsStore.loading"
     class="loading-overlay"
   >
-    <VaProgressCircle
-      indeterminate
-      size="large"
+    <AtomSpinner
+      :animation-duration="1000"
+      :size="60"
+      color="var(--va-primary)"
     />
   </div>
   <template v-else>
-    <h1
-      class="sm:text-2xl font-bold text-center"
-      style="color: var(--va-heading)"
-    >
-      Search by User
-    </h1>
-    <div
-      class="p-4 widgets-card mb-4"
-      @click.capture="onWidgetsAreaClick"
-    >
-      <InfoWidgets />
-    </div>
+    <div class="page-shell">
+      <h1 class="page-title">
+        Search by User
+      </h1>
+      <div
+        class="p-4 widgets-card mb-4"
+        @click.capture="onWidgetsAreaClick"
+      >
+        <InfoWidgets />
+      </div>
 
-    <VaCard class="p-2 sm:p-4 overflow-visible">
-      <div class="search-controls mb-6">
-        <div class="user-select-fixed">
-          <VaSelect
-            v-if="authStore.isProfessor"
-            ref="userSelect"
-            v-model="user_name"
-            label="USERNAME"
-            :options="filteredOptions"
-            autocomplete
-            :text-by="getUserOptionText"
-            :value-by="getUserOptionText"
-            @focus="openAllOptions"
-            @click="openAllOptions"
-            @update:search="userSearch = $event"
+      <VaCard class="page-card p-2 sm:p-4 overflow-visible">
+        <div class="search-controls mb-6">
+          <div class="user-select-fixed">
+            <UserSearchSelector
+              v-model="user_name"
+              :all-users="awsStore.allUsers"
+            />
+          </div>
+          <div class="date-filter-fixed">
+            <DateFilter v-model="range" />
+          </div>
+          <VaButton
+            icon="search"
+            color="buttonColor"
+            class="search-button-fixed"
+            @click="search"
           >
-            <template #option-content="{ option }">
-              <span class="select-option-text">
-                <template
-                  v-for="(part, index) in getHighlightedParts(option)"
-                  :key="`${getUserOptionText(option)}-${index}`"
-                >
-                  <span :class="{ 'select-option-match': part.match }">{{ part.text }}</span>
-                </template>
-              </span>
-            </template>
-          </VaSelect>
-          <VaInput
-            v-else
-            :model-value="currentUser"
-            label="USERNAME"
-            readonly
-          />
+            Search
+          </VaButton>
         </div>
-        <div class="date-filter-fixed">
-          <DateFilter v-model="range" />
+
+        <div class="charts-column mb-4">
+          <VaCard>
+            <VaCardTitle style="color: var(--va-chart-title)">
+              AWS services used in the last hour
+            </VaCardTitle>
+            <Chart
+              :chart-data="awsStore.chartDataServices"
+              x-axis="Services"
+              y-axis="#times"
+              @barClick="handleBarClick"
+            />
+          </VaCard>
         </div>
+
         <VaButton
-          icon="search"
           color="buttonColor"
-          class="search-button-fixed"
-          @click="search"
+          @click="display = !display"
         >
-          Search
+          Details
         </VaButton>
-      </div>
 
-      <div class="charts-column mb-4">
-        <VaCard>
-          <VaCardTitle style="color: var(--va-chart-title)">
-            AWS services used in the last hour
-          </VaCardTitle>
-          <Chart
-            :chart-data="awsStore.chartDataServices"
-            x-axis="Services"
-            y-axis="#times"
-            @barClick="handleBarClick"
+        <Transition
+          name="expand"
+          @afterEnter="handleAfterEnter"
+        >
+          <Table
+            v-if="!display"
+            ref="eventsTable"
+            v-model:filter="searchQuery"
+            :items="awsStore.formattedEvents"
+            :columns="eventColumns"
+            :loading="awsStore.loading"
+            :enable-event-link-with-popover="true"
           />
-        </VaCard>
-      </div>
-
-      <VaButton
-        color="buttonColor"
-        @click="display = !display"
-      >
-        Details
-      </VaButton>
-
-      <Transition
-        name="expand"
-        @afterEnter="handleAfterEnter"
-      >
-        <Table
-          v-if="!display"
-          ref="eventsTable"
-          v-model:filter="searchQuery"
-          :items="awsStore.formattedEvents"
-          :columns="eventColumns"
-          :loading="awsStore.loading"
-          :enable-event-link-with-popover="true"
-        />
-      </Transition>
-    </VaCard>
+        </Transition>
+      </VaCard>
+    </div>
   </template>
 </template>
 
 <script setup lang="ts">
-import { VaProgressCircle, VaButton, VaCard, VaCardTitle, VaInput } from 'vuestic-ui'
+import { VaButton, VaCard, VaCardTitle } from 'vuestic-ui'
 import { useAcademicYear } from '../../composables/useAcademicYear'
-import { useUserSelect } from '../../composables/useUserSelect'
 import { ref, onMounted, computed, nextTick } from 'vue'
+import { AtomSpinner } from 'epic-spinners'
 import InfoWidgets from '../../components/InfoWidgets.vue'
 import DateFilter from '../../components/DateFilter.vue'
+import UserSearchSelector from '../../components/UserSearchSelector.vue'
 import { useAuthStore } from '../../stores/auth'
 import { useAwsStore } from '../../stores/aws'
 import { useRoute } from 'vue-router'
@@ -143,20 +118,9 @@ const { range }  = useAcademicYear()
 const currentUser = authStore.username
 
 const user_name   = ref(currentUser)
-const userSelect  = ref<any>(null)
 const display     = ref(true)
 const searchQuery = ref('')
 const eventsTable = ref<InstanceType<typeof Table> | null>(null)
-
-const { userSearch, filteredOptions, getUserOptionText, getHighlightedParts } = useUserSelect(
-  computed(() => awsStore.allUsers),
-  currentUser,
-)
-
-const openAllOptions = () => {
-  userSearch.value = ''
-  userSelect.value?.showDropdown?.()
-}
 
 const getDateStrings = () => ({
   startStr: dayjs(range.value.start).format('YYYY-MM-DDTHH:mm:ss'),

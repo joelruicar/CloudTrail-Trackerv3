@@ -1,0 +1,115 @@
+.stat-hero {
+  border-radius: 8px;
+  background: linear-gradient(90deg, #3C684F 0%, #75A474 43%);
+  color: #ffffff;
+  display: grid;
+  grid-template-columns: minmax(260px, 420px) minmax(280px, 380px);
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 2.2rem;
+  min-height: 88px;
+  gap: clamp(2rem, 7vw, 7rem);
+}
+
+.stat-hero :deep(.stat-item) {
+  background: transparent ;
+  color: #ffffff;
+  min-height: auto;
+  padding: 0;
+  flex: unset;
+}
+
+.stat-hero :deep(.plain-text),
+.stat-hero :deep(.stat-label),
+.stat-hero :deep(.stat-value) {
+  color: #ffffff ;
+}
+
+:deep(.stat-item--wide)  { flex: 1 1 auto; }
+
+:deep(.stat-item--avg) {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.stat-hero :deep(.stat-item--avg) {
+  display: grid;
+  grid-template-columns: 104px max-content;
+  align-items: center;
+  justify-content: start;
+  gap: 1.45rem;
+  min-width: 0;
+}
+
+.stat-hero :deep(.stat-item--avg .stat-value) {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.mini-stat-row {
+  width: min(72%, 1050px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.35rem;
+}
+
+.mini-stat {
+  min-height: 118px;
+  padding: 0.9rem 1rem;
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.35rem 0.95rem;
+  overflow: hidden;
+}
+
+.mini-stat .stat-label {
+  min-width: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.mini-stat .mini-badge {
+  grid-column: 1 / -1;
+  white-space: nowrap;
+}
+
+.mini-stat--center { justify-content: stretch; }
+
+.mini-count--success { background: rgba(126, 194, 151, 0.34); color: var(--va-heatmap-success); }
+.mini-count--danger  { background: rgba(197, 76, 101, 0.16); color: var(--va-heatmap-danger); }
+.mini-count--warning { background: rgba(247, 190, 119, 0.24); color: var(--va-heatmap-warning); }
+
+.group-stats :deep(.chart-wrapper) {
+  height: 320px;
+  width: 100%;
+  margin-left: 0;
+}
+
+.doughnut-container {
+  width: 104px;
+  height: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-donut {
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .mini-stat-row       { grid-template-columns: 1fr; }
+  .stat-hero           { grid-template-columns: 1fr; justify-content: stretch; }
+  .group-stats :deep(.chart-wrapper) { width: 100%; margin-left: 0; }
+}

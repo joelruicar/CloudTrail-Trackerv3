@@ -21,7 +21,6 @@
 
 <script setup>
 import { computed } from 'vue'
-//para la integracion con vue
 import { Chart as VueChart } from 'vue-chartjs'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { Chart as ChartJS, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js'
@@ -65,15 +64,22 @@ const heatmapColors = computed(() => ({
   warning: getColor('heatmapWarning'),
   danger: getColor('heatmapDanger'),
   empty: getColor('heatmapEmpty'),
-  border: getColor('borderColorHeatmap'),
   axisText: getColor('plainText'),
-  notaText: getColor('notaText')
+  notaText: getColor('notaText'),
 }))
 
+const isNotaPoint = (raw) => raw?.x === 'Nota'
+const pointValue = (raw) => Number(raw?.v ?? 0)
+const cellSize = (chart, dimension, count) => {
+  const chartArea = chart?.chartArea
+  if (!chartArea) return 24
+
+  const size = dimension === 'width' ? chartArea.width : chartArea.height
+  return Math.max(14, size / Math.max(1, count) - 3)
+}
+
 const colorForValue = (value, raw) => {
-  if (raw?.x === 'Nota') {
-    return heatmapColors.value.nota
-  }
+  if (isNotaPoint(raw)) return heatmapColors.value.nota
 
   if (value <= 0) return heatmapColors.value.empty
   if (value < 30) return heatmapColors.value.danger
@@ -87,38 +93,24 @@ const chartData = computed(() => ({
       label: 'Progreso (%)',
       data: props.heatmapData.points,
       borderWidth: (context) => {
-        const raw = context.raw
-        return raw?.x === 'Nota' ? 2 : 0.1
+        return isNotaPoint(context.raw) ? 2 : 0.1
       },
-      borderColor: heatmapColors.value.border,
       backgroundColor: (context) => {
         const raw = context.raw
-        const value = Number(raw?.v ?? 0)
-        return colorForValue(value, raw)
+        return colorForValue(pointValue(raw), raw)
       },
       hoverBackgroundColor: (context) => {
         const raw = context.raw
-        const value = Number(raw?.v ?? 0)
-        return colorForValue(value, raw)
+        return colorForValue(pointValue(raw), raw)
       },
-      hoverBorderColor: heatmapColors.value.border,
       hoverBorderWidth: (context) => {
-        const raw = context.raw
-        return raw?.x === 'Nota' ? 2 : 0.1
+        return isNotaPoint(context.raw) ? 2 : 0.1
       },
       width: (context) => {
-        const chart = context.chart
-        const chartArea = chart?.chartArea
-        if (!chartArea) return 24
-        const cols = Math.max(1, props.heatmapData.subjects.length)
-        return Math.max(14, chartArea.width / cols - 3)
+        return cellSize(context.chart, 'width', props.heatmapData.subjects.length)
       },
       height: (context) => {
-        const chart = context.chart
-        const chartArea = chart?.chartArea
-        if (!chartArea) return 24
-        const rows = Math.max(1, props.heatmapData.students.length)
-        return Math.max(14, chartArea.height / rows - 3)
+        return cellSize(context.chart, 'height', props.heatmapData.students.length)
       },
     },
   ],
@@ -138,11 +130,9 @@ const chartOptions = computed(() => ({
   plugins: {
     legend: { display: false },
     datalabels: {
-      display: (context) => {
-        return context.dataset.data[context.dataIndex]?.x === 'Nota'
-      },
-      formatter: (value) => value.v, 
-       color: heatmapColors.value.notaText,
+      display: (context) => isNotaPoint(context.dataset.data[context.dataIndex]),
+      formatter: (value) => value.v,
+      color: heatmapColors.value.notaText,
       font: {
         weight: 'bold',
         size: 11,

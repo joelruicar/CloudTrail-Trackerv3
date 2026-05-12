@@ -31,5 +31,32 @@
   "vuestic": {
     "toggleDropdown": "alternar menú desplegable",
     "reset": "Restablecer"
+  },
+  "searchByGroup": {
+    "title": "Buscar por grupo",
+    "usersInRange": "Usuarios en rango:",
+    "averagePracticesResolved": "Promedio de practicas resueltas",
+    "user": "Usuario:",
+    "grade": "Nota:",
+    "heatmapTitle": "Heatmap de Progreso por Usuario",
+    "details": "Detalles",
+    "noDataCompleted": "✅ Sin datos de completado",
+    "noDataNotStarted": "⚠️ Sin datos de no iniciados",
+    "noDataStuck": "🔍 Sin datos de atascados",
+    "completedCard": "{subject} completada por {percent}% de usuarios",
+    "notStartedCard": "{count} usuarios no han empezado todavia",
+    "stuckCard": "{subject} usuarios atascados",
+    "goodProgress": "✅ Buen progreso",
+    "needsAttention": "🚨 Necesita atencion",
+    "reviewNeeded": "⚠️ Revisar",
+    "practiceColumn": "Práctica",
+    "userColumn": "Usuario",
+    "stateColumn": "Estado",
+    "timestampColumn": "Marca de tiempo",
+    "eventColumn": "Evento",
+    "missingEventsColumn": "Número de eventos faltantes",
+    "insightCompleted": "%s completada por %d% de usuarios",
+    "insightStuck": "%s tiene %d% de usuarios atascados",
+    "insightNotStarted": "%d usuario(s) no han empezado ninguna práctica"
   }
 }

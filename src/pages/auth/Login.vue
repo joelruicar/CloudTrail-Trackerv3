@@ -12,6 +12,7 @@
       class="mb-4"
       label="Username"
       type="username"
+      background="textInput"
       @keydown.enter="submit"
     />
     <VaValue
@@ -24,6 +25,7 @@
         :type="isPasswordVisible.value ? 'text' : 'password'"
         class="mb-4"
         label="Password"
+        background="textInput"
         @keydown.enter="submit"
         @clickAppendInner.stop="isPasswordVisible.value = !isPasswordVisible.value"
       >

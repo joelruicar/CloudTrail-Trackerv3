@@ -18,6 +18,7 @@
           label="Current Password"
           class="mb-4"
           :type="isOldVisible.value ? 'text' : 'password'"
+          background="textInput"
           :rules="[validators.required]"
           @clickAppendInner.stop="isOldVisible.value = !isOldVisible.value"
         >
@@ -40,6 +41,7 @@
           label="New Password"
           class="mb-4"
           :type="isNewVisible.value ? 'text' : 'password'"
+          background="textInput"
           :rules="[validators.required]"
           @clickAppendInner.stop="isNewVisible.value = !isNewVisible.value"
         >

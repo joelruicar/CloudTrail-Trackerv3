@@ -10,6 +10,7 @@
             <VaInput
               v-model="searchQuery"
               class="search-input"
+              background="textInput"
               placeholder="Search..."
               clearable
             />
@@ -278,17 +279,17 @@ defineExpose({ scrollToTable })
 .table-container :deep(.va-data-table table),
 .table-container :deep(.va-data-table th),
 .table-container :deep(.va-data-table td) {
-  color: var(--va-plain-text) !important;
+  color: var(--va-plain-text) ;
 }
 
 .event-link {
-  color: var(--va-primary);
+  color: var(--va-remark-primary);
   text-decoration: none;
   cursor: pointer;
 }
 
 .event-link:visited {
-  color: var(--va-primary);
+  color: var(--va-remark-primary);
 }
 
 :global(.event-popover-content) {

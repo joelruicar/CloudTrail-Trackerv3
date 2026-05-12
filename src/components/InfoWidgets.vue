@@ -158,7 +158,7 @@ const getServiceIcon = (serviceKey) => {
   display: flex;
   align-items: center; 
   gap: 1rem; 
-  padding: 1rem 1.25rem !important;
+  padding: 1rem 1.25rem;
   cursor: default;
 }
 

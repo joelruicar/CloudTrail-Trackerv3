@@ -33,5 +33,32 @@
   "vuestic": {
     "toggleDropdown": "toggle dropdown",
     "reset": "Reset"
+  },
+  "searchByGroup": {
+    "title": "Search by group",
+    "usersInRange": "Users in range:",
+    "averagePracticesResolved": "Average practices resolved",
+    "user": "User:",
+    "grade": "Grade:",
+    "heatmapTitle": "Progress heatmap by user",
+    "details": "Details",
+    "noDataCompleted": "✅ No completion data",
+    "noDataNotStarted": "⚠️ No data for not started",
+    "noDataStuck": "🔍 No data for stuck",
+    "completedCard": "{subject} passed by {percent}% of users",
+    "notStartedCard": "{count} users have not started yet",
+    "stuckCard": "{subject} stuck users",
+    "goodProgress": "✅ Good progress",
+    "needsAttention": "🚨 Needs attention",
+    "reviewNeeded": "⚠️ Review needed",
+    "practiceColumn": "Practice",
+    "userColumn": "User",
+    "stateColumn": "State",
+    "timestampColumn": "Timestamp",
+    "eventColumn": "Event",
+    "missingEventsColumn": "Number of missing events",
+    "insightCompleted": "%s completed by %d% of users",
+    "insightStuck": "%s has %d% of users stuck",
+    "insightNotStarted": "%d user(s) have not started any practice"
   }
 }

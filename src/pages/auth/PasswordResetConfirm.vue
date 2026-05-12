@@ -11,6 +11,7 @@
       v-model="username"
       label="Username"
       class="mb-4"
+      background="textInput"
       :rules="[validators.required]"
       @keydown.enter="handleConfirm"
     />
@@ -19,6 +20,7 @@
       v-model="code"
       label="Confirmation Code"
       class="mb-4"
+      background="textInput"
       :rules="[validators.required]"
       @keydown.enter="handleConfirm"
     />
@@ -32,6 +34,7 @@
         label="New Password"
         class="mb-4"
         :type="isPasswordVisible.value ? 'text' : 'password'"
+        background="textInput"
         :rules="[validators.required]"
         @clickAppendInner.stop="isPasswordVisible.value = !isPasswordVisible.value"
         @keydown.enter="handleConfirm"

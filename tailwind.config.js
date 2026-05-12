@@ -31,7 +31,9 @@ export default {
         shadow: 'var(--va-shadow)',
         focus: 'var(--va-focus)',
         tableText: 'var(--va-table-text)',
-        heading: 'var(--va-heading)'
+        heading: 'var(--va-heading)',
+        sidebarSelected: 'var(--va-sidebar-selected',
+        border: 'var(--va-border)',
       },
       screens: {
         xs: '0px',

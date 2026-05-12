@@ -16,6 +16,7 @@
       label="Username"
       class="mb-4"
       :rules="[validators.required]"
+      background="textInput"
       placeholder="Enter your username"
       @keydown.enter="handleReset"
     />

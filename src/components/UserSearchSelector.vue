@@ -1,10 +1,15 @@
 <template>
   <div class="user-select-container">
+    <label
+      for="username"
+      style="color: var(--va-plain-text)"
+    >Username</label>
+
     <VaSelect
       v-if="authStore.isProfessor"
+      id="username"
       ref="userSelect"
       :model-value="modelValue"
-      label="USERNAME"
       :options="filteredOptions"
       autocomplete
       :text-by="getUserOptionText"
@@ -29,8 +34,9 @@
     </VaSelect>
     <VaInput
       v-else
+      id="username"
       :model-value="modelValue"
-      label="USERNAME"
+      background="textInput"
       readonly
     />
   </div>
@@ -99,6 +105,9 @@ const openAllOptions = () => {
 
 <style scoped>
 .user-select-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   flex: 1;
   min-width: 200px;
 }

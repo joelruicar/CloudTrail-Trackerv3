@@ -1,76 +1,111 @@
-<template> 
-  <h1
-    class="sm:text-2xl font-bold text-center mb-3"
-    style="color: var(--va-heading)"
-  >
-    Search by Course
-  </h1>
-  <VaCard class="p-2 sm:p-4 overflow-visible">
-    <div class="search-controls mb-6">
-      <UserSearchSelector
-        v-model="user_name"
-        :all-users="awsStore.allUsers"
-      />
-      <div class="filter-group">
-        <VaSelect
-          v-model="selectedCourse"
-          :options="courseOptions"
-          label="Curso"
-          class="interactive-field"
-          background="textInput"
-          color="primary"
-        />
+<template>
+  <section class="page-shell">
+    <h1 class="page-title">
+      Search by Course
+    </h1>
+    <VaCard class="page-card p-2 sm:p-4 overflow-visible">
+      <div class="filters-panel search-course-filters mb-6">
+        <div class="search-course-filters-grid">
+          <div class="filter-field">
+            <label
+              for="course"
+              style="color: var(--va-plain-text)"
+            >Course</label>
+            <VaSelect
+              id="course"
+              v-model="selectedCourse"
+              :options="courseOptions"
+              class="interactive-field"
+              background="textInput"
+              color="primary"
+            />
+          </div>
+
+          <div class="filter-field">
+            <UserSearchSelector
+              v-model="user_name"
+              :all-users="awsStore.allUsers"
+            />
+          </div>
+
+          <div class="filter-field search-course-filters-dates">
+            <DateFilter v-model="selectedDateRange" />
+          </div>
+        </div>
+
+        <div class="search-course-actions">
+          <VaButton
+            class="search-btn search-course-search-btn"
+            color="buttonColor"
+            :disabled="!selectedCourse"
+            @click="performSearch"
+          >
+            Search
+          </VaButton>
+        </div>
       </div>
-      <div class="date-filter-row">
-        <DateFilter v-model="selectedDateRange" />
-      </div>
-      <VaButton
-        class="search-btn"
-        color="buttonColor"
-        :disabled="!selectedCourse"
-        @click="performSearch"
+
+      <div
+        v-if="awsStore.loading"
+        class="loading-overlay"
       >
-        Search
-      </VaButton>
-    </div>
-    <div
-      v-if="awsStore.loading"
-      class="loading-overlay"
-    >
-      <VaProgressCircle
-        indeterminate
-        size="large"
-      />
-    </div>
-    <div
-      v-else-if="hasSearched"
-      class="mb-4"
-    >
-      <VaCard class="p-4">
-        <VaCardTitle style="color: var(--va-chart-title)">
-          Eventos faltantes por práctica - {{ selectedCourseLabel || 'Sin curso' }}
-        </VaCardTitle>
-        <Chart
-          :chart-data="practiceCompletionChart"
-          x-axis="Práctica"
-          y-axis="% completado"
-          title="laboratory"
-          @barClick="handleBarClick"
+        <AtomSpinner
+          :animation-duration="1000"
+          :size="60"
+          color="var(--va-primary)"
         />
-        <Table
-          v-model:filter="searchQuery"
-          :items="missingEventsRows"
-          :columns="missingEventColumns"
-          :enable-event-link-with-popover="true"
-        />
-      </VaCard>
-    </div>
-  </VaCard>
+      </div>
+
+      <div
+        v-else-if="hasSearched"
+        class="mb-4"
+      >
+        <VaCard class="content-card">
+          <h2 class="section-title">
+            Porcentaje completado por práctica
+          </h2>
+          <Chart
+            :chart-data="practiceCompletionChart"
+            x-axis="Práctica"
+            y-axis="% completado"
+            title="laboratory"
+            @barClick="handleBarClick"
+          />
+
+          <VaButton
+            color="buttonColor"
+            class="mb-4 ml-6 details-button"
+            @click="display = !display"
+          >
+            Details
+          </VaButton>
+
+          <Transition
+            name="expand"
+            @afterEnter="handleAfterEnter"
+          >
+            <div
+              v-if="!display"
+              ref="tableContainerRef"
+            >
+              <Table
+                v-model:filter="searchQuery"
+                :items="missingEventsRows"
+                :columns="missingEventColumns"
+                :enable-event-link-with-popover="true"
+              />
+            </div>
+          </Transition>
+        </VaCard>
+      </div>
+    </VaCard>
+  </section>
 </template>
 
 <script setup lang="ts">
 import { useAcademicYear } from '../../composables/useAcademicYear'
 import { useMissingEvents } from '../../composables/useMissingEvents'
+import { AtomSpinner } from 'epic-spinners'
 import { courseSubjectsMap, courseOptions } from '../../data/courseSubjectsMap'
 import UserSearchSelector from '../../components/UserSearchSelector.vue'
 import DateFilter from '../../components/DateFilter.vue'
@@ -91,10 +126,12 @@ const { calculateRange } = useAcademicYear()
 
 const selectedCourseLabel = ref('')
 const hasSearched = ref(false)
+const display = ref(true)
 const user_name = ref(authStore.username)
 const selectedCourse = ref(courseOptions[0] ?? '')
 const selectedDateRange = ref<{ start: Date; end: Date } | null>(calculateRange())
 const searchQuery = ref('')
+const tableContainerRef = ref<HTMLElement | null>(null)
 
 const courseSubjects = computed(() =>
   Array.from(new Set(courseSubjectsMap[selectedCourseLabel.value] || []))
@@ -136,9 +173,14 @@ const handleBarClick = (label: string) => {
   searchQuery.value = searchQuery.value === label ? '' : label
 }
 
+const handleAfterEnter = () => {
+  tableContainerRef.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+}
+
 const performSearch = async () => {
   if (!selectedCourse.value) return
   hasSearched.value = true
+  display.value = true
   selectedCourseLabel.value = selectedCourse.value
 
   const defaultRange = calculateRange()

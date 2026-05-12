@@ -115,8 +115,8 @@ const onCloseSidebarButtonClick = () => {
 <style lang="scss" scoped>
 // Prevent icon jump on animation
 .va-sidebar {
-  width: unset !important;
-  min-width: unset !important;
+  width: unset ;
+  min-width: unset ;
 }
 
 .content-wrapper {
@@ -141,6 +141,21 @@ const onCloseSidebarButtonClick = () => {
 main.with-sidebar {
   margin-left: 1rem; 
   transition: margin-left 200ms ease;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+}
+
+main > article {
+  width: 100%;
+}
+
+main > article > :not(.loading-overlay) {
+  width: min(100%, 1680px);
+  flex: 1 1 auto;
+  margin: 0 auto;
 }
 
 @media (max-width: 768px) {

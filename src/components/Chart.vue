@@ -124,7 +124,7 @@ const chartOptions = computed(() => ({
       beginAtZero: true,
       max: isLaboratoryChart.value ? 100 : undefined,
       grid: {
-        display: false,
+        display: true,
       },
       ticks: { color: chartTextColor.value },
     },
