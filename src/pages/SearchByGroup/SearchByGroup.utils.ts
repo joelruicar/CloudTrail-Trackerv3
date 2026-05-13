@@ -10,9 +10,9 @@ export type HeatmapData = {
 }
 
 export type GroupMetrics = {
-  completed: { subject: string; percent: number }
+  completed: { subject: string; percent: number; count: number }
   notStarted: number
-  stuck: { subject: string; percent: number }
+  stuck: { subject: string; percent: number; count: number }
 }
 
 export const calculateFinalGrade = (subjects: string[], values: Record<string, number>) => {
@@ -87,7 +87,14 @@ export const buildGroupMetrics = (rows: StudentProgress[], subjects: string[]): 
 
   const bestByRatio = (test: (value: number) => boolean) =>
     subjects
-      .map((subject) => ({ subject, ratio: ratio(bySubject.get(subject) ?? [], test) }))
+      .map((subject) => {
+        const values = bySubject.get(subject) ?? []
+        return {
+          subject,
+          ratio: ratio(values, test),
+          count: values.filter(test).length,
+        }
+      })
       .sort((a, b) => b.ratio - a.ratio)[0]
 
   const completed = bestByRatio((v) => v >= 80)
@@ -98,9 +105,17 @@ export const buildGroupMetrics = (rows: StudentProgress[], subjects: string[]): 
   const notStarted = students.filter((student) => !startedStudents.has(student)).length
 
   return {
-    completed: { subject: completed?.subject || subjects[0] || '-', percent: Math.round(completed?.ratio || 0) },
+    completed: {
+      subject: completed?.subject || subjects[0] || '-',
+      percent: Math.round(completed?.ratio || 0),
+      count: Math.round((completed?.ratio || 0) * totalStudents / 100),
+    },
     notStarted,
-    stuck:     { subject: stuck?.subject     || subjects[0] || '-', percent: Math.round(stuck?.ratio     || 0) },
+    stuck: {
+      subject: stuck?.subject || subjects[0] || '-',
+      percent: Math.round(stuck?.ratio || 0),
+      count: stuck?.count || 0,
+    },
   }
 }
 

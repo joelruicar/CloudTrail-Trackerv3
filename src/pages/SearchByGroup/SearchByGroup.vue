@@ -10,11 +10,12 @@
         :courses="courseOptions"
         @filterApplied="handleFilterApplied"
       />
+    </VaCard>
 
-      <div
-        v-if="awsStore.loading"
-        class="loading-overlay"
-      >
+    <div
+      v-if="awsStore.loading"
+      class="loading-overlay"
+    >
         <AtomSpinner
           :animation-duration="1000"
           :size="60"
@@ -22,11 +23,12 @@
         />
       </div>
 
-      <div
-        v-else-if="hasSearched"
-        class="mb-4"
-      >
-        <template v-if="hasResults">
+    <div
+      v-else-if="hasSearched"
+      class="mt-6 mb-4"
+    >
+      <template v-if="hasResults">
+        <VaCard class="page-card p-2 sm:p-4 overflow-visible">
           <VaCard class="content-card">
             <div
               class="progress-stats group-stats"
@@ -175,9 +177,9 @@
               </div>
             </Transition>
           </VaCard>
-        </template>
-      </div>
-    </VaCard>
+        </VaCard>
+      </template>
+    </div>
   </section>
 </template>
 
@@ -289,7 +291,7 @@ const miniStats = computed<MiniStat[]>(() => {
       valueLabel: `${metrics.completed.percent}%`,
       label: t('searchByGroup.completedCard', {
         subject: metrics.completed.subject,
-        percent: metrics.completed.percent,
+        percent: metrics.completed.count,
       }),
       caption: metrics.completed.percent > 0 ? t('searchByGroup.goodProgress') : t('searchByGroup.noDataCompleted'),
       tone: 'success',
@@ -309,7 +311,7 @@ const miniStats = computed<MiniStat[]>(() => {
       id: 'stuck',
       hasDonut: true,
       valueLabel: `${metrics.stuck.percent}%`,
-      label: t('searchByGroup.stuckCard', { subject: metrics.stuck.subject }),
+      label: t('searchByGroup.stuckCard', { subject: metrics.stuck.subject, count: metrics.stuck.count }),
       caption: metrics.stuck.percent > 0 ? t('searchByGroup.reviewNeeded') : t('searchByGroup.noDataStuck'),
       tone: 'warning',
       color: warningColor,

@@ -80,7 +80,6 @@ const ENDPOINT_MAP: Record<ServiceOption, string> = {
 }
 
 // Mapa inverso: serviceKey interno → ServiceOption de UI
-// Derivado de ENDPOINT_MAP para evitar duplicación.
 const SERVICE_KEY_TO_OPTION: Record<string, ServiceOption> = {
   ec2:        'EC2 instances',
   rds:        'RDS instances',
@@ -123,10 +122,6 @@ function toLocationDescription(regionName: string): string {
   if (!regionName) return ''
   if (regionName.includes('(') || regionName.includes(' ')) return regionName
   return REGION_TO_LOCATION[regionName] ?? regionName
-}
-
-function applyServiceFilter(items: any[], _service: ServiceOption): any[] {
-  return items
 }
 
 function isRunningEc2(item: any): boolean {
@@ -218,6 +213,7 @@ function decorateItemsWithAwsLink(service: ServiceOption, items: any[], region: 
     return item
   })
 }
+
 function groupByTypeAndLocation<T extends Record<string, { location: string; count: number }>>(
   info: any[],
   typeField: string,
@@ -307,8 +303,8 @@ function extractOnDemandPrice(priceListItem: any): number {
 
 async function withRetry<T>(
   fn: () => Promise<T>,
-  maxRetries = 1,
-  delayMs = 0,
+  maxRetries = 3,
+  delayMs = 500,
 ): Promise<T> {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -333,7 +329,6 @@ export const useOteadorStore = defineStore('oteador', {
     selectedRegion:      'us-east-1',
     availableRegions:    ['us-east-1'],
     items:               [] as any[],
-    allRegionItems:      [] as any[],      // (modo widget click)
     widgetServiceFilter: '' as string,     // servicio activo por click en widget ('ec2','rds'…)
     globalMetrics: {
       ec2: 0, rds: 0, autoscaling: 0, elb: 0, elasticIP: 0, lambda: 0,
@@ -378,32 +373,26 @@ export const useOteadorStore = defineStore('oteador', {
       return 'States'
     },
 
-    currentColumns: (state) => {
-      const base = SERVICE_COLUMNS[state.selectedService] ?? []
-      return [...base]
-    },
+    currentColumns: (state) => SERVICE_COLUMNS[state.selectedService] ?? [],
   },
 
   actions: {
-    setSelectedService(service: ServiceOption) { this.selectedService     = service },
-    setSelectedRegion(region: string)           { this.selectedRegion      = region  },
-    setAvailableRegions(regions: string[])      { this.availableRegions    = regions },
-    setLoadingService(v: boolean)               { this.loadingService      = v       },
-    setLoadingInitial(v: boolean)               { this.loadingInitial      = v       },
-    setWidgetServiceFilter(key: string)         { this.widgetServiceFilter = key     },
+    setLoadingService(v: boolean)       { this.loadingService      = v   },
+    setLoadingInitial(v: boolean)       { this.loadingInitial      = v   },
+    setWidgetServiceFilter(key: string) { this.widgetServiceFilter = key },
 
     // ── fetchRegions ───────────────────────────────────────────────────────
 
     async fetchRegions() {
       const cached = window.localStorage.getItem(REGIONS_CACHE_KEY)
       if (cached) {
-        this.setAvailableRegions(JSON.parse(cached))
+        this.availableRegions = JSON.parse(cached)
         return
       }
       const credentials = await getV3Credentials()
       if (!credentials) {
         console.warn('[Oteador] fetchRegions: sin credenciales, usando fallback')
-        this.setAvailableRegions(FALLBACK_REGIONS)
+        this.availableRegions = FALLBACK_REGIONS
         return
       }
       try {
@@ -413,11 +402,11 @@ export const useOteadorStore = defineStore('oteador', {
           .map(r => r.RegionName!)
           .filter(Boolean)
           .sort()
-        this.setAvailableRegions(regions)
+        this.availableRegions = regions
         window.localStorage.setItem(REGIONS_CACHE_KEY, JSON.stringify(regions))
       } catch (error) {
         console.error('[Oteador] fetchRegions error:', error)
-        this.setAvailableRegions(FALLBACK_REGIONS)
+        this.availableRegions = FALLBACK_REGIONS
       }
     },
 
@@ -654,12 +643,7 @@ export const useOteadorStore = defineStore('oteador', {
         const normalized = this.selectedService === 'Buckets S3'
           ? normalizeS3Items(detail as any[])
           : (detail as any[])
-        this.items         = decorateItemsWithAwsLink(
-          this.selectedService,
-          applyServiceFilter(normalized, this.selectedService),
-          this.selectedRegion,
-        )
-        this.allRegionItems = []
+        this.items = decorateItemsWithAwsLink(this.selectedService, normalized, this.selectedRegion)
       } catch (error) {
         console.error('[Oteador] fetchTableData error:', error)
       } finally {
@@ -677,7 +661,7 @@ export const useOteadorStore = defineStore('oteador', {
 
       this.setLoadingService(true)
       this.setWidgetServiceFilter(serviceKey)
-      this.setSelectedService(service)
+      this.selectedService = service
 
       try {
         const endpoint         = ENDPOINT_MAP[service]
@@ -688,12 +672,7 @@ export const useOteadorStore = defineStore('oteador', {
           ? normalizeS3Items(detail as any[])
           : (detail as any[])
 
-        this.allRegionItems = []
-        this.items          = decorateItemsWithAwsLink(
-          service,
-          applyServiceFilter(normalized, service),
-          this.selectedRegion,
-        )
+        this.items = decorateItemsWithAwsLink(service, normalized, this.selectedRegion)
       } catch (error) {
         console.error('[Oteador] fetchAllRegionItems error:', error)
       } finally {

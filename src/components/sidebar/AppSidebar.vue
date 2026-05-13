@@ -105,6 +105,7 @@ const formatName = (name) => name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toU
 :deep(.va-sidebar-item) {
   padding: 0;
   margin: 0;
+  background: transparent !important;
 }
 
 /* ── Items ─────────────────────────────────────────────────────────────────── */
@@ -115,7 +116,7 @@ const formatName = (name) => name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toU
   font-size: 0.85rem;
   display: flex;
   align-items: center;
-  border-radius: 20px;
+  border-radius: 20px 0 0 20px;
   overflow: visible;
   transition: color 80ms linear, background-color 80ms linear;
   will-change: color, background-color;

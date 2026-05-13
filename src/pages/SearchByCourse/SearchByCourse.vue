@@ -44,11 +44,12 @@
           </VaButton>
         </div>
       </div>
+    </VaCard>
 
-      <div
-        v-if="awsStore.loading"
-        class="loading-overlay"
-      >
+    <div
+      v-if="awsStore.loading"
+      class="loading-overlay"
+    >
         <AtomSpinner
           :animation-duration="1000"
           :size="60"
@@ -56,10 +57,11 @@
         />
       </div>
 
-      <div
-        v-else-if="hasSearched"
-        class="mb-4"
-      >
+    <div
+      v-else-if="hasSearched"
+      class="mt-6 mb-4"
+    >
+      <VaCard class="page-card p-2 sm:p-4 overflow-visible">
         <VaCard class="content-card">
           <h2 class="section-title">
             Porcentaje completado por práctica
@@ -97,8 +99,8 @@
             </div>
           </Transition>
         </VaCard>
-      </div>
-    </VaCard>
+      </VaCard>
+    </div>
   </section>
 </template>
 

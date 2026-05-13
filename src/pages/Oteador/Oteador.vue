@@ -45,8 +45,8 @@
               style="color: var(--va-plain-text)"
             >Select AWS region</label>
             <VaSelect
-              :model-value="selectedRegionValue"
-              :options="regionOptions"
+              :model-value="store.selectedRegion"
+              :options="store.availableRegions"
               background="textInput"
               color="primary"
               @update:modelValue="onRegionChange"
@@ -89,7 +89,7 @@
           <div v-if="!display">
             <Table
               v-model:filter="searchQuery"
-              :items="filteredRows"
+              :items="store.items"
               :columns="store.currentColumns"
               :loading="store.loadingService"
               :link-column-key="linkColumnKey"
@@ -109,6 +109,7 @@ import { VaButton } from 'vuestic-ui'
 import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
 import { AtomSpinner } from 'epic-spinners'
+
 const store = useOteadorStore()
 const searchQuery = ref('')
 const display = ref(true)
@@ -116,11 +117,6 @@ const REFRESH_INTERVAL_MS = 12000
 let refreshInterval: ReturnType<typeof setInterval> | undefined
 let refreshInProgress = false
 
-const regionOptions = computed(() => store.availableRegions)
-
-const selectedRegionValue = computed(() => store.selectedRegion)
-
-const filteredRows = computed(() => store.items)
 const linkColumnKey = computed(() => store.currentColumns[0]?.key ?? '')
 
 function onBarClick(label: string) {
@@ -151,13 +147,13 @@ async function clearWidgetFilter() {
 
 async function onServiceChange(value: string) {
   searchQuery.value = ''
-  store.setSelectedService(value as typeof SERVICE_OPTIONS[number])
+  store.selectedService = value as typeof SERVICE_OPTIONS[number]
   await store.fetchTableData()
 }
 
 async function onRegionChange(value: string) {
   searchQuery.value = ''
-  store.setSelectedRegion(value)
+  store.selectedRegion = value
   await store.fetchGlobalData()
 }
 

@@ -2,7 +2,7 @@ export default {
   presets: {
     light: {
       primary: '#35ba8a',
-      focus: '#E1ECE3',
+      focus: '#ffffff',
       success: '#4F996A',
       info: '#4F996A',
       danger: '#a13535',
@@ -33,8 +33,8 @@ export default {
       border: 'rgba(15, 23, 42, 0.08)',
     },
     dark: {
-      primary: '#00ffa2',
-      focus: '#192825',
+      primary: '#36c792',
+      focus: '#0A0E15',
       success: '#036213',
       info: '#035515',
       danger: '#8f1717',
@@ -57,7 +57,7 @@ export default {
       emptyState: '#64748b',
       chartColor: '#417B4E',
       chartTitle: '#35ba8a',
-      backgroundDate: '#163a46',
+      backgroundDate: '#192825',
       buttonColor: '#326444',
       textInput: '#646464',
       sidebarSelected: '#ffffff',

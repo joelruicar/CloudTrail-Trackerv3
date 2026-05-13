@@ -125,8 +125,10 @@ pre {
 .page-card {
   border: 1px solid var(--va-border);
   padding: 0.9rem 1.1rem 1.1rem;
-}.content-card {
-  border: 1px solid var(--va-border);
+}
+
+.content-card {
+  border: none;
   padding: 0.9rem 1.1rem 1.1rem;
 }
 

@@ -18,10 +18,11 @@
       <tspan
         x="0"
         dy="0"
-      >CloudTrail-</tspan>
+      >CloudTrail</tspan>
       <tspan
         x="0"
         dy="28"
+        :fill="colorsComputed.tracker"
       >Tracker</tspan>
     </text>
   </svg>
@@ -31,7 +32,7 @@
 import { computed } from 'vue'
 import { useColors } from 'vuestic-ui'
 
-const { getColor } = useColors()
+const { getColor, currentPresetName } = useColors()
 
 const props = withDefaults(
   defineProps<{
@@ -53,6 +54,7 @@ const colorsComputed = computed(() => {
   return {
     start: getColor(props.start),
     end: getColor(props.end || props.start),
+    tracker: currentPresetName.value === 'dark' ? '#ffffff' : '#000000',
   }
 })
 </script>
