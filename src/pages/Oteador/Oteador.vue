@@ -121,6 +121,7 @@ const linkColumnKey = computed(() => store.currentColumns[0]?.key ?? '')
 
 function onBarClick(label: string) {
   searchQuery.value = searchQuery.value === label ? '' : label
+  display.value = false
 }
 
 function onWidgetsAreaClick(event: MouseEvent) {

@@ -16,12 +16,12 @@
       v-if="awsStore.loading"
       class="loading-overlay"
     >
-        <AtomSpinner
-          :animation-duration="1000"
-          :size="60"
-          color="var(--va-primary)"
-        />
-      </div>
+      <AtomSpinner
+        :animation-duration="1000"
+        :size="60"
+        color="var(--va-primary)"
+      />
+    </div>
 
     <div
       v-else-if="hasSearched"
@@ -53,7 +53,7 @@
                       number-color="white"
                     />
                   </div>
-                  <span class="stat-value">{{ t('searchByGroup.grade') }} {{ singleStudentFinalGrade.toFixed(1) }}/1</span>
+                  <span class="stat-value">{{ t('searchByGroup.grade') }} {{ singleStudentFinalGrade?.toFixed(1) }}/1</span>
                 </div>
               </div>
 
@@ -62,13 +62,13 @@
                 class="stat-hero"
               >
                 <div class="stat-item stat-item--wide">
-                  <span class="stat-label plain-text">{{ t('searchByGroup.usersInRange') }}</span>
+                  <span class="stat-label plain-text">{{ t('searchByGroup.usersInRange') }} {{ selectedCourseLabel }}:</span>
                   <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
                 </div>
                 <div class="stat-item stat-item--avg">
                   <div class="doughnut-container">
                     <Doughnut
-                      :number="Number(awsStore.averageProgressByRange.toFixed(0))"
+                      :number="groupAveragePercent"
                       color="#6DADD1"
                       number-color="white"
                     />
@@ -121,11 +121,28 @@
               </h2>
               <Chart
                 :chart-data="averageProgressChart"
-                x-axis="Práctica"
+                x-axis="Laboratory practices"
                 y-axis="%"
                 title="laboratory"
                 @barClick="handleBarClick"
               />
+
+              <div
+                v-if="!singleStudentSelected && learningBandChart.labels.length"
+                class="learning-band-section"
+              >
+                <VaCardTitle class="section-title">
+                  {{ t('searchByGroup.learningBandTitle') }}
+                </VaCardTitle>
+                <p class="learning-band-subtitle">
+                  {{ t('searchByGroup.learningBandSubtitle') }}
+                </p>
+                <ProgressBandChart
+                  :chart-data="learningBandChart"
+                  :x-axis="t('searchByGroup.learningBandXAxis')"
+                  :y-axis="t('searchByGroup.learningBandYAxis')"
+                />
+              </div>
             </div>
 
             <!-- Heatmap -->
@@ -138,8 +155,8 @@
               </VaCardTitle>
               <HeatmapChart
                 :heatmap-data="heatmapData"
-                x-axis="Práctica"
-                y-axis="Usuario"
+                x-axis="Laboratory practices"
+                y-axis="User"
                 class="heatmap-block"
                 @studentClick="handleStudentRowClick"
               />
@@ -151,6 +168,16 @@
               @click="display = !display"
             >
               {{ t('searchByGroup.details') }}
+            </VaButton>
+
+            <VaButton
+              color="buttonColor"
+              class="mb-4 ml-3"
+              :loading="isExportingPdf"
+              :disabled="!hasResults || awsStore.loading || isExportingPdf"
+              @click="handlePdfExport"
+            >
+              {{ isExportingPdf ? 'Generando PDF' : 'Descargar PDF' }}
             </VaButton>
 
             <Transition
@@ -200,15 +227,18 @@ import { useAwsStore } from '../../stores/aws'
 import Chart from '../../components/Chart.vue'
 import Doughnut from '../../components/Doughnut.vue'
 import HeatmapChart from '../../components/HeatmapChart.vue'
+import ProgressBandChart from '../../components/ProgressChart.vue'
 import RangeSelector from '../../components/RangeSelector.vue'
 import Table from '../../components/Table.vue'
 import {
   buildAverageProgressChart,
   buildGroupMetrics,
   buildHeatmapData,
+  buildLearningBandChart,
   buildSingleStudentFinalGrade,
   formatPracticeRows,
 } from './SearchByGroup.utils'
+import { downloadStudentProgressReports } from './SearchByGroup.pdf'
 
 const awsStore = useAwsStore()
 const authStore = useAuthStore()
@@ -223,6 +253,7 @@ const searchQuery = ref('')
 const selectedCourseLabel = ref('')
 const selectedStudentsFrom = ref(0)
 const selectedStudentsTo = ref(0)
+const isExportingPdf = ref(false)
 const tableContainerRef = ref<HTMLElement | null>(null)
 
 const practiceColumns = [
@@ -253,6 +284,7 @@ const practiceRows = computed(() => formatPracticeRows(awsStore.studentProgressD
 const { missingEventsRows } = useMissingEvents(
   courseSubjects,
   computed(() => awsStore.studentProgressData),
+  selectedCourseLabel,
 )
 
 const heatmapData = computed(() => buildHeatmapData(awsStore.studentProgressData, courseSubjects.value))
@@ -319,6 +351,15 @@ const miniStats = computed<MiniStat[]>(() => {
   ]
 })
 
+const groupAveragePercent = computed(() => {
+  const practicePoints = heatmapData.value.points.filter(point => point.x !== 'Nota')
+  if (!practicePoints.length) return 0
+
+  const resolvedCount = practicePoints.filter(point => point.v >= 80).length
+
+  return Math.round((resolvedCount / practicePoints.length) * 100)
+})
+
 const averageProgressChart = computed(() => {
   const labels = courseSubjects.value
   return buildAverageProgressChart(awsStore.studentProgressData, labels, {
@@ -328,6 +369,10 @@ const averageProgressChart = computed(() => {
     empty: getColor('heatmapEmpty'),
   })
 })
+
+const learningBandChart = computed(() =>
+  buildLearningBandChart(awsStore.studentProgressData, courseSubjects.value, selectedCourseLabel.value)
+)
 
 const scrollToTable = () =>
   tableContainerRef.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -372,6 +417,25 @@ const handleFilterApplied = async (filter: {
 const handleStudentRowClick = (student: string) => {
   if (!student) return
   router.push({ name: 'search-by-course', query: { user: student, course: selectedCourseLabel.value } })
+}
+
+const handlePdfExport = async () => {
+  if (!hasResults.value || !selectedCourseLabel.value) return
+
+  isExportingPdf.value = true
+  try {
+    await downloadStudentProgressReports(
+      awsStore.studentProgressData,
+      selectedCourseLabel.value,
+      courseSubjects.value,
+      selectedStudentsFrom.value,
+      selectedStudentsTo.value,
+    )
+  } catch (error) {
+    console.error('Error generating PDF report:', error)
+  } finally {
+    isExportingPdf.value = false
+  }
 }
 
 onMounted(async () => {

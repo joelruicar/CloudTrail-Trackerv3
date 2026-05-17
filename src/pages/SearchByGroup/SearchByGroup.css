@@ -3,12 +3,12 @@
   background: linear-gradient(90deg, #3C684F 0%, #75A474 43%);
   color: #ffffff;
   display: grid;
-  grid-template-columns: minmax(260px, 420px) minmax(280px, 380px);
+  grid-template-columns: minmax(260px, 1.1fr) minmax(0, 0.9fr);
   align-items: center;
   justify-content: center;
   padding: 0.7rem 2.2rem;
   min-height: 88px;
-  gap: clamp(2rem, 7vw, 7rem);
+  gap: clamp(1.2rem, 4vw, 3rem);
 }
 
 .stat-hero :deep(.stat-item) {
@@ -36,17 +36,20 @@
 
 .stat-hero :deep(.stat-item--avg) {
   display: grid;
-  grid-template-columns: 104px max-content;
+  grid-template-columns: 104px minmax(0, 1fr);
   align-items: center;
   justify-content: start;
-  gap: 1.45rem;
+  gap: 1rem;
   min-width: 0;
 }
 
 .stat-hero :deep(.stat-item--avg .stat-value) {
-  text-align: center;
+  text-align: left;
   font-size: 1rem;
   font-weight: 600;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .mini-stat-row {
@@ -93,6 +96,16 @@
   margin-left: 0;
 }
 
+.learning-band-section {
+  margin-top: 0.75rem;
+}
+
+.learning-band-subtitle {
+  margin: -0.4rem 0 0.8rem;
+  color: var(--va-text-secondary);
+  font-size: 0.9rem;
+}
+
 .doughnut-container {
   width: 104px;
   height: 104px;
@@ -113,4 +126,7 @@
   .mini-stat-row       { grid-template-columns: 1fr; }
   .stat-hero           { grid-template-columns: 1fr; justify-content: stretch; }
   .group-stats :deep(.chart-wrapper) { width: 100%; margin-left: 0; }
+  .stat-hero :deep(.stat-item--avg) { grid-template-columns: 88px minmax(0, 1fr); }
+  .stat-hero :deep(.stat-item--avg .stat-value) { font-size: 0.95rem; }
+  .learning-band-subtitle { font-size: 0.84rem; }
 }

@@ -23,7 +23,7 @@ export const SERVICE_OPTIONS: ServiceOption[] = [
 
 // ─── Columnas por servicio ────────────────────────────────────────────────────
 
-export const SERVICE_COLUMNS: Record<ServiceOption, { key: string; label: string; sortable?: boolean }[]> = {
+const SERVICE_COLUMNS: Record<ServiceOption, { key: string; label: string; sortable?: boolean }[]> = {
   'EC2 instances': [
     { key: 'Id',          label: 'ID',          sortable: true },
     { key: 'Owner',       label: 'Owner',        sortable: true },

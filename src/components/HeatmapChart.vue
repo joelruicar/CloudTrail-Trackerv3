@@ -36,11 +36,11 @@ const props = defineProps({
   },
   xAxis: {
     type: String,
-    default: 'Práctica',
+    default: 'Laboratory practices',
   },
   yAxis: {
     type: String,
-    default: 'Usuario',
+    default: 'User',
   },
 })
 

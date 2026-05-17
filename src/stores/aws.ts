@@ -102,20 +102,6 @@ export const useAwsStore = defineStore('aws', {
         ],
       }
     },
-    averageProgressByRange: (state) => {
-      if (!state.studentProgressData.length) return 0
-
-      const filtered = state.studentProgressData.filter(
-        (sp) =>
-          sp.studentIndex >= state.studentRangeFilter.from &&
-          sp.studentIndex <= state.studentRangeFilter.to &&
-          (!state.studentRangeFilter.subject || sp.subject === state.studentRangeFilter.subject),
-      )
-
-      if (!filtered.length) return 0
-
-      return filtered.reduce((sum, sp) => sum + sp.progress, 0) / filtered.length
-    },
     chartDataUsers: (state) => {
       const counts = state.events.reduce((num: Record<string, number>, event) => {
         const user = event.user

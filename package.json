@@ -36,6 +36,9 @@
     "chartjs-plugin-datalabels": "^2.2.0",
     "dayjs": "^1.11.20",
     "epic-spinners": "^2.0.0",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
+    "pdf-lib": "^1.17.1",
     "pinia": "^2.1.7",
     "sass": "^1.69.5",
     "serve": "^14.2.1",
@@ -49,6 +52,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@intlify/unplugin-vue-i18n": "^11.0.7",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^20.9.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "autoprefixer": "^10.4.13",

@@ -36,7 +36,7 @@
   },
   "searchByGroup": {
     "title": "Search by group",
-    "usersInRange": "Users in range:",
+    "usersInRange": "Users in range of",
     "averagePracticesResolved": "Average practices resolved",
     "user": "User:",
     "grade": "Grade:",
@@ -59,6 +59,10 @@
     "missingEventsColumn": "Number of missing events",
     "insightCompleted": "%s completed by %d% of users",
     "insightStuck": "%s has %d% of users stuck",
-    "insightNotStarted": "%d user(s) have not started any practice"
+    "insightNotStarted": "%d user(s) have not started any practice",
+    "learningBandTitle": "Group learning pace",
+    "learningBandSubtitle": "Median and interquartile range (P25-P75) of cumulative progress per student.",
+    "learningBandXAxis": "Date",
+    "learningBandYAxis": "Average progress (%)"
   }
 }

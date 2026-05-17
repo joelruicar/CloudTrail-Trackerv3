@@ -36,18 +36,19 @@ const eventLinkMap = (eventLinksJson as any[]).reduce(
   {},
 )
 
-const referData: Record<string, Record<string, number>> = (REFERDATA as any).REFERDATA ?? {}
-
-// El orden de subjects viene de REFERDATA, igual que en aws.ts,
-// para que el consumo de eventos entre prácticas sea siempre determinista.
-const subjectOrder = Object.keys(referData)
-
 export function useMissingEvents(
   subjects: Ref<string[]>,
   studentProgressData: Ref<StudentProgressRow[]>,
+  courseLabel?: Ref<string>,
 ) {
   const missingEventsRows = computed((): MissingEventRow[] => {
     if (!subjects.value.length || !studentProgressData.value.length) return []
+
+    const useAlternativeReference = ['MUCNAP-ICP', 'MUCC-DDS'].includes(courseLabel?.value || '')
+    const referData: Record<string, Record<string, number>> = useAlternativeReference
+      ? ((REFERDATA as any).REFERDATA1 ?? {})
+      : ((REFERDATA as any).REFERDATA ?? {})
+    const subjectOrder = Object.keys(referData)
 
     const eventCounts: Record<string, number> = {}
     for (const row of studentProgressData.value) {

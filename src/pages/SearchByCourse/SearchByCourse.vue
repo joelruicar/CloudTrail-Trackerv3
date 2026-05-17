@@ -50,12 +50,12 @@
       v-if="awsStore.loading"
       class="loading-overlay"
     >
-        <AtomSpinner
-          :animation-duration="1000"
-          :size="60"
-          color="var(--va-primary)"
-        />
-      </div>
+      <AtomSpinner
+        :animation-duration="1000"
+        :size="60"
+        color="var(--va-primary)"
+      />
+    </div>
 
     <div
       v-else-if="hasSearched"
@@ -64,12 +64,12 @@
       <VaCard class="page-card p-2 sm:p-4 overflow-visible">
         <VaCard class="content-card">
           <h2 class="section-title">
-            Porcentaje completado por práctica
+            Percentage completed by practice
           </h2>
           <Chart
             :chart-data="practiceCompletionChart"
-            x-axis="Práctica"
-            y-axis="% completado"
+            x-axis="Laboratory practices"
+            y-axis="%"
             title="laboratory"
             @barClick="handleBarClick"
           />
@@ -115,7 +115,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import { useAwsStore } from '../../stores/aws'
 import { useRoute } from 'vue-router'
-import { VaSelect, VaButton } from 'vuestic-ui'
+import { VaSelect, VaButton, useColors } from 'vuestic-ui'
 import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
 import dayjs from 'dayjs'
@@ -125,6 +125,7 @@ const awsStore = useAwsStore()
 const authStore = useAuthStore()
 const route = useRoute()
 const { calculateRange } = useAcademicYear()
+const { getColor } = useColors()
 
 const selectedCourseLabel = ref('')
 const hasSearched = ref(false)
@@ -148,9 +149,15 @@ const missingEventColumns = [
 const { missingEventsRows } = useMissingEvents(
   courseSubjects,
   computed(() => awsStore.studentProgressData),
+  selectedCourseLabel,
 )
 
-const referData: Record<string, Record<string, number>> = (REFERDATA as any).REFERDATA ?? {}
+const referData = computed<Record<string, Record<string, number>>>(() => {
+  if (selectedCourseLabel.value === 'MUCNAP-ICP' || selectedCourseLabel.value === 'MUCC-DDS') {
+    return (REFERDATA as any).REFERDATA1 ?? {}
+  }
+  return (REFERDATA as any).REFERDATA ?? {}
+})
 
 const practiceCompletionChart = computed(() => {
   const labels = courseSubjects.value
@@ -160,7 +167,7 @@ const practiceCompletionChart = computed(() => {
   }, {})
 
   const data = labels.map((practice) => {
-    const totalRequired = Object.entries(referData[practice] || {}).reduce((sum, [k, v]) => {
+    const totalRequired = Object.entries(referData.value[practice] || {}).reduce((sum, [k, v]) => {
       return k === 'totalref' ? sum : sum + Number(v)
     }, 0)
     if (totalRequired <= 0) return 0
@@ -168,11 +175,35 @@ const practiceCompletionChart = computed(() => {
     return Number(((completed / totalRequired) * 100).toFixed(2))
   })
 
-  return { labels, datasets: [{ label: '% completado', data }] }
+  const backgroundColor = data.map((value) => {
+    if (value === 0) return getColor('heatmapEmpty')
+    if (value >= 80) return getColor('heatmapSuccess')
+    if (value > 40) return getColor('heatmapWarning')
+    return getColor('heatmapDanger')
+  })
+
+  const borderColor = data.map((value) => {
+    if (value === 0) return getColor('emptyState')
+    if (value >= 80) return getColor('heatmapSuccess')
+    if (value > 40) return getColor('heatmapWarning')
+    return getColor('heatmapDanger')
+  })
+
+  return {
+    labels,
+    datasets: [{
+      label: '%',
+      data,
+      backgroundColor,
+      borderColor,
+      borderWidth: 1,
+    }],
+  }
 })
 
 const handleBarClick = (label: string) => {
   searchQuery.value = searchQuery.value === label ? '' : label
+  display.value = false
 }
 
 const handleAfterEnter = () => {
@@ -190,7 +221,8 @@ const performSearch = async () => {
   const endDate   = dayjs(selectedDateRange.value?.end   ?? defaultRange.end).format('YYYY-MM-DD')
   const subjects  = Array.from(new Set(courseSubjectsMap[selectedCourse.value] || []))
   const studentUsers = awsStore.allUsers.filter((u) => u.startsWith('alucloud'))
-  const pos = Math.max(0, studentUsers.indexOf(user_name.value))
+  const pos = studentUsers.indexOf(user_name.value)
+  if (pos < 0) return
 
   await awsStore.fetchStudentProgressByRangeForSubjects(pos, pos + 1, subjects, startDate, endDate)
 }
