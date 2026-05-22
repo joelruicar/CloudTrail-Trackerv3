@@ -26,7 +26,6 @@
     <template #right>
       <AppNavbarActions
         class="app-navbar__actions"
-        :is-mobile="isMobile"
       />
     </template>
   </VaNavbar>

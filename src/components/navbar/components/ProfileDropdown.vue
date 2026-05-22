@@ -16,8 +16,10 @@
             <slot />
             <VaAvatar
               :size="32"
-              color="warning"
-            > 👨🏻‍🎓 </VaAvatar>
+              color="info"
+              src="/student.png"
+              style="background-color: var(--va-warning);"
+            />
           </span>
         </VaButton>
       </template>

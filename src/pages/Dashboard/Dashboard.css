@@ -19,6 +19,15 @@
   background: white;
 }
 
+.time-range-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  margin-left: 1rem;
+}
+
 .table-column {
   height: 100%;
 }
@@ -30,8 +39,8 @@
 
 :deep(.date-select) {
   max-width: 250px;
-  margin-top: 2rem;
-  margin-left: 1rem;
+  width: 100%;
+  margin-top: 0.25rem;
 }
 @media (max-width: 1024px) {
   .main-content-grid {

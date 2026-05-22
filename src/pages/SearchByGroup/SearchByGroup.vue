@@ -192,7 +192,7 @@
                   v-model:filter="searchQuery"
                   :items="singleStudentSelected ? missingEventsRows : practiceRows"
                   :columns="singleStudentSelected ? missingEventColumns : practiceColumns"
-                  :enable-event-link-with-popover="singleStudentSelected"
+                  :enable-event-link="singleStudentSelected"
                 >
                   <template #cell(completionPercent)="{ rowData }">
                     {{ rowData.completionPercent?.toFixed(2) }}%

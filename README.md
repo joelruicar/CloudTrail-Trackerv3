@@ -35,7 +35,7 @@ Use following command to quickly scaffold new [Vuestic Admin](https://admin-demo
 npm create vuestic@latest
 ```
 
-After [Vuestic Admin](https://admin.vuestic.dev) is installed, run `npm install` to install dependcies, then run `npm run dev` to start local development server.
+After [Vuestic Admin](https://admin.vuestic.dev) is installed, run `yarn install` to install dependcies, then run `yarn dev` to start local development server.
 
 ### Documentation
 

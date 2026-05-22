@@ -2,9 +2,15 @@ import { REFERDATA } from '../data/evenprac'
 import { defineStore } from 'pinia'
 import { AwsEvent, AwsMetrics } from './interfaces/aws'
 import { StudentProgress } from './interfaces/studentProgress'
-import eventLinksJson from '../data/event-links.json'
-import { EventLinkItem } from './interfaces/eventLink'
 import api from '../services/api'
+import { resolveEventLink } from '../services/eventLinks'
+
+type RawAwsEvent = AwsEvent & {
+  userIdentity_userName?: string
+  [key: string]: unknown
+}
+
+const toRawEvents = (data: unknown): RawAwsEvent[] => (Array.isArray(data) ? (data as RawAwsEvent[]) : [])
 
 const formatLocal = (date: Date, includeTime: boolean) => {
   const pad = (n: number) => n.toString().padStart(2, '0')
@@ -49,22 +55,12 @@ const calculateDateRange = (range: string): { start: string; end: string } => {
   return { start, end }
 }
 
-const eventLinksMap = (eventLinksJson as EventLinkItem[]).reduce(
-  (num, item) => {
-    num[item.eventName] = item
-    return num
-  },
-  {} as Record<string, EventLinkItem>,
-)
-
 export const useAwsStore = defineStore('aws', {
   state: () => ({
     events: [] as AwsEvent[],
-    services: [] as string[],
     allUsers: [] as string[],
     filters: {
       eventName: '',
-      date: '',
       searchQuery: '',
     },
     metrics: {
@@ -75,13 +71,6 @@ export const useAwsStore = defineStore('aws', {
     } as AwsMetrics,
     loading: false,
     selectedRange: 'last hour',
-    startDate: '',
-    endDate: '',
-    studentRangeFilter: {
-      from: 0,
-      to: 350,
-      subject: '',
-    },
     studentProgressData: [] as StudentProgress[],
   }),
   getters: {
@@ -119,31 +108,14 @@ export const useAwsStore = defineStore('aws', {
       }
     },
     formattedEvents: (state) => {
-      const lang = navigator.language === 'es-ES' ? 'es' : 'en'
-
       return state.events.map((event) => {
-        const linkConfig = eventLinksMap[event.eventName] || eventLinksMap['Empty']
+        const linkConfig = resolveEventLink(event.eventName, event.eventSource)
         return {
           ...event,
-          eventLink: linkConfig ? linkConfig.url : '#',
-          description: linkConfig ? linkConfig.description[lang] : 'No description',
+          eventLink: linkConfig.url,
           displayTime: new Date(event.eventTime).toLocaleString(),
         }
       })
-    },
-    filteredEvents: (state) => {
-      let result = [...state.events]
-
-      if (state.filters.eventName) {
-        result = result.filter((e) => e.eventName === state.filters.eventName)
-      }
-
-      if (state.filters.searchQuery) {
-        const query = state.filters.searchQuery.toLowerCase()
-        result = result.filter((e) => e.eventID.toLowerCase().includes(query))
-      }
-
-      return result
     },
   },
   actions: {
@@ -155,13 +127,13 @@ export const useAwsStore = defineStore('aws', {
         const { start, end } = calculateDateRange(range)
 
         const eventsRes = await api.client.get('/scan', { params: { from: start, to: end } })
-        const rawEvents = Array.isArray(eventsRes.data) ? eventsRes.data : []
+        const rawEvents = toRawEvents(eventsRes.data)
 
         const countExact = (eventName: string) =>
-          rawEvents.filter((event: any) => event.eventName === eventName).length
+          rawEvents.filter((event) => event.eventName === eventName).length
 
         const countStartsWith = (eventName: string) =>
-          rawEvents.filter((event: any) => String(event.eventName ?? '').startsWith(eventName)).length
+          rawEvents.filter((event) => String(event.eventName ?? '').startsWith(eventName)).length
 
         this.metrics = {
           runInstances: countExact('RunInstances'),
@@ -170,7 +142,7 @@ export const useAwsStore = defineStore('aws', {
           createLoadBalancer: countExact('CreateLoadBalancer'),
         }
 
-        this.events = rawEvents.map((event: any, index: number) => {
+        this.events = rawEvents.map((event, index) => {
           const rawDate = event.eventTime
           const dateObj = new Date(rawDate)
 
@@ -187,7 +159,7 @@ export const useAwsStore = defineStore('aws', {
             ...event,
             id: index + 1,
             formatedTime: `${day}-${month}-${year} ${hh}:${mm}:${ss}`,
-            user: event.userIdentity_userName,
+            user: event.userIdentity_userName || event.user,
           }
         })
       } catch (error) {
@@ -202,15 +174,15 @@ export const useAwsStore = defineStore('aws', {
       }
       try {
         const response = await api.client.get('/users')
-        const rawUsers = response.data.usernames || response.data
+        const rawUsers = (response.data.usernames || response.data) as string[]
 
         const alucloudUsers = rawUsers
           .filter((u: string) => u.startsWith('alucloud'))
-          .sort((a: string | any[], b: string | any[]) => Number(a.slice(8)) - Number(b.slice(8)))
+          .sort((a: string, b: string) => Number(a.slice(8)) - Number(b.slice(8)))
 
         const otherUsers = rawUsers
           .filter((u: string) => !u.startsWith('alucloud'))
-          .sort((a: string, b: any) => a.localeCompare(b))
+          .sort((a: string, b: string) => a.localeCompare(b))
 
         this.allUsers = [...alucloudUsers, ...otherUsers]
 
@@ -245,7 +217,7 @@ export const useAwsStore = defineStore('aws', {
         const eventsRes = await api.client.get(`/users/${username}`, {
           params: { from: start, to: end },
         })
-        this.events = eventsRes.data.map((event: any, index: number) => {
+        this.events = toRawEvents(eventsRes.data).map((event, index) => {
           const dateObj = new Date(event.eventTime)
           const pad = (n: number) => n.toString().padStart(2, '0')
 
@@ -260,7 +232,7 @@ export const useAwsStore = defineStore('aws', {
             ...event,
             id: index + 1,
             formatedTime: `${hh}:${mm}:${ss} ${day}-${month}-${year}`,
-            user: event.userIdentity_userName,
+            user: event.userIdentity_userName || event.user,
           }
         })
       } catch (error) {
@@ -268,9 +240,6 @@ export const useAwsStore = defineStore('aws', {
       } finally {
         this.loading = false
       }
-    },
-    setEventFilter(name: string) {
-      this.filters.eventName = name
     },
     async fetchStudentProgressByRangeForSubjects(
       from: number,
@@ -281,8 +250,6 @@ export const useAwsStore = defineStore('aws', {
     ) {
       this.loading = true
       try {
-        this.studentRangeFilter = { from, to, subject: '' }
-
         const to_date = endDate || formatLocal(new Date(), false)
         const from_date = startDate || formatLocal(new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000), false)
 

@@ -87,6 +87,7 @@ const password = ref('')
 const error = ref(false)
 const errorMessage = ref('')
 const processing = ref(false)
+const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : 'An error occurred'
 
 const handleConfirm = async () => {
   if (!validate()) return
@@ -98,9 +99,9 @@ const handleConfirm = async () => {
     await authStore.confirmResetPassword(username.value, code.value, password.value)
     init({ message: 'Password reset successful', color: 'success' })
     router.replace({ name: 'login' })
-  } catch (err: any) {
+  } catch (err) {
     error.value = true
-    errorMessage.value = err.message || 'An error occurred'
+    errorMessage.value = getErrorMessage(err)
   } finally {
     processing.value = false
   }

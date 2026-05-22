@@ -21,6 +21,19 @@ export const SERVICE_OPTIONS: ServiceOption[] = [
   'Elastic IPs', 'Buckets S3', 'Elastic Load Balancers', 'Lambda Functions',
 ]
 
+type AwsResourceItem = Record<string, unknown> & {
+  awsLink?: string | null
+}
+
+type SummarySection = {
+  count?: number
+  info?: AwsResourceItem[]
+}
+
+type OteadorSummary = Record<string, SummarySection | undefined>
+
+const toResourceItems = (data: unknown): AwsResourceItem[] => Array.isArray(data) ? data as AwsResourceItem[] : []
+
 // ─── Columnas por servicio ────────────────────────────────────────────────────
 
 const SERVICE_COLUMNS: Record<ServiceOption, { key: string; label: string; sortable?: boolean }[]> = {
@@ -124,63 +137,67 @@ function toLocationDescription(regionName: string): string {
   return REGION_TO_LOCATION[regionName] ?? regionName
 }
 
-function isRunningEc2(item: any): boolean {
-  const state = item?.State ?? item?.state ?? item?.InstanceState?.Name
+function isRunningEc2(item: AwsResourceItem): boolean {
+  const instanceState = item?.InstanceState
+  const nestedState = instanceState && typeof instanceState === 'object'
+    ? (instanceState as Record<string, unknown>).Name
+    : undefined
+  const state = item?.State ?? item?.state ?? nestedState
   return String(state ?? '').toLowerCase() === 'running'
 }
 
 // ─── Normalización de items S3 (el backend devuelve strings) ──────────────────
-function normalizeS3Items(items: any[]): any[] {
-  return items.map(item => (typeof item === 'string' ? { Name: item } : item))
+function normalizeS3Items(items: Array<AwsResourceItem | string>): AwsResourceItem[] {
+  return items.map((item): AwsResourceItem => (typeof item === 'string' ? { Name: item } : item))
 }
 
-function getAwsConsoleUrl(service: ServiceOption, item: any, region: string): string | null {
+function getAwsConsoleUrl(service: ServiceOption, item: AwsResourceItem, region: string): string | null {
   const encodedRegion = encodeURIComponent(region)
 
   if (service === 'EC2 instances') {
-    const instanceId = item?.InstanceId || item?.Id
+    const instanceId = String(item?.InstanceId || item?.Id || '')
     return instanceId
       ? `https://console.aws.amazon.com/ec2/v2/home?region=${encodedRegion}#Instances:search=${encodeURIComponent(instanceId)};sort=instanceId`
       : null
   }
 
   if (service === 'RDS instances') {
-    const dbId = item?.DBInstanceIdentifierId || item?.DBInstanceIdentifier
+    const dbId = String(item?.DBInstanceIdentifierId || item?.DBInstanceIdentifier || '')
     return dbId
       ? `https://console.aws.amazon.com/rds/home?region=${encodedRegion}#database:id=${encodeURIComponent(dbId)};is-cluster=false`
       : null
   }
 
   if (service === 'Auto Scaling Groups') {
-    const groupName = item?.AutoScalingGroupName || item?.Name || item?.AutoScalingGroupARN
+    const groupName = String(item?.AutoScalingGroupName || item?.Name || item?.AutoScalingGroupARN || '')
     return groupName
       ? `https://console.aws.amazon.com/ec2/home?region=${encodedRegion}#AutoScalingGroups:id=${encodeURIComponent(groupName)};filter=${encodeURIComponent(groupName)};view=details`
       : null
   }
 
   if (service === 'Elastic IPs') {
-    const publicIp = item?.PublicIp
+    const publicIp = String(item?.PublicIp || '')
     return publicIp
       ? `https://console.aws.amazon.com/ec2/v2/home?region=${encodedRegion}#Addresses:search=${encodeURIComponent(publicIp)}`
       : null
   }
 
   if (service === 'Buckets S3') {
-    const bucketName = item?.Name
+    const bucketName = String(item?.Name || '')
     return bucketName
       ? `https://s3.console.aws.amazon.com/s3/buckets/${encodeURIComponent(bucketName)}/?region=${encodedRegion}`
       : null
   }
 
   if (service === 'Elastic Load Balancers') {
-    const loadBalancerName = item?.LoadBalancerName
+    const loadBalancerName = String(item?.LoadBalancerName || '')
     return loadBalancerName
       ? `https://console.aws.amazon.com/ec2/v2/home?region=${encodedRegion}#LoadBalancers:search=${encodeURIComponent(loadBalancerName)};sort=loadBalancerName`
       : null
   }
 
   if (service === 'Lambda Functions') {
-    const functionName = item?.FunctionName
+    const functionName = String(item?.FunctionName || '')
     return functionName
       ? `https://console.aws.amazon.com/lambda/home?region=${encodedRegion}#/functions/${encodeURIComponent(functionName)}?tab=configuration`
       : null
@@ -191,16 +208,16 @@ function getAwsConsoleUrl(service: ServiceOption, item: any, region: string): st
 
 const DATE_KEY_REGEX = /time|date|created|modified|launch/i
 
-function stripQuotes(val: any): string {
+function stripQuotes(val: unknown): string {
   let s = typeof val === 'string' ? val.trim() : String(val)
   if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'")))
     s = s.slice(1, -1)
   return s
 }
 
-function decorateItemsWithAwsLink(service: ServiceOption, items: any[], region: string): any[] {
+function decorateItemsWithAwsLink(service: ServiceOption, items: AwsResourceItem[], region: string): AwsResourceItem[] {
   return items.map(orig => {
-    const item: any = { ...orig }
+    const item: AwsResourceItem = { ...orig }
 
     Object.keys(item).forEach(key => {
       if (!item[key] || !DATE_KEY_REGEX.test(key.replace(/\s+/g, ''))) return
@@ -214,17 +231,17 @@ function decorateItemsWithAwsLink(service: ServiceOption, items: any[], region: 
   })
 }
 
-function groupByTypeAndLocation<T extends Record<string, { location: string; count: number }>>(
-  info: any[],
+function groupByTypeAndLocation(
+  info: AwsResourceItem[],
   typeField: string,
-): T {
-  const groups = {} as T
+): Record<string, { location: string; count: number }> {
+  const groups: Record<string, { location: string; count: number }> = {}
   for (const inst of info) {
     if (!inst?.[typeField] || !inst?.['Region name']) continue
-    const location = toLocationDescription(inst['Region name']).trim()
-    const key      = `${inst[typeField]}_${location}`
-    if (!groups[key]) (groups as any)[key] = { location, count: 0 }
-    ;(groups as any)[key].count++
+    const location = toLocationDescription(String(inst['Region name'])).trim()
+    const key      = `${String(inst[typeField])}_${location}`
+    if (!groups[key]) groups[key] = { location, count: 0 }
+    groups[key].count++
   }
   return groups
 }
@@ -236,7 +253,9 @@ const FALLBACK_REGIONS = [
   'eu-west-1', 'eu-west-2', 'eu-central-1',
 ]
 
-let cachedCredentialsProvider: any = null
+type CredentialsProvider = ReturnType<typeof fromCognitoIdentityPool>
+
+let cachedCredentialsProvider: CredentialsProvider | null = null
 
 async function getV3Credentials() {
   if (cachedCredentialsProvider) return cachedCredentialsProvider
@@ -270,23 +289,41 @@ export function clearCredentialCache() {
 
 // ─── Helper: extrae precio OnDemand USD de un item de PriceList ───────────────
 
-function extractOnDemandPrice(priceListItem: any): number {
+interface PricingDimension {
+  beginRange?: string
+  pricePerUnit?: {
+    USD?: string
+    usd?: string
+  }
+}
+
+interface PricingOffer {
+  priceDimensions?: Record<string, PricingDimension>
+}
+
+interface PricingListItem {
+  terms?: { OnDemand?: Record<string, PricingOffer> }
+  Terms?: { OnDemand?: Record<string, PricingOffer> }
+}
+
+function extractOnDemandPrice(priceListItem: unknown): number {
   try {
     let raw = priceListItem
     if (typeof raw !== 'string') raw = JSON.stringify(raw)
+    if (typeof raw !== 'string') return 0
 
-    let parsed = JSON.parse(raw)
+    let parsed = JSON.parse(raw) as PricingListItem | string
     // Doble parseo: el SDK v3 a veces devuelve el objeto como un string escapado
-    if (typeof parsed === 'string') parsed = JSON.parse(parsed)
+    if (typeof parsed === 'string') parsed = JSON.parse(parsed) as PricingListItem
 
     const terms = parsed?.terms?.OnDemand || parsed?.Terms?.OnDemand
     if (!terms) return 0
 
-    const firstOffer = Object.values(terms)[0] as any
+    const firstOffer = Object.values(terms)[0]
     if (!firstOffer?.priceDimensions) return 0
 
     // Buscamos el Tier 1 (beginRange: "0") para evitar precios de volumen (Tier 2/3)
-    const dimensions = Object.values(firstOffer.priceDimensions) as any[]
+    const dimensions = Object.values(firstOffer.priceDimensions)
     const tier1      = dimensions.find(d => d.beginRange === '0') || dimensions[0]
 
     const priceStr = tier1?.pricePerUnit?.USD || tier1?.pricePerUnit?.usd || '0'
@@ -309,9 +346,14 @@ async function withRetry<T>(
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await fn()
-    } catch (error: any) {
-      const status = error?.response?.status ?? error?.status
-      const is504  = status === 504 || error?.message?.includes('504')
+    } catch (error) {
+      const errorRecord = error && typeof error === 'object' ? error as Record<string, unknown> : {}
+      const response = errorRecord.response && typeof errorRecord.response === 'object'
+        ? errorRecord.response as Record<string, unknown>
+        : {}
+      const message = error instanceof Error ? error.message : ''
+      const status = response.status ?? errorRecord.status
+      const is504  = status === 504 || message.includes('504')
       if (!is504 || attempt === maxRetries) throw error
       console.warn(`[Oteador] 504 en región (intento ${attempt}/${maxRetries}), reintentando...`)
       await new Promise(resolve => setTimeout(resolve, delayMs * attempt))
@@ -328,7 +370,7 @@ export const useOteadorStore = defineStore('oteador', {
     selectedService:     'EC2 instances' as ServiceOption,
     selectedRegion:      'us-east-1',
     availableRegions:    ['us-east-1'],
-    items:               [] as any[],
+    items:               [] as AwsResourceItem[],
     widgetServiceFilter: '' as string,     // servicio activo por click en widget ('ec2','rds'…)
     globalMetrics: {
       ec2: 0, rds: 0, autoscaling: 0, elb: 0, elasticIP: 0, lambda: 0,
@@ -345,13 +387,13 @@ export const useOteadorStore = defineStore('oteador', {
       const counts = state.items.reduce((acc: Record<string, number>, item) => {
         let key: string
         if (state.selectedService === 'Elastic Load Balancers') {
-          key = item.Type || 'unknown'
+          key = String(item.Type || 'unknown')
         } else if (state.selectedService === 'Lambda Functions') {
-          key = item.Runtime || 'unknown'
+          key = String(item.Runtime || 'unknown')
         } else if (['Auto Scaling Groups', 'Elastic IPs', 'Buckets S3'].includes(state.selectedService)) {
           key = 'Number'
         } else {
-          key = item.State || 'unknown'
+          key = String(item.State || 'unknown')
         }
         acc[key] = (acc[key] || 0) + 1
         return acc
@@ -412,7 +454,7 @@ export const useOteadorStore = defineStore('oteador', {
 
     // ── calculatePrices ────────────────────────────────────────────────────
 
-    async calculatePrices(summary: Record<string, any>) {
+    async calculatePrices(summary: OteadorSummary) {
       const credentials = await getV3Credentials()
       if (!credentials) {
         console.warn('[Oteador] calculatePrices: sin credenciales, precios quedan en 0')
@@ -504,21 +546,23 @@ export const useOteadorStore = defineStore('oteador', {
         application: 'LoadBalancing:Application',
         network:     'LoadBalancing:Network',
       }
-      const elbGroups = groupByTypeAndLocation<
-        Record<string, { location: string; type: string; count: number }>
-      >(summary.elb?.info ?? [], 'Type')
+      const elbGroups = groupByTypeAndLocation(summary.elb?.info ?? [], 'Type') as Record<
+        string,
+        { location: string; type?: string; count: number }
+      >
 
       // Enriquecemos los grupos con el campo 'type' que groupByTypeAndLocation no almacena
       for (const inst of (summary.elb?.info ?? [])) {
-        const location = toLocationDescription(inst['Region name']).trim()
-        const key      = `${inst['Type']}_${location}`
-        if (elbGroups[key] && !(elbGroups[key] as any).type) {
-          ;(elbGroups[key] as any).type = inst['Type']
+        const type = String(inst['Type'] || '')
+        const location = toLocationDescription(String(inst['Region name'] || '')).trim()
+        const key      = `${type}_${location}`
+        if (elbGroups[key] && !elbGroups[key].type) {
+          elbGroups[key].type = type
         }
       }
 
       for (const [key, { location, count }] of Object.entries(elbGroups)) {
-        const type      = (elbGroups[key] as any).type as string
+        const type      = elbGroups[key].type || ''
         const cacheKey  = `elbprice_${key}`
         const cached    = cacheGet(cacheKey)
         const operation = elbOperationMap[type?.toLowerCase()] ?? 'LoadBalancing'
@@ -549,9 +593,10 @@ export const useOteadorStore = defineStore('oteador', {
       const lambdaInfo = summary.lamb?.info ?? []
       const lambdaGroups: Record<string, { location: string; memorySize: number; count: number }> = {}
       for (const inst of lambdaInfo) {
-        const location = toLocationDescription(inst['Region name']).trim()
-        const key      = `${inst['MemorySize']}_${location}`
-        if (!lambdaGroups[key]) lambdaGroups[key] = { location, memorySize: inst['MemorySize'], count: 0 }
+        const memorySize = Number(inst['MemorySize'] || 0)
+        const location = toLocationDescription(String(inst['Region name'] || '')).trim()
+        const key      = `${memorySize}_${location}`
+        if (!lambdaGroups[key]) lambdaGroups[key] = { location, memorySize, count: 0 }
         lambdaGroups[key].count++
       }
       for (const [key, { location, memorySize, count }] of Object.entries(lambdaGroups)) {
@@ -641,8 +686,8 @@ export const useOteadorStore = defineStore('oteador', {
           api.oteadorClient.get(`services/${endpoint}/region/${this.selectedRegion}`)
         )
         const normalized = this.selectedService === 'Buckets S3'
-          ? normalizeS3Items(detail as any[])
-          : (detail as any[])
+          ? normalizeS3Items(toResourceItems(detail))
+          : toResourceItems(detail)
         this.items = decorateItemsWithAwsLink(this.selectedService, normalized, this.selectedRegion)
       } catch (error) {
         console.error('[Oteador] fetchTableData error:', error)
@@ -669,8 +714,8 @@ export const useOteadorStore = defineStore('oteador', {
           api.oteadorClient.get(`services/${endpoint}/region/${this.selectedRegion}`)
         )
         const normalized = service === 'Buckets S3'
-          ? normalizeS3Items(detail as any[])
-          : (detail as any[])
+          ? normalizeS3Items(toResourceItems(detail))
+          : toResourceItems(detail)
 
         this.items = decorateItemsWithAwsLink(service, normalized, this.selectedRegion)
       } catch (error) {

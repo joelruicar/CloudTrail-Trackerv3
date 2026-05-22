@@ -10,77 +10,77 @@
     />
   </div>
   <template v-else-if="awsStore.events && awsStore.events.length > 0">
-    <h1
-      class="sm:text-4xl font-bold  mb-3"
-      style="color: var(--va-heading)"
-    >
-      Dashboard
-    </h1>
-    <div
-      class="p-4 widgets-card"
-      @click.capture="onWidgetsAreaClick"
-    >
-      <InfoWidgets />
-    </div>
+    <div class="page-shell">
+      <h1 class="page-title">
+        Dashboard
+      </h1>
+      <div
+        class="p-4 widgets-card"
+        @click.capture="onWidgetsAreaClick"
+      >
+        <InfoWidgets />
+      </div>
 
-   
-    <div class="charts-column">
-      <VaCard class="chart-card">
-        <label
-          style="color: var(--va-plain-text)"
-        >Select time range</label>
-        <VaSelect
-          v-model="timeRange"
-          :options="options"
-          background="textInput"
-          color="primary"
-          class="date-select"
-        />
-        <VaCardTitle style="color: var(--va-chart-title)">
-          AWS services used in the last hour
-        </VaCardTitle>
-        <Chart
-          :chart-data="awsStore.chartDataServices"
-          x-axis="Services"
-          y-axis="#times"
-          @barClick="handleBarClick"
-        />
-        <VaCardTitle style="color: var(--va-chart-title)">
-          Users who have used AWS services
-        </VaCardTitle>
-        <Chart
-          :chart-data="awsStore.chartDataUsers"
-          x-axis="Users"
-          y-axis="#times"
-          @barClick="handleBarClick"
-        />
-        <VaButton
-          color="buttonColor"
-          class="mb-4 details-button"
-          @click="display = !display"
-        >
-          Details
-        </VaButton>
-        <Transition
-          name="expand"
-          @afterEnter="handleAfterEnter"
-        >
-          <div
-            v-if="!display"
-            ref="tableContainerRef"
-          >
-            <Table
-              ref="eventsTable"
-              v-model:filter="searchQuery"
-              :items="awsStore.formattedEvents"
-              :columns="eventColumns"
-              :loading="awsStore.loading"
-              :enable-event-link-with-popover="true"
+      <div class="charts-column">
+        <VaCard class="chart-card">
+          <div class="time-range-field">
+            <label style="color: var(--va-plain-text)">
+              Select time range
+            </label>
+            <VaSelect
+              v-model="timeRange"
+              :options="options"
+              background="textInput"
+              color="primary"
+              class="date-select"
             />
           </div>
-        </Transition>
-      </VaCard>
-    </div>   
+          <VaCardTitle style="color: var(--va-chart-title)">
+            AWS services used in the last hour
+          </VaCardTitle>
+          <Chart
+            :chart-data="awsStore.chartDataServices"
+            x-axis="Services"
+            y-axis="#times"
+            @barClick="handleBarClick"
+          />
+          <VaCardTitle style="color: var(--va-chart-title)">
+            Users who have used AWS services
+          </VaCardTitle>
+          <Chart
+            :chart-data="awsStore.chartDataUsers"
+            x-axis="Users"
+            y-axis="#times"
+            @barClick="handleBarClick"
+          />
+          <VaButton
+            color="buttonColor"
+            class="mb-4 details-button"
+            @click="display = !display"
+          >
+            Details
+          </VaButton>
+          <Transition
+            name="expand"
+            @afterEnter="handleAfterEnter"
+          >
+            <div
+              v-if="!display"
+              ref="tableContainerRef"
+            >
+              <Table
+                ref="eventsTable"
+                v-model:filter="searchQuery"
+                :items="awsStore.formattedEvents"
+                :columns="eventColumns"
+                :loading="awsStore.loading"
+                :enable-event-link="true"
+              />
+            </div>
+          </Transition>
+        </VaCard>
+      </div>
+    </div>
   </template>
 </template>
 

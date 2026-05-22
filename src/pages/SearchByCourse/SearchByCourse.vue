@@ -94,7 +94,7 @@
                 v-model:filter="searchQuery"
                 :items="missingEventsRows"
                 :columns="missingEventColumns"
-                :enable-event-link-with-popover="true"
+                :enable-event-link="true"
               />
             </div>
           </Transition>
@@ -120,6 +120,8 @@ import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
 import dayjs from 'dayjs'
 import { REFERDATA } from '../../data/evenprac'
+
+type ReferenceDataSet = Record<string, Record<string, number>>
 
 const awsStore = useAwsStore()
 const authStore = useAuthStore()
@@ -153,10 +155,15 @@ const { missingEventsRows } = useMissingEvents(
 )
 
 const referData = computed<Record<string, Record<string, number>>>(() => {
-  if (selectedCourseLabel.value === 'MUCNAP-ICP' || selectedCourseLabel.value === 'MUCC-DDS') {
-    return (REFERDATA as any).REFERDATA1 ?? {}
+  const references = REFERDATA as {
+    REFERDATA?: ReferenceDataSet
+    REFERDATA1?: ReferenceDataSet
   }
-  return (REFERDATA as any).REFERDATA ?? {}
+
+  if (selectedCourseLabel.value === 'MUCNAP-ICP' || selectedCourseLabel.value === 'MUCC-DDS') {
+    return references.REFERDATA1 ?? {}
+  }
+  return references.REFERDATA ?? {}
 })
 
 const practiceCompletionChart = computed(() => {

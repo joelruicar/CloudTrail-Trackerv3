@@ -100,6 +100,7 @@ const newPass = ref('')
 const error = ref(false)
 const errorMessage = ref('')
 const processing = ref(false)
+const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : 'An error occurred during the update.'
 
 const handlePasswordChange = async () => {
   if (!validate()) return
@@ -111,9 +112,9 @@ const handlePasswordChange = async () => {
     await authStore.changePassword(oldPass.value, newPass.value)
     init({ message: 'Password updated successfully', color: 'success' })
     router.replace({ name: 'dashboard' })
-  } catch (err: any) {
+  } catch (err) {
     error.value = true
-    errorMessage.value = err.message || 'An error occurred during the update.'
+    errorMessage.value = getErrorMessage(err)
   } finally {
     processing.value = false
   }

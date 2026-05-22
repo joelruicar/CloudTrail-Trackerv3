@@ -102,6 +102,7 @@
 
 .learning-band-subtitle {
   margin: -0.4rem 0 0.8rem;
+  margin-left: 2rem;
   color: var(--va-text-secondary);
   font-size: 0.9rem;
 }
@@ -128,5 +129,5 @@
   .group-stats :deep(.chart-wrapper) { width: 100%; margin-left: 0; }
   .stat-hero :deep(.stat-item--avg) { grid-template-columns: 88px minmax(0, 1fr); }
   .stat-hero :deep(.stat-item--avg .stat-value) { font-size: 0.95rem; }
-  .learning-band-subtitle { font-size: 0.84rem; }
+  .learning-band-subtitle { margin-left: 0.75rem; font-size: 0.84rem; }
 }

@@ -1,11 +1,12 @@
 import { computed, type Ref } from 'vue'
 import { REFERDATA } from '../data/evenprac'
-import eventLinksJson from '../data/event-links.json'
+import { resolveEventLink } from '../services/eventLinks'
+
+type ReferenceDataSet = Record<string, Record<string, number>>
 
 interface StudentProgressRow {
   subject: string
   events: Array<{ eventName: string }>
-  [key: string]: any
 }
 
 export interface MissingEventRow {
@@ -13,7 +14,6 @@ export interface MissingEventRow {
   eventName: string
   missing: number
   eventLink?: string
-  description?: string
 }
 
 export const missingEventColumns = [
@@ -21,20 +21,6 @@ export const missingEventColumns = [
   { key: 'eventName', label: 'Event',                   sortable: true },
   { key: 'missing',   label: 'Number of missing events', sortable: true },
 ]
-
-const locale = navigator.language.startsWith('es') ? 'es' : 'en'
-
-const eventLinkMap = (eventLinksJson as any[]).reduce(
-  (acc: Record<string, { url: string; description?: string }>, it) => {
-    const desc = it.description
-    acc[it.eventName] = {
-      url: it.url,
-      description: typeof desc === 'object' ? (desc[locale] ?? desc['en'] ?? '') : desc,
-    }
-    return acc
-  },
-  {},
-)
 
 export function useMissingEvents(
   subjects: Ref<string[]>,
@@ -45,9 +31,13 @@ export function useMissingEvents(
     if (!subjects.value.length || !studentProgressData.value.length) return []
 
     const useAlternativeReference = ['MUCNAP-ICP', 'MUCC-DDS'].includes(courseLabel?.value || '')
-    const referData: Record<string, Record<string, number>> = useAlternativeReference
-      ? ((REFERDATA as any).REFERDATA1 ?? {})
-      : ((REFERDATA as any).REFERDATA ?? {})
+    const references = REFERDATA as {
+      REFERDATA?: ReferenceDataSet
+      REFERDATA1?: ReferenceDataSet
+    }
+    const referData = useAlternativeReference
+      ? (references.REFERDATA1 ?? {})
+      : (references.REFERDATA ?? {})
     const subjectOrder = Object.keys(referData)
 
     const eventCounts: Record<string, number> = {}
@@ -76,12 +66,13 @@ export function useMissingEvents(
         } else {
           remaining[ename] = 0
           if (required - available > 0) {
+            const linkConfig = resolveEventLink(ename)
+
             rows.push({
               practice: subject,
               eventName: ename,
               missing: required - available,
-              eventLink: eventLinkMap[ename]?.url,
-              description: eventLinkMap[ename]?.description,
+              eventLink: linkConfig.url,
             })
           }
         }

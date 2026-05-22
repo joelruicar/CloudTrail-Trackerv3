@@ -74,7 +74,7 @@
             :items="awsStore.formattedEvents"
             :columns="eventColumns"
             :loading="awsStore.loading"
-            :enable-event-link-with-popover="true"
+            :enable-event-link="true"
           />
         </Transition>
       </VaCard>

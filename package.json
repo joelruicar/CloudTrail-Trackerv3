@@ -9,10 +9,10 @@
   "scripts": {
     "prepare": "husky install",
     "dev": "vite",
-    "build": "npm run lint && vue-tsc --noEmit && vite build",
+    "build": "yarn lint && vue-tsc --noEmit && vite build",
     "build:ci": "vite build",
     "start:ci": "serve -s ./dist",
-    "prelint": "npm run format",
+    "prelint": "yarn format",
     "lint": "eslint \"./src/**/*.{ts,js,vue}\" --fix",
     "format": "prettier --write .",
     "preview": "vite preview",
@@ -21,7 +21,7 @@
   },
   "lint-staged": {
     "./src/**/*.{ts,js,vue}": [
-      "npm run lint"
+      "yarn lint"
     ]
   },
   "dependencies": {

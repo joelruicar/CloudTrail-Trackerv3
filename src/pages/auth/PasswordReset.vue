@@ -66,6 +66,7 @@ const username = ref('')
 const error = ref(false)
 const errorMessage = ref('')
 const processing = ref(false)
+const getErrorMessage = (err: unknown) => err instanceof Error ? err.message : 'Failed to initiate password reset'
 
 const handleReset = async () => {
   if (!validate()) return
@@ -78,9 +79,9 @@ const handleReset = async () => {
 
     init({ message: 'Reset code sent to your email', color: 'success' })
     router.push({ name: 'confirm-password-reset' })
-  } catch (err: any) {
+  } catch (err) {
     error.value = true
-    errorMessage.value = err.message || 'Failed to initiate password reset'
+    errorMessage.value = getErrorMessage(err)
   } finally {
     processing.value = false
   }

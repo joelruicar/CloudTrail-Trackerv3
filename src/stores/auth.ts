@@ -9,9 +9,14 @@ import {
   resetPassword,
 } from 'aws-amplify/auth'
 import { clearCredentialCache } from './oteador'
+
+interface AuthUserState {
+  username: string
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null as any,
+    user: null as AuthUserState | null,
     accessToken: null as string | null,
     token: null as string | null | undefined
   }),
@@ -22,7 +27,7 @@ export const useAuthStore = defineStore('auth', {
       state.user?.username?.toLowerCase().startsWith('alucloud46'),
     isStudent: (state) => state.user?.username?.toLowerCase().startsWith('alucloud'),
     username(): string {
-      return this.user?.username
+      return this.user?.username || ''
     },
   },
 
@@ -93,7 +98,7 @@ async login(email: string, password: string) {
           newPassword: newPass,
         })
         return { success: true }
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error al actualizar la contraseña:', error)
         throw error
       }

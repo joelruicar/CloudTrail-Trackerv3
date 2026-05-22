@@ -93,7 +93,11 @@ const props = defineProps<{
   modelValue: { start: Date; end: Date } | null
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+type DateRange = { start: Date; end: Date }
+
+const emit = defineEmits<{
+  'update:modelValue': [value: DateRange | null]
+}>()
 const { calculateRange } = useAcademicYear()
 
 const open = ref(false)
@@ -111,7 +115,7 @@ const inputText = computed(() => formatRange(internalRange.value))
 // pickerProps compartido entre los dos VaDatePicker
 const pickerProps = computed(() => ({
   modelValue: internalRange.value,
-  'onUpdate:modelValue': (v: any) => { internalRange.value = v },
+  'onUpdate:modelValue': (value: DateRange | null) => { internalRange.value = value },
   mode: 'range' as const,
   class: 'w-64',
 }))
@@ -121,8 +125,8 @@ function formatDate(date: Date | null) {
   return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-function formatRange(r: any) {
-  return r?.start && r?.end ? `${formatDate(r.start)} - ${formatDate(r.end)}` : ''
+function formatRange(range: DateRange | null) {
+  return range?.start && range?.end ? `${formatDate(range.start)} - ${formatDate(range.end)}` : ''
 }
 
 watch(open, (isOpen) => {

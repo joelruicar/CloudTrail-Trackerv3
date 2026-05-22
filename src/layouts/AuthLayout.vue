@@ -6,7 +6,7 @@
     <template #right>
       <div
         class="bg-primary h-full flex items-center justify-center px-9"
-        style="width: 55vw"
+        style="width: 35vw"
       >
         <img
           src="../../public/landing.png"
@@ -53,7 +53,7 @@ const breakpoint = useBreakpoint()
 </script>
 <style lang="css">
 .landingimg {
-  max-width: 70%;
+  max-width: 60%;
   height: auto;
 }
 </style>

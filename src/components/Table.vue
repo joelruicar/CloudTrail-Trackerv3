@@ -47,7 +47,7 @@
             >
               <a
                 v-if="rowData.awsLink"
-                :href="rowData.awsLink"
+                :href="String(rowData.awsLink)"
                 target="_blank"
                 class="event-link"
               >
@@ -59,7 +59,6 @@
             </template>
             <template #cell(eventName)="{ rowData }">
               <slot
-                v-if="!props.enableEventLinkWithPopover"
                 name="cell-eventName"
                 :row-data="rowData"
               >
@@ -68,34 +67,12 @@
                   :href="String(rowData.eventLink || '#')"
                   target="_blank"
                   class="event-link"
+                  rel="noopener"
                 >
                   {{ rowData.eventName }}
                 </a>
                 <span v-else>{{ rowData.eventName }}</span>
               </slot>
-              <VaPopover
-                v-else
-                :key="`popover-${rowData.eventLink || rowData.eventName}`"
-                :message="rowData.description"
-                :trigger="popoverTrigger"
-                :placement="popoverPlacement"
-                color="info"
-                content-class="event-popover-content"
-                stick-to-edges
-                :hover-over-timeout="0"
-                :hover-out-timeout="50"
-                @open="handlePopoverOpen(rowData.eventLink)"
-                @close="handlePopoverClose(rowData.eventLink)"
-              >
-                <a
-                  :href="rowData.eventLink"
-                  target="_blank"
-                  class="event-link"
-                  @click.capture="handleEventLinkTap(rowData.eventLink, $event)"
-                >
-                  {{ rowData.eventName }}
-                </a>
-              </VaPopover>
             </template>
             <template
               v-for="(_, name) in cellSlots"
@@ -125,21 +102,19 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, useSlots, ComponentPublicInstance } from 'vue'
-import { useBreakpoint } from 'vuestic-ui'
 
 type TableColumn = { key: string; label: string; sortable?: boolean }
+type TableRow = Record<string, unknown>
 
 const props = withDefaults(defineProps<{
-  items: Array<Record<string, any>>
+  items: object[]
   columns: TableColumn[]
   loading?: boolean
-  enableEventLinkWithPopover?: boolean
   enableEventLink?: boolean
   linkColumnKey?: string
   filter?: string
 }>(), {
   loading: false,
-  enableEventLinkWithPopover: false,
   enableEventLink: false,
   filter: '',
 })
@@ -149,7 +124,6 @@ const emit = defineEmits<{
 }>()
 
 const tableCard = ref<ComponentPublicInstance | null>(null)
-const breakpoints = useBreakpoint()
 
 const sortingOrder = ref<'asc' | 'desc' | null>(null)
 const sortBy = ref('')
@@ -160,10 +134,6 @@ const searchQuery = computed({
   get: () => props.filter,
   set: (val: string) => emit('update:filter', val),
 })
-
-const popoverTrigger = computed(() => (breakpoints.smDown ? 'click' : 'hover'))
-const popoverPlacement = computed(() => (breakpoints.smDown ? 'bottom-start' : 'right'))
-const activeMobilePopoverLink = ref<string | null>(null)
 
 const linkColumnKey = computed(() => props.linkColumnKey ?? '')
 
@@ -179,8 +149,9 @@ const cellSlots = computed(() =>
 
 const filteredItems = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
-  if (!query) return props.items
-  return props.items.filter((item) =>
+  const items = props.items as TableRow[]
+  if (!query) return items
+  return items.filter((item) =>
     Object.values(item).some((value) => String(value ?? '').toLowerCase().includes(query)),
   )
 })
@@ -193,27 +164,6 @@ const pages = computed(() => {
 const scrollToTable = () => {
   const el = tableCard.value?.$el as HTMLElement | undefined
   el?.scrollIntoView({ behavior: 'smooth', block: 'end' })
-}
-
-const handleEventLinkTap = (link: string, event: MouseEvent) => {
-  if (!breakpoints.smDown || !link) return
-  event.preventDefault()
-  if (activeMobilePopoverLink.value === link) {
-    activeMobilePopoverLink.value = null
-    window.open(link, '_blank', 'noopener')
-  }
-}
-
-const handlePopoverOpen = (link: string) => {
-  if (breakpoints.smDown && link) {
-    activeMobilePopoverLink.value = link
-  }
-}
-
-const handlePopoverClose = (link: string) => {
-  if (breakpoints.smDown && activeMobilePopoverLink.value === link) {
-    activeMobilePopoverLink.value = null
-  }
 }
 
 watch(currentPage, async () => {
@@ -283,21 +233,13 @@ defineExpose({ scrollToTable })
 }
 
 .event-link {
-  color: var(--va-remark-primary);
+  color: var(--va-widget-text);
   text-decoration: none;
   cursor: pointer;
 }
 
 .event-link:visited {
-  color: var(--va-remark-primary);
-}
-
-:global(.event-popover-content) {
-  max-width: min(85vw, 420px);
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  line-height: 1.35;
+  color: var(--va-widget-text);
 }
 
 .pagination-footer {

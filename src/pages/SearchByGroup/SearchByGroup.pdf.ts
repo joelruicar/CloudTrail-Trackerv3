@@ -15,6 +15,9 @@ import {
   Filler,
 } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
+import type { ChartData, ChartOptions } from 'chart.js'
+import type { Context as DataLabelsContext } from 'chartjs-plugin-datalabels'
+import type { PDFFont, PDFPage } from 'pdf-lib'
 
 import { REFERDATA } from '../../data/evenprac'
 import { calculateFinalGrade } from './SearchByGroup.utils'
@@ -72,7 +75,15 @@ const canvasToBytes = async (canvas: HTMLCanvasElement): Promise<ArrayBuffer> =>
   })
 }
 
-const createChartImage = async (type: 'bar' | 'line', data: any, options: any): Promise<ArrayBuffer> => {
+type ReportChartType = 'bar' | 'line'
+type ReportChartData = ChartData<ReportChartType, number[], string>
+type ReportChartOptions = ChartOptions<ReportChartType>
+
+const createChartImage = async (
+  type: ReportChartType,
+  data: ReportChartData,
+  options: ReportChartOptions,
+): Promise<ArrayBuffer> => {
   const canvas = document.createElement('canvas')
   canvas.width = CHART_WIDTH
   canvas.height = CHART_HEIGHT
@@ -99,7 +110,7 @@ const createChartImage = async (type: 'bar' | 'line', data: any, options: any): 
   }
 }
 
-const drawCenteredText = (page: any, font: any, text: string, y: number, size = 16) => {
+const drawCenteredText = (page: PDFPage, font: PDFFont, text: string, y: number, size = 16) => {
   try {
     const textWidth = font.widthOfTextAtSize(text, size)
     const x = (PAGE_WIDTH - textWidth) / 2
@@ -258,7 +269,7 @@ const buildPdfForStudent = async (courseLabel: string, studentRows: StudentProgr
   // Pre-compute the exact dataIndex where each dataset first reaches >= 80
   // so display order doesn't depend on chartjs internal call order
   const firstAbove80 = new Map(
-    timelineData.datasets.map((ds: any, i: number) => {
+    timelineData.datasets.map((ds, i) => {
       const idx = (ds.data as number[]).findIndex((v) => v >= 80)
       return [i, idx] // -1 if never reaches 80
     })
@@ -279,16 +290,16 @@ const buildPdfForStudent = async (courseLabel: string, studentRows: StudentProgr
     plugins: {
       legend: { position: 'bottom' },
       datalabels: {
-        display: (context: any) => {
+        display: (context: DataLabelsContext) => {
           const idx = firstAbove80.get(context.datasetIndex)
           return idx !== undefined && idx !== -1 && idx === context.dataIndex
         },
-        formatter: (value: any) => `${value}%`,
+        formatter: (value: number) => `${value}%`,
         anchor: 'end',
         align: 'top',
         offset: 2, // closer to the line
         font: { size: 9, weight: 'bold' },
-        color: (context: any) => darkenColor(colorPalette[context.datasetIndex % colorPalette.length], 0.6),
+        color: (context: DataLabelsContext) => darkenColor(colorPalette[context.datasetIndex % colorPalette.length], 0.6),
       },
     },
   })

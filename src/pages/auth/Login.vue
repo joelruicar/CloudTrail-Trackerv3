@@ -76,6 +76,8 @@ const { push } = useRouter()
 const { init } = useToast()
 const authStore = useAuthStore()
 
+const getErrorMessage = (error: unknown) => error instanceof Error ? error.message : 'Error desconocido'
+
 const formData = reactive({
   username: '',
   password: '',
@@ -88,8 +90,8 @@ const submit = async () => {
       await authStore.login(formData.username, formData.password)
       // init({ message: 'Inicio de sesión exitoso', color: 'success' })
       push({ name: 'dashboard' })
-    } catch (error: any) {
-      init({ message: 'Error al iniciar sesión: ' + error.message, color: 'danger' })
+    } catch (error) {
+      init({ message: 'Error al iniciar sesión: ' + getErrorMessage(error), color: 'danger' })
     }
   }
 }
