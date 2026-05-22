@@ -180,23 +180,9 @@ defineExpose({ scrollToTable })
 </script>
 
 <style scoped>
-.table-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
 .full-height-card {
   height: 100%;
   border-radius: 15px;
-}
-
-.per-page-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
 }
 
 .search-input {
@@ -204,24 +190,12 @@ defineExpose({ scrollToTable })
 }
 
 @media (max-width: 768px) {
-  .table-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
-  }
-
   .search-group {
     width: 100%;
   }
 
   .search-input {
     width: 100%;
-  }
-
-  .per-page-label {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
   }
 }
 

@@ -61,6 +61,8 @@
     "learningBandTitle": "Ritmo de aprendizaje del grupo",
     "learningBandSubtitle": "Mediana y banda intercuartil (P25-P75) del progreso acumulado por estudiante.",
     "learningBandXAxis": "Fecha",
-    "learningBandYAxis": "Progreso medio (%)"
+    "learningBandYAxis": "Progreso medio (%)",
+    "generatingPdf": "Generando PDF",
+    "downloadPdf": "Descargar PDF"
   }
 }

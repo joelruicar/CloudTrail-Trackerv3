@@ -164,7 +164,7 @@
 
             <VaButton
               color="buttonColor"
-              class="mb-4 ml-6"
+              class="mb-4 ml-6 details-button"
               @click="display = !display"
             >
               {{ t('searchByGroup.details') }}
@@ -177,7 +177,7 @@
               :disabled="!hasResults || awsStore.loading || isExportingPdf"
               @click="handlePdfExport"
             >
-              {{ isExportingPdf ? 'Generando PDF' : 'Descargar PDF' }}
+              {{ isExportingPdf ? t('searchByGroup.generatingPdf') : t('searchByGroup.downloadPdf') }}
             </VaButton>
 
             <Transition

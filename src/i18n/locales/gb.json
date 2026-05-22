@@ -63,6 +63,8 @@
     "learningBandTitle": "Group learning pace",
     "learningBandSubtitle": "Median and interquartile range (P25-P75) of cumulative progress per student.",
     "learningBandXAxis": "Date",
-    "learningBandYAxis": "Average progress (%)"
+    "learningBandYAxis": "Average progress (%)",
+    "generatingPdf": "Generating PDF",
+    "downloadPdf": "Download PDF"
   }
 }

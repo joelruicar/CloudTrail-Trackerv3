@@ -35,7 +35,7 @@
           <VaButton
             icon="search"
             color="buttonColor"
-            class="search-button-fixed"
+            class="search-button-fixed form-action-button"
             @click="search"
           >
             Search
@@ -58,6 +58,7 @@
 
         <VaButton
           color="buttonColor"
+          class="details-button"
           @click="display = !display"
         >
           Details

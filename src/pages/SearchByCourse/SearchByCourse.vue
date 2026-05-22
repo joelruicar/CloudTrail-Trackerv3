@@ -35,7 +35,7 @@
 
         <div class="search-course-actions">
           <VaButton
-            class="search-btn search-course-search-btn"
+            class="form-action-button search-course-search-btn"
             color="buttonColor"
             :disabled="!selectedCourse"
             @click="performSearch"
