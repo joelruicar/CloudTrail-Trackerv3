@@ -4,16 +4,18 @@ CloudTrail-Tracker-UI is a Vue 3 + TypeScript web portal built with Vite. It que
 
 ## Visual Aspect of the Dashboard
 The dashboard depicts an aggregated view of the AWS services usage in a pre-defined time frame: 
-![CloudTrail-Tracker Dashboard ](doc/ctt-dashboard.png)
+![CloudTrail-Tracker Dashboard](doc/ctt-dashboard.png)
 
-It also allows users to know their progress percentage across a set of lab activities. The set of events per lab activities are defined in [evenprac.js](src/data/evenprac.js). This is useful when applying this tool for the academic teaching of Cloud Computing with Amazon Web Services:
-![CloudTrail-Tracker Labs ](doc/ctt-labs.png)
+It also enables users to track their progress percentage across a series of laboratory activities. The set of events for each activity is defined in evenprac.js (src/data/evenprac.js). 
+Clicking on each bar shows the user which events are missing for each lab activity. This is useful when using this tool for teaching Cloud Computing with Amazon Web Services academically.
+![CloudTrail-Tracker Labs](doc/ctt-labs.png)
 
-Clicking on each bar allows the user to know the missing events per lab activity: 
-![CloudTrail-Tracker Labs ](doc/ctt-labs-detail.png)
+The Oteador panel provides useful information about the AWS account, including details and links to the services being utilised in a chosen region.
+![CloudTrail-Tracker Oteador](doc/ctt-oteador.png)
 
-In addition, there is a panel only for teachers where they can search by a group of students to see metrics such as the progress, students who have yet to start and the academic marks.
+In addition, teachers can access a dedicated panel where they can search for groups of students and view metrics such as progress, attendance and academic performance.
 ![CloudTrail-Tracker Group](doc/ctt-group.png)
+
 An academic publication on the adoption of this tool as a learning dashboard for students is available in:
 
 Naranjo, Diana M., José R. Prieto, Germán Moltó, and Amanda Calatrava. 2019. “A Visual Dashboard to Track Learning Analytics for Educational Cloud Computing.” Sensors 19(13): 2952. https://www.mdpi.com/1424-8220/19/13/2952/htm (July 4, 2019).
