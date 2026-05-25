@@ -26,36 +26,9 @@ pre {
   font-size: 1em;
 }
 
-.ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.h1 {
-  @apply text-[32px] md:text-5xl font-bold leading-9 md:leading-[56px] max-sm:mt-6 mb-6 md:mb-4;
-}
-
 .h3,
 .page-sub-title {
   @apply text-2xl font-bold leading-[30px];
-}
-
-.h5 {
-  @apply font-bold leading-tight;
-}
-
-.block-title {
-  @apply text-2xl font-bold mb-2;
-}
-
-.pricing-plan-card-title {
-  @apply text-[28px] md:text-[32px] leading-10 font-bold;
-}
-
-.text-regular-small {
-  font-size: 0.8125rem;
-  line-height: 1rem;
 }
 
 /* VaSelect searchable: clearly mark selected option in dropdown */
@@ -180,10 +153,6 @@ pre {
   grid-template-columns: repeat(5, minmax(130px, 1fr));
 }
 
-.filters-grid--compact {
-  grid-template-columns: repeat(3, minmax(130px, 1fr));
-}
-
 .filter-field,
 .filter-group,
 .user-select-fixed,
@@ -242,12 +211,10 @@ pre {
   margin-bottom: 1rem;
 }
 
-.table-search,
 .search-input {
   width: min(360px, 100%);
 }
 
-.table-page-size,
 .per-page-label {
   display: flex;
   align-items: center;
@@ -276,7 +243,6 @@ pre {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.stat-card,
 .stat-item {
   border-radius: 8px;
   background: var(--va-background-primary);
@@ -287,7 +253,6 @@ pre {
   justify-content: center;
 }
 
-.stat-card--hero,
 .stat-hero {
   border-radius: 8px;
   color: #ffffff;
@@ -297,13 +262,11 @@ pre {
   gap: clamp(2rem, 7vw, 7rem);
 }
 
-.stat-card--mini,
 .mini-stat {
   min-height: 118px;
   padding: 0.9rem 1rem;
 }
 
-.stat-badge,
 .mini-count {
   width: 70px;
   height: 70px;
@@ -376,13 +339,11 @@ pre {
   }
 
   .filters-grid,
-  .filters-grid--compact,
   .stats-grid,
   .mini-stat-row {
     grid-template-columns: 1fr;
   }
 
-  .stat-card--hero,
   .stat-hero {
     grid-template-columns: 1fr;
     justify-content: stretch;
@@ -399,11 +360,6 @@ pre {
     align-items: stretch;
   }
 
-  .table-search {
-    width: 100%;
-  }
-
-  .table-page-size,
   .per-page-label {
     width: 100%;
     justify-content: flex-start;

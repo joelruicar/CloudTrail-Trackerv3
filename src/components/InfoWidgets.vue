@@ -124,7 +124,7 @@ const getServiceIcon = (serviceKey) => {
 }
 
 .compact-metric-card {
-  flex: 1 1 calc(25% - 1rem); 
+  flex: 0 1 calc(25% - 1rem); 
   min-width: 250px; 
   border-radius: 8px; 
   transition: all 0.3s ease;
@@ -132,17 +132,11 @@ const getServiceIcon = (serviceKey) => {
 
 @media (max-width: 1403px) {
   .compact-metric-card {
-    flex: 1 1 calc(50% - 1rem); 
+    flex: 0 1 calc(50% - 1rem); 
   }
 }
 
-@media (min-width: 1600px) and (max-width: 1920px) {
-  .compact-metric-card {
-    flex: 1 1 calc(33.33% - 1rem);
-  }
-}
-
-@media (min-width: 1940px) {
+@media (min-width: 1600px) {
   .compact-metric-card {
     flex: 1 1 calc(16.66% - 1rem);
   }
@@ -150,7 +144,7 @@ const getServiceIcon = (serviceKey) => {
 
 @media (max-width: 600px) {
   .compact-metric-card {
-    flex: 1 1 100%;
+    flex: 0 1 100%;
   }
 }
 

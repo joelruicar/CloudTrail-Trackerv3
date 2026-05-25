@@ -22,10 +22,17 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   getters: {
-    isProfessor: (state) =>
-      state.user?.username?.toLowerCase().startsWith('alucloud189') ||
-      state.user?.username?.toLowerCase().startsWith('alucloud46'),
-    isStudent: (state) => state.user?.username?.toLowerCase().startsWith('alucloud'),
+    isProfessor: (state) => {
+      return (
+        state.user?.username === 'admin' ||
+        state.user?.username.startsWith('gmolto') ||
+        state.user?.username.startsWith('amcaar')
+      )
+    },
+    isStudent: (state) => {
+      const uname = state.user?.username || ''
+      return uname.startsWith('alucloud')
+    },
     username(): string {
       return this.user?.username || ''
     },

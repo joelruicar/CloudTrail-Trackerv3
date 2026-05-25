@@ -46,6 +46,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '../../stores/auth'
 import navigationRoutes from './NavigationRoutes'
 import VuesticLogo from '../VuesticLogo.vue'
 
@@ -61,13 +62,21 @@ const sidebarWidth = computed(() => {
   return props.mobile ? '100vw' : '250px'
 })
 
+const authStore = useAuthStore()
 const router = useRouter()
 const currentRoute = useRoute()
 
-const routes = router.options.routes
-  .find(r => r.name === 'admin')
-  .children
-  .filter(route => route.name !== 'change-password')
+const routes = computed(() => {
+  const adminRoute = router.options.routes.find((route) => route.name === 'admin')
+  const adminChildren = adminRoute?.children ?? []
+
+  return adminChildren.filter((route) => {
+    if (route.name === 'change-password') return false
+
+    const requiresProfessor = Boolean(route.meta?.requiresProfessor)
+    return !requiresProfessor || authStore.isProfessor
+  })
+})
 
 const iconByName = Object.fromEntries(
   navigationRoutes.routes.map((route) => [route.name, route.meta?.icon]),

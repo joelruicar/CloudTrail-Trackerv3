@@ -1,118 +1,77 @@
-<p align="center">
-  <a href="https://vuestic.dev" target="_blank">
-    <img alt="Vuestic UI Logo" width="220" src="./.github/assets/vuestic-admin-logo.png">
-  </a>
-</p>
+# CloudTrail-Tracker-UI 
 
-<p align="center">
-  Free and beautiful Admin Template utilizing Vue 3, Vite, Pinia, and Tailwind CSS. Designed for building efficient, responsive, and fast-loading admin interfaces.</br>
-  Developed by  <a href="https://epicmax.co">Epicmax</a>.</br>
-  Based on <a href="https://ui.vuestic.dev">Vuestic UI</a> library.
-</p>
+CloudTrail-Tracker-UI is a Vue 3 + TypeScript web portal built with Vite. It queries the REST API of [CloudTrail-Tracker](https://github.com/grycap/cloudtrail-tracker) to visually show high-level aggregate information about AWS resource usage by different users based on event data.
 
-<p align="center">
-  <a href="https://admin-demo.vuestic.dev"> Live Demo </a> |
-  <a href="https://admin.vuestic.dev/"> About Vuestic Admin </a> |
-  <a href="https://ui.vuestic.dev/">Vuestic UI documentation</a>
-</p>
+## Visual Aspect of the Dashboard
+The dashboard depicts an aggregated view of the AWS services usage in a pre-defined time frame: 
+![CloudTrail-Tracker Dashboard ](doc/ctt-dashboard.png)
 
-> Vuestic Admin is built with [Vuestic UI](https://ui.vuestic.dev). See our
-> <a href="https://github.com/epicmaxco/vuestic-ui/issues">issues</a>,
-> <a href="https://ui.vuestic.dev/en/contribution/guide">contributing guide</a> and join discussions on our
-> <a href="https://discord.gg/jTKTjj2weV">Discord server</a> to help us improve Vuestic Admin & Vuestic UI experience.
+It also allows users to know their progress percentage across a set of lab activities. The set of events per lab activities are defined in [evenprac.js](src/data/evenprac.js). This is useful when applying this tool for the academic teaching of Cloud Computing with Amazon Web Services:
+![CloudTrail-Tracker Labs ](doc/img/ctt-labs.png)
 
-<p align="center">
-  <a href="https://admin.vuestic.dev" target="_blank">
-    <img src="./public/vuestic-admin-image.png" align="center" width="888px"/>
-  </a>
-</p>
+Clicking on each bar allows the user to know the missing events per lab activity: 
+![CloudTrail-Tracker Labs ](doc/img/ctt-labs-detail.png)
 
-### Quick start
+In addition, there is a panel only for teachers where they can search by a group of students to see metrics such as the progress, students who have yet to start and the academic marks.
+![CloudTrail-Tracker Group](doc/img/ctt-group.png)
+An academic publication on the adoption of this tool as a learning dashboard for students is available in:
 
-Use following command to quickly scaffold new [Vuestic Admin](https://admin-demo.vuestic.dev) or empty Vite or Nuxt project with [Vuestic UI](https://ui.vuestic.dev).
+Naranjo, Diana M., José R. Prieto, Germán Moltó, and Amanda Calatrava. 2019. “A Visual Dashboard to Track Learning Analytics for Educational Cloud Computing.” Sensors 19(13): 2952. https://www.mdpi.com/1424-8220/19/13/2952/htm (July 4, 2019).
 
-```bash
-npm create vuestic@latest
-```
+## Requirements
 
-After [Vuestic Admin](https://admin.vuestic.dev) is installed, run `yarn install` to install dependcies, then run `yarn dev` to start local development server.
+* An existing [Cognito User Pool](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools.html) to store the  users, created in your AWS account.
 
-### Documentation
+* [Yarn](https://yarnpkg.com/) installed.
 
-Documentation, guides, examples and tutorials are available on [ui.vuestic.dev](https://ui.vuestic.dev)
+## Deployment
 
-### Official Discord Server
+This is a static web application built with Vue 3, TypeScript and Vite. It compiles to plain static assets and is expected to be deployed in an S3 bucket.
 
-Ask questions at the official community [discord server](https://discord.gg/jTKTjj2weV)
+1. Configure Cognito values in `src/amplifyConfig.ts` (see example in src/env_example.js) specifying the corresponding values (obtained from the Cognito User Pool).
 
-### Features
+    ``` js
+    export const amplifyConfig = {
+      Auth: {
+        Cognito: {
+          region: 'us-east-1',
+          userPoolId: 'us-east-1_XXXXXXXXX',
+          userPoolClientId: 'YYYYYYYYYYYYYYYYYYYYYYYYYY',
+          identityPoolId: 'us-east-1:zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz',
+        },
+      },
+    }
+    ```
+  
+2. Configure the API endpoints in `.env`.
 
-- **Vue 3, Vite, Pinia, and Tailwind CSS -** Fast and efficient development
-- **Dark Theme -** Modern and eye-catching
-- **Global Configuration -** Effortless customization
-- **Accessibility -** Inclusive and user-friendly
-- **i18n Integration -** Easy localization for global reach
-- **Educational Resource -** Ideal for learning and improving skills
-- **Responsive Design -** Adapts seamlessly to all devices
-- **Professional Support -** Reliable help from the experts
-- **Highly Customizable -** Tailor to your project’s style
+3. Start a local server to verify the web application:
+    1. Install the dependencies:
 
-### Contributing
+        ```sh
+        yarn install
+        ```
 
-Thanks for all your wonderful PRs, issues and ideas.
+    1. Run the server in localhost
 
-<a href="https://github.com/epicmaxco/vuestic-admin/graphs/contributors">
-<img src="https://opencollective.com/vuestic-admin/contributors.svg?width=890&button=false" />
-</a>
-<br>
+        ```sh
+        yarn dev
+        ```
 
-You’re always welcome to join: check out
-our <a href="https://ui.vuestic.dev/en/contribution/guide">
-contribution guides</a>
-, [open issues](https://github.com/epicmaxco/vuestic-ui/issues)
-and [Discord server](https://discord.gg/jTKTjj2weV)
+    The web application will be available in `http://localhost:5173`
 
-### Partners & Sponsors ❤️
+4. Create the static web site by issuing: 
+    ```sh
+    yarn install
+    yarn build:ci
+    ```
+    The static web site will be available in the `dist` folder.
 
-<img src="./.github/assets/sponsors.png" loading="lazy" alt="Epicmax, vuejobs, ag-grid, flatlogic, browserstack and jetbrains" width="400px">
+5. Upload the folder to an [S3 bucket with website configuration](https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html).
 
-Become a partner: [hello@epicmax.co](mailto:hello@epicmax.co)
+   If you use CloudFront in front of S3, configure custom error responses so `403` and `404` return `/index.html` with HTTP `200`.
 
-### Can I hire you guys?
 
-[Epicmax](https://epicmax.co) is committed to Open Source from its beginning. Vuestic Admin was created and backed by Epicmax, and is supported through all the years.
+## Contributing
 
-With 6+ years of dedicated work on both commercial and open-source projects, and more than 47 clients worldwide across various fields, Epicmax has deep expertise in frontend development, especially in Vue.js. We regularly conduct code audits for our projects and now excited to offer this service not only to our existing clients but to anyone looking to understand the state of their frontend code and ensure it's secure and up-to-date!
-
-You can request a consultation or order web development services by Epicmax via this [form](https://epicmax.co/contacts) 😎
-
-Say hi: <a href="mailto:hello@epicmax.co">hello@epicmax.co</a>. We will be happy to work with you!
-
-[Other work](https://epicmax.co) we’ve done 🤘
-
-[Meet the Team](https://ui.vuestic.dev/introduction/team)
-
-### Awards
-
-<a href="https://flatlogic.com/templates/vuestic-vue-free-admin" target="_blank">
-    <img src="https://i.imgur.com/ZeQPZ3Q.png" align="center" width="150px"/>
-</a>
-<p>
-  By <a href="https://flatlogic.com/templates/vuestic-vue-free-admin" target="_blank">@flatlogic</a> marketplace
-</p>
-
-### Premium Support and Consulting
-
-Get Premium Support & Consulting services through our official development partner, Epicmax. As the main contributor to Vuestic UI and Vuestic Admin, Epicmax brings a wealth of expertise and experience to help you achieve your project goals efficiently and effectively.
-
-[Get a quote](https://www.epicmax.co/?ref=vuestic-consulting)
-
-### Follow us
-
-Stay up to date with the latest Vuestic news! Follow us
-on [Twitter](https://twitter.com/vuestic_ui)
-or [Linkedin](https://www.linkedin.com/company/18509340)
-
-### License
-
-[MIT](https://github.com/epicmaxco/vuestic-admin/blob/master/LICENSE) license.
+Before contributing to this project, you should be familiar with [Amazon Cognito](http://docs.aws.amazon.com/cognito/latest/developerguide/what-is-amazon-cognito.html), [Vue.js](https://vuejs.org/) and [Vite](https://vite.dev/)

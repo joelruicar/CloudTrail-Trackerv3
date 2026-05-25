@@ -1,0 +1,10 @@
+export const amplifyConfig = {
+    Auth: {
+        Cognito: {
+            region: 'us-east-1',
+            userPoolId: 'us-east-1_XXXXXXXXX',
+            userPoolClientId: 'YYYYYYYYYYYYYYYYYYYYYYYYYY',
+            identityPoolId: 'us-east-1:zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz',
+        },
+    },
+}
