@@ -53,6 +53,14 @@
             <RouterView />
           </article>
         </main>
+
+        <footer class="app-layout-footer">
+          © <a
+            href="https://grycap.upv.es/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >GRyCAP-I3M-UPV</a>, Universitat Politècnica de València, Spain.
+        </footer>
       </div>
     </template>
   </VaLayout>
@@ -121,6 +129,9 @@ const onCloseSidebarButtonClick = () => {
 
 .content-wrapper {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .mobile-menu-btn {
@@ -144,6 +155,7 @@ main.with-sidebar {
 }
 
 main {
+  flex: 1 0 auto;
   display: flex;
   justify-content: center;
 }
@@ -156,6 +168,16 @@ main > article > :not(.loading-overlay) {
   width: min(100%, 1680px);
   flex: 1 1 auto;
   margin: 0 auto;
+}
+
+.app-layout-footer {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+}
+
+.app-layout-footer a {
+  color: var(--va-primary);
 }
 
 @media (max-width: 768px) {
