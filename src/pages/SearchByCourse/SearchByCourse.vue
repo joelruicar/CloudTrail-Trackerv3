@@ -6,7 +6,7 @@
     <VaCard class="page-card p-2 sm:p-4 overflow-visible">
       <div class="filters-panel search-course-filters mb-6">
         <div class="search-course-filters-grid">
-          <div class="filter-field">
+          <div class="filter-field course-field">
             <label
               for="course"
               style="color: var(--va-plain-text)"
@@ -28,9 +28,7 @@
             />
           </div>
 
-          <div class="filter-field search-course-filters-dates">
-            <DateFilter v-model="selectedDateRange" />
-          </div>
+          <DateFilter v-model="selectedDateRange" />
         </div>
 
         <div class="search-course-actions">
@@ -67,6 +65,7 @@
             Percentage completed by practice
           </h2>
           <Chart
+            ref="practiceChartRef"
             :chart-data="practiceCompletionChart"
             x-axis="Laboratory practices"
             y-axis="%"
@@ -74,13 +73,30 @@
             @barClick="handleBarClick"
           />
 
-          <VaButton
-            color="buttonColor"
-            class="mb-4 ml-6 details-button"
-            @click="display = !display"
-          >
-            Details
-          </VaButton>
+          <div class="course-results-actions">
+            <VaButton
+              color="buttonColor"
+              class="details-button"
+              @click="display = !display"
+            >
+              Details
+            </VaButton>
+
+            <VaButton
+              color="buttonColor"
+              class="details-button"
+              :loading="isExportingPdf"
+              :disabled="!hasSearched || !hasChartData || isExportingPdf"
+              @click="handlePdfExport"
+            >
+              Download PDF
+            </VaButton>
+
+            <div class="course-grade-summary">
+              <span class="course-grade-label">Grade</span>
+              <strong>{{ studentFinalGradeLabel }}</strong>
+            </div>
+          </div>
 
           <Transition
             name="expand"
@@ -120,6 +136,8 @@ import Chart from '../../components/Chart.vue'
 import Table from '../../components/Table.vue'
 import dayjs from 'dayjs'
 import { REFERDATA } from '../../data/evenprac'
+import { buildSingleStudentFinalGrade } from '../SearchByGroup/SearchByGroup.utils'
+import { downloadCourseChartReport } from './SearchByCourse.pdf'
 
 type ReferenceDataSet = Record<string, Record<string, number>>
 
@@ -137,6 +155,8 @@ const selectedCourse = ref(courseOptions[0] ?? '')
 const selectedDateRange = ref<{ start: Date; end: Date } | null>(calculateRange())
 const searchQuery = ref('')
 const tableContainerRef = ref<HTMLElement | null>(null)
+const practiceChartRef = ref<InstanceType<typeof Chart> | null>(null)
+const isExportingPdf = ref(false)
 
 const courseSubjects = computed(() =>
   Array.from(new Set(courseSubjectsMap[selectedCourseLabel.value] || []))
@@ -152,6 +172,18 @@ const { missingEventsRows } = useMissingEvents(
   courseSubjects,
   computed(() => awsStore.studentProgressData),
   selectedCourseLabel,
+)
+
+const studentFinalGrade = computed(() =>
+  buildSingleStudentFinalGrade(awsStore.studentProgressData, courseSubjects.value)
+)
+
+const studentFinalGradeLabel = computed(() =>
+  studentFinalGrade.value === null ? '-' : `${studentFinalGrade.value.toFixed(1)}/1`
+)
+
+const hasChartData = computed(() =>
+  (practiceCompletionChart.value.datasets[0]?.data?.length ?? 0) > 0
 )
 
 const referData = computed<Record<string, Record<string, number>>>(() => {
@@ -217,6 +249,25 @@ const handleAfterEnter = () => {
   tableContainerRef.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
 }
 
+const handlePdfExport = async () => {
+  const canvas = practiceChartRef.value?.getCanvas()
+  if (!canvas || !selectedCourseLabel.value) return
+
+  isExportingPdf.value = true
+  try {
+    await downloadCourseChartReport({
+      canvas,
+      courseLabel: selectedCourseLabel.value,
+      studentName: user_name.value,
+      gradeLabel: studentFinalGradeLabel.value,
+    })
+  } catch (error) {
+    console.error('Error generating course chart PDF:', error)
+  } finally {
+    isExportingPdf.value = false
+  }
+}
+
 const performSearch = async () => {
   if (!selectedCourse.value) return
   hasSearched.value = true
@@ -227,13 +278,9 @@ const performSearch = async () => {
   const startDate = dayjs(selectedDateRange.value?.start ?? defaultRange.start).format('YYYY-MM-DD')
   const endDate   = dayjs(selectedDateRange.value?.end   ?? defaultRange.end).format('YYYY-MM-DD')
   const subjects  = Array.from(new Set(courseSubjectsMap[selectedCourse.value] || []))
-  const studentUsers = awsStore.allUsers.filter((u) => u.startsWith('alucloud'))
-  const pos = studentUsers.indexOf(user_name.value)
-  if (pos < 0) return
 
-  await awsStore.fetchStudentProgressByRangeForSubjects(pos, pos + 1, subjects, startDate, endDate)
+  await awsStore.fetchStudentProgressForUsers([user_name.value], subjects, startDate, endDate)
 }
-
 onMounted(async () => {
   if (authStore.isProfessor && awsStore.allUsers.length === 0) await awsStore.getAllUsers()
   if (!authStore.isProfessor) user_name.value = authStore.username

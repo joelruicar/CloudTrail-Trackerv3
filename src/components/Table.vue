@@ -116,6 +116,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   loading: false,
   enableEventLink: false,
+  linkColumnKey: '',
   filter: '',
 })
 

@@ -10,10 +10,10 @@
   "menu": {
     "auth": "Auth",
     "dashboard": "Dashboard",
-    "searchByUser": "Search by user",
+    "searchByUser": "Search by User",
     "oteador": "Oteador",
-    "searchByCourse": "Search by course",
-    "searchByGroup": "Search by group",
+    "searchByCourse": "Search by Course",
+    "searchByGroup": "Search by Group",
     "login": "Login",
     "signup": "Signup",
     "recover-password": "Recover password",
@@ -35,7 +35,7 @@
     "reset": "Reset"
   },
   "searchByGroup": {
-    "title": "Search by group",
+    "title": "Search by Group",
     "usersInRange": "Users in range of",
     "averagePracticesResolved": "Average practices resolved",
     "user": "User:",

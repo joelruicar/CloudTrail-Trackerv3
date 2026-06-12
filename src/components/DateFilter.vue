@@ -1,40 +1,37 @@
 <template>
   <div
     ref="container"
-    class="relative z-[90] inline-flex items-end gap-3 min-h-10"
+    class="relative z-[90] inline-flex items-center gap-3 min-h-10"
   >
     <VaCheckbox
       v-model="showInput"
       label="Dates"
-      
       style="color: var(--va-plain-text)"
-      class="whitespace-nowrap date-checkbox"
+      class="whitespace-nowrap date-checkbox flex-none"
     />
 
-    <Transition name="expand-width">
-      <div
-        v-if="showInput"
-        class="overflow-hidden flex items-center"
+    <div
+      class="w-72 flex-none overflow-hidden flex items-center transition-opacity duration-300 ease-in-out"
+      :class="showInput ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'"
+    >
+      <VaInput
+        v-model="appliedText"
+        placeholder="DD/MM/YYYY - DD/MM/YYYY"
+        class="w-72 shrink-0 interactive-field"
+        background="textInput"
+        color="primary"
+        @click="open = true"
+        @focus="open = true"
       >
-        <VaInput
-          v-model="appliedText"
-          placeholder="DD/MM/YYYY - DD/MM/YYYY"
-          class="w-72 interactive-field"
-          background="textInput"
-          color="primary"
-          @click="open = true"
-          @focus="open = true"
-        >
-          <template #prependInner>
-            <VaIcon
-              name="calendar_today"
-              color="secondary"
-              size="small"
-            />
-          </template>
-        </VaInput>
-      </div>
-    </Transition>
+        <template #prependInner>
+          <VaIcon
+            name="calendar_today"
+            color="secondary"
+            size="small"
+          />
+        </template>
+      </VaInput>
+    </div>
 
     <Teleport to="body">
       <div
@@ -44,9 +41,9 @@
         :style="popupStyle"
       >
         <div class="flex gap-4 min-w-max">
-          <VaDatePicker v-bind="pickerProps" />
+          <VaDatePicker v-bind="pickerPropsLeft" />
           <VaDatePicker
-            v-bind="pickerProps"
+            v-bind="pickerPropsRight"
             class="w-64 hidden md:block"
           />
         </div>
@@ -55,6 +52,14 @@
           <span class="text-xs font-mono text-gray-500">{{ inputText }}</span>
 
           <div class="flex gap-2">
+            <VaButton
+              preset="secondary"
+              size="small"
+              color="info"
+              @click="moveToToday"
+            >
+              TODAY
+            </VaButton>
             <VaButton
               preset="secondary"
               size="small"
@@ -101,7 +106,7 @@ const emit = defineEmits<{
 const { calculateRange } = useAcademicYear()
 
 const open = ref(false)
-const showInput = ref(false)
+const showInput = ref(true)
 const container = ref<HTMLElement | null>(null)
 const popup = ref<HTMLElement | null>(null)
 const popupStyle = ref<Record<string, string>>({ top: '0px', left: '0px' })
@@ -112,13 +117,43 @@ const appliedText = ref(formatRange(props.modelValue))
 // inputText refleja internalRange en tiempo real (durante edición)
 const inputText = computed(() => formatRange(internalRange.value))
 
-// pickerProps compartido entre los dos VaDatePicker
-const pickerProps = computed(() => ({
+// pickerProps separados para controlar el mes visible de cada picker
+function toView(date: Date) {
+  return { type: 'day' as const, year: date.getFullYear(), month: date.getMonth() }
+}
+
+const viewLeft  = ref(toView(internalRange.value?.start ?? new Date()))
+const viewRight = ref(toView(internalRange.value?.end   ?? new Date()))
+
+const pickerPropsLeft = computed(() => ({
   modelValue: internalRange.value,
   'onUpdate:modelValue': (value: DateRange | null) => { internalRange.value = value },
   mode: 'range' as const,
   class: 'w-64',
+  view: viewLeft.value,
+  'onUpdate:view': (v: typeof viewLeft.value) => { viewLeft.value = v },
 }))
+
+const pickerPropsRight = computed(() => ({
+  modelValue: internalRange.value,
+  'onUpdate:modelValue': (value: DateRange | null) => { internalRange.value = value },
+  mode: 'range' as const,
+  class: 'w-64',
+  view: viewRight.value,
+  'onUpdate:view': (v: typeof viewRight.value) => { viewRight.value = v },
+}))
+
+function syncViews(range: { start: Date; end: Date } | null) {
+  const now = new Date()
+  viewLeft.value  = toView(range?.start ?? now)
+  viewRight.value = toView(range?.end   ?? now)
+}
+
+watch(() => internalRange.value?.start, (start) => {
+  if (!start) return
+  const nextMonth = new Date(start.getFullYear(), start.getMonth() + 1, 1)
+  viewRight.value = toView(nextMonth)
+})
 
 function formatDate(date: Date | null) {
   if (!date || isNaN(date.getTime())) return ''
@@ -132,6 +167,7 @@ function formatRange(range: DateRange | null) {
 watch(open, (isOpen) => {
   if (isOpen) {
     internalRange.value = props.modelValue ? { ...props.modelValue } : null
+    syncViews(internalRange.value)
   }
 })
 
@@ -177,6 +213,20 @@ const cancel = () => {
 
 const resetToDefault = () => {
   internalRange.value = calculateRange()
+  syncViews(internalRange.value)
+}
+
+const moveToToday = async () => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (internalRange.value) {
+    internalRange.value = { start: today, end: internalRange.value.end }
+  } else {
+    internalRange.value = { start: today, end: today }
+  }
+  syncViews(internalRange.value)
+  await nextTick()
+  updatePopupPosition()
 }
 
 const handleClickOutside = (e: MouseEvent) => {

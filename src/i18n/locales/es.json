@@ -10,10 +10,10 @@
   "menu": {
     "auth": "Autenticación",
     "dashboard": "Tablero",
-    "searchByUser": "Buscar por usuario",
+    "searchByUser": "Buscar por Usuario",
     "oteador": "Oteador",
-    "searchByCourse": "Buscar por curso",
-    "searchByGroup": "Buscar por grupo",
+    "searchByCourse": "Buscar por Curso",
+    "searchByGroup": "Buscar por Grupo",
     "login": "Iniciar sesión",
     "preferences": "Preferencias",
     "login-singup": "Iniciar sesión/Registrarse"
@@ -33,7 +33,7 @@
     "reset": "Restablecer"
   },
   "searchByGroup": {
-    "title": "Buscar por grupo",
+    "title": "Buscar por Grupo",
     "usersInRange": "Usuarios en rango:",
     "averagePracticesResolved": "Promedio de practicas resueltas",
     "user": "Usuario:",

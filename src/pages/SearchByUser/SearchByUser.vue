@@ -45,7 +45,7 @@
         <div class="charts-column mb-4">
           <VaCard>
             <VaCardTitle style="color: var(--va-chart-title)">
-              AWS services used in the last hour
+              Services used by {{ appliedUserName }}
             </VaCardTitle>
             <Chart
               :chart-data="awsStore.chartDataServices"
@@ -86,7 +86,7 @@
 <script setup lang="ts">
 import { VaButton, VaCard, VaCardTitle } from 'vuestic-ui'
 import { useAcademicYear } from '../../composables/useAcademicYear'
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { AtomSpinner } from 'epic-spinners'
 import InfoWidgets from '../../components/InfoWidgets.vue'
 import DateFilter from '../../components/DateFilter.vue'
@@ -119,6 +119,7 @@ const { range }  = useAcademicYear()
 const currentUser = authStore.username
 
 const user_name   = ref(currentUser)
+const appliedUserName = ref(currentUser)
 const display     = ref(true)
 const searchQuery = ref('')
 const eventsTable = ref<InstanceType<typeof Table> | null>(null)
@@ -130,6 +131,7 @@ const getDateStrings = () => ({
 
 const search = () => {
   const { startStr, endStr } = getDateStrings()
+  appliedUserName.value = user_name.value || currentUser
   awsStore.fetchUserDashboardData(user_name.value || currentUser, startStr, endStr)
 }
 
@@ -154,6 +156,7 @@ const onWidgetsAreaClick = (event: MouseEvent) => {
 onMounted(async () => {
   const routeUser = Array.isArray(route.query.user) ? route.query.user[0] : route.query.user
   user_name.value = authStore.isProfessor && routeUser ? String(routeUser) : currentUser
+  appliedUserName.value = user_name.value
 
   const { startStr, endStr } = getDateStrings()
   awsStore.fetchUserDashboardData(user_name.value, startStr, endStr)

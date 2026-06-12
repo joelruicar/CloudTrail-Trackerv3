@@ -1,9 +1,8 @@
 .search-controls {
   display: grid;
-  /* Columns: user selector | date filter | (unused) */
   grid-template-columns: minmax(220px,450px) minmax(140px,360px) auto;
-  align-items: center;
-  width: 100%;
+  align-items: end;
+  width: 50%;
   margin-bottom: 1.5rem;
   position: relative;
   column-gap: 0.75rem;
@@ -17,12 +16,11 @@
   grid-column: 2;
   width: auto;
   display: flex;
-  align-items: center;
+  align-items: end;
   min-height: 38px;
   height: auto;
 }
 
-/* Place the search button below the username input (column 1, row 2) */
 .search-button-fixed {
   grid-column: 1;
   grid-row: 2;

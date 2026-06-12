@@ -62,8 +62,12 @@
                 class="stat-hero"
               >
                 <div class="stat-item stat-item--wide">
-                  <span class="stat-label plain-text">{{ t('searchByGroup.usersInRange') }} {{ selectedCourseLabel }}:</span>
-                  <span class="stat-value">alucloud{{ selectedStudentsFrom }} - alucloud{{ selectedStudentsTo }}</span>
+                  <span class="stat-label plain-text">
+                    {{ selectedStudentsRangeLabel }}
+                  </span>
+                  <span class="stat-value">
+                    {{ selectedUsersPreview }}
+                  </span>
                 </div>
                 <div class="stat-item stat-item--avg">
                   <div class="doughnut-container">
@@ -86,7 +90,15 @@
                   v-for="stat in miniStats"
                   :key="stat.id"
                   class="stat-item mini-stat"
-                  :class="{ 'mini-stat--center': !stat.hasDonut }"
+                  :class="{
+                    'mini-stat--center': !stat.hasDonut,
+                    'mini-stat--clickable': stat.id === 'not-started',
+                  }"
+                  :role="stat.id === 'not-started' ? 'button' : undefined"
+                  :tabindex="stat.id === 'not-started' ? 0 : undefined"
+                  @click="handleMiniStatClick(stat.id)"
+                  @keydown.enter="handleMiniStatClick(stat.id)"
+                  @keydown.space.prevent="handleMiniStatClick(stat.id)"
                 >
                   <div
                     v-if="stat.hasDonut"
@@ -251,6 +263,7 @@ const display = ref(true)
 const hasSearched = ref(false)
 const searchQuery = ref('')
 const selectedCourseLabel = ref('')
+const selectedUsernames = ref<string[]>([])
 const selectedStudentsFrom = ref(0)
 const selectedStudentsTo = ref(0)
 const isExportingPdf = ref(false)
@@ -296,6 +309,44 @@ const singleStudentFinalGrade = computed(() =>
 const singleStudentGradePercent = computed(() =>
   singleStudentFinalGrade.value === null ? 0 : Math.round(singleStudentFinalGrade.value * 100)
 )
+
+const selectedStudentsRangeLabel = computed(() => {
+  if (selectedUsernames.value.length <= 1) return t('searchByGroup.user')
+  return t('searchByGroup.usersInRange')
+})
+
+const selectedUsersPreview = computed(() => formatSelectedUsersPreview(selectedUsernames.value))
+
+function formatSelectedUsersPreview(usernames: string[]) {
+  if (usernames.length === 0) return ''
+  if (usernames.length === 1) return usernames[0]
+
+  type ParsedEntry = { raw: string; prefix: string; number: number; width: number }
+
+  const parsed = usernames
+    .map((username): ParsedEntry | null => {
+      const match = username.match(/^(.*?)(\d+)$/)
+      if (!match) return null
+      return { raw: username, prefix: match[1], number: Number(match[2]), width: match[2].length }
+    })
+
+  const allParsed = parsed.every((entry): entry is ParsedEntry => entry !== null)
+  if (allParsed) {
+    const sorted = [...parsed].sort((a, b) => a.prefix.localeCompare(b.prefix) || a.number - b.number)
+    const samePrefix = sorted.every(entry => entry.prefix === sorted[0].prefix)
+    const consecutive = sorted.every((entry, index) => index === 0 || entry.number === sorted[index - 1].number + 1)
+
+    if (samePrefix && consecutive) {
+      const first = sorted[0]
+      const last = sorted[sorted.length - 1]
+      const pad = (value: number) => String(value).padStart(Math.max(first.width, last.width), '0')
+      return `${first.prefix}${pad(first.number)} al ${last.prefix}${pad(last.number)}`
+    }
+  }
+
+  if (usernames.length <= 3) return usernames.join(', ')
+  return `${usernames.slice(0, 3).join(', ')}...`
+}
 
 type MiniStat = {
   id: string
@@ -385,11 +436,19 @@ const handleBarClick = (label: string) => {
   nextTick(scrollToTable)
 }
 
+const handleMiniStatClick = (statId: string) => {
+  if (statId !== 'not-started') return
+  searchQuery.value = '0.00%'
+  display.value = false
+  nextTick(scrollToTable)
+}
+
 const handleFilterApplied = async (filter: {
-  from: number; to: number; course: string
+  usernames: string[]
+  course: string
   dateRange: { start: Date; end: Date } | null
 }) => {
-  hasSearched.value = true
+  hasSearched.value        = true
   selectedCourseLabel.value = filter.course
 
   const defaultRange = calculateRange()
@@ -397,23 +456,25 @@ const handleFilterApplied = async (filter: {
   const endDate   = dayjs(filter.dateRange?.end   ?? defaultRange.end).format('YYYY-MM-DD')
   const subjects  = Array.from(new Set(courseSubjectsMap[filter.course] || []))
 
-  let from: number, to: number
+  let usernames: string[]
 
   if (authStore.isProfessor) {
-    from = filter.from
-    to   = filter.to
+    usernames = filter.usernames
   } else {
-    const studentUsers = awsStore.allUsers.filter((u) => u.startsWith('alucloud'))
-    const pos = Math.max(0, studentUsers.indexOf(authStore.username))
-    from = to = pos
+    usernames = [authStore.username]
   }
 
-  selectedStudentsFrom.value = from
-  selectedStudentsTo.value   = to
+  selectedUsernames.value = usernames
 
-  await awsStore.fetchStudentProgressByRangeForSubjects(from, to + 1, subjects, startDate, endDate)
+  // Conservar compatibilidad con las refs que muestran el rango seleccionado en la UI,
+  // si las hubiera (se pueden eliminar si ya no se usan)
+  const allStudents = awsStore.allUsers.filter((u) => u.startsWith('alucloud'))
+  const indices     = usernames.map(u => allStudents.indexOf(u)).filter(i => i >= 0)
+  selectedStudentsFrom.value = indices.length ? Math.min(...indices) : 0
+  selectedStudentsTo.value   = indices.length ? Math.max(...indices) : 0
+
+  await awsStore.fetchStudentProgressForUsers(usernames, subjects, startDate, endDate)
 }
-
 const handleStudentRowClick = (student: string) => {
   if (!student) return
   router.push({ name: 'search-by-course', query: { user: student, course: selectedCourseLabel.value } })

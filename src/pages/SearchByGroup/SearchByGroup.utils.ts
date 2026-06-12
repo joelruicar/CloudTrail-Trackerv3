@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import { REFERDATA } from '../../data/evenprac'
 import type { StudentProgress } from '../../stores/interfaces/studentProgress'
 
-export type HeatmapPoint = { x: string; y: string; v: number }
+type HeatmapPoint = { x: string; y: string; v: number }
 export type HeatmapData = {
   students: string[]
   subjects: string[]
@@ -36,6 +36,7 @@ export const formatPracticeRows = (rows: StudentProgress[]) =>
       practiceName: subject,
       user: studentName,
       completionPercent: Number(progress.toFixed(2)),
+      completionPercentLabel: `${progress.toFixed(2)}%`,
       lastRelatedEventDate: lastEvent ? dayjs(lastEvent).format('HH:mm:ss DD-MM-YYYY') : 'N/A',
     }
   })
@@ -283,7 +284,7 @@ export const buildLearningBandChart = (
         tension: 0.18,
       },
       {
-        label: 'Mediana',
+        label: 'Median',
         data: p50,
         borderColor: 'rgb(20, 136, 45)',
         pointBackgroundColor: 'rgb(20, 136, 45)',

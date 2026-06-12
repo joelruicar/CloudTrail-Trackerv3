@@ -16,7 +16,7 @@
       :value-by="getUserOptionText"
       background="textInput"
       color="primary"
-      @update:modelValue="$emit('update:modelValue', $event)"
+      @update:modelValue="onUpdateModelValue"
       @focus="openAllOptions"
       @click="openAllOptions"
       @update:search="userSearch = $event"
@@ -58,7 +58,6 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-const userSelect = ref()
 const userSearch = ref('')
 
 const filteredOptions = computed(() => {
@@ -99,7 +98,10 @@ const getHighlightedParts = (user: unknown) => {
 
 const openAllOptions = () => {
   userSearch.value = ''
-  userSelect.value?.focus()
+}
+
+const onUpdateModelValue = (value: string) => {
+  emit('update:modelValue', value)
 }
 </script>
 
@@ -110,6 +112,7 @@ const openAllOptions = () => {
   gap: 0.5rem;
   flex: 1;
   min-width: 200px;
+  width: 50%;
 }
 
 .select-option-text {

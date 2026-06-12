@@ -32,8 +32,8 @@
         @click="navigate(route)"
       >
         <VaIcon
-          v-if="iconFor(route.name)"
-          :name="iconFor(route.name)"
+          v-if="iconFor(route)"
+          :name="iconFor(route)"
           class="mr-2"
           size="20px"
         />
@@ -44,10 +44,9 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
-import navigationRoutes from './NavigationRoutes'
 import VuesticLogo from '../VuesticLogo.vue'
 
 const props = defineProps({
@@ -78,11 +77,7 @@ const routes = computed(() => {
   })
 })
 
-const iconByName = Object.fromEntries(
-  navigationRoutes.routes.map((route) => [route.name, route.meta?.icon]),
-)
-
-const iconFor    = (name) => iconByName[name]
+const iconFor = (route) => route.meta?.icon
 const navigate   = (route) => router.push(`/${route.path}`)
 const isActive   = (route) => currentRoute.name === route.name
 const formatName = (name) => name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())

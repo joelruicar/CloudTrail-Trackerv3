@@ -1,6 +1,6 @@
-# CloudTrail-Tracker-UI 
+# CloudTrail-Tracker-Dashboard 
 
-CloudTrail-Tracker-UI is a Vue 3 + TypeScript web portal built with Vite. It queries the REST API of [CloudTrail-Tracker](https://github.com/grycap/cloudtrail-tracker) to visually show high-level aggregate information about AWS resource usage by different users based on event data.
+CloudTrail-Tracker-Dashboard is a Vue 3 + TypeScript web portal built with Vite. It queries the REST API of [CloudTrail-Tracker](https://github.com/grycap/cloudtrail-tracker) to visually show high-level aggregate information about AWS resource usage by different users based on event data.
 
 ## Visual Aspect of the Dashboard
 The dashboard depicts an aggregated view of the AWS services usage in a pre-defined time frame: 

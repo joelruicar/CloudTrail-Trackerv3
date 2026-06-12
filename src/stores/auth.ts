@@ -55,7 +55,7 @@ async refreshUser() {
       }
       window.localStorage.setItem('session', JSON.stringify(sessionData))
     }
-  } catch (error) {
+  } catch {
     this.user = null
     this.token = null
     window.localStorage.removeItem('session') 

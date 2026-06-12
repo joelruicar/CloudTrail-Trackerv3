@@ -31,7 +31,7 @@
               v-if="item.price !== null && !isNaN(Number(item.price))"
               class="stats-price"
             >
-              - {{ Number(item.price).toFixed(4) }} <span class="currency">USD/h</span>
+              - {{ Number(item.price).toFixed(4) }} <span class="currency">$/h</span>
             </span>
           </div>
         </div>
@@ -48,6 +48,7 @@ import { useOteadorStore } from '../stores/oteador'
 const props = defineProps({
   source: {
     type: String,
+    default: 'aws',
     pointer: 'aws',
     validator: (value) => ['aws', 'oteador'].includes(value),
   },

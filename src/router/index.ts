@@ -18,11 +18,13 @@ const routes: Array<RouteRecordRaw> = [
       {
         name: 'dashboard',
         path: 'dashboard',
+        meta: { icon: 'vuestic-iconset-dashboard' },
         component: () => import('../pages/Dashboard/Dashboard.vue'),
       },
       {
         name: 'oteador',
         path: 'oteador',
+        meta: { icon: 'vuestic-iconset-components' },
         component: () => import('../pages/Oteador/Oteador.vue'),
       },
       {
@@ -33,17 +35,19 @@ const routes: Array<RouteRecordRaw> = [
       {
         name: 'search-by-user',
         path: 'search-by-user',
+        meta: { icon: 'vuestic-iconset-user' },
         component: () => import('../pages/SearchByUser/SearchByUser.vue'),
       },
       {
         name: 'search-by-course',
         path: 'search-by-course',
+        meta: { icon: 'vuestic-iconset-statistics' },
         component: () => import('../pages/SearchByCourse/SearchByCourse.vue'),
       }, 
       {
         name: 'search-by-group',
         path: 'search-by-group',
-        meta: { requiresProfessor: true },
+        meta: { requiresProfessor: true, icon: 'vuestic-iconset-graph' },
         component: () => import('../pages/SearchByGroup/SearchByGroup.vue'),
       },
     ],

@@ -5,9 +5,19 @@
   align-items: end;
 }
 
-.search-course-filters-dates {
-  min-width: 0;
+.course-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 200px;
+  width: 50%;
 }
+
+.course-field :deep(.va-select) {
+  width: 100%;
+}
+
 
 .search-course-search-btn {
   min-width: 165px;
@@ -19,6 +29,30 @@
   margin-top: 0;
 }
 
+.course-results-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 1.5rem 1rem;
+}
+
+.course-grade-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--va-background-border);
+}
+
+.course-grade-label {
+  color: var(--va-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+
 @media (max-width: 768px) {
   .search-course-filters-grid {
     grid-template-columns: 1fr;
@@ -26,5 +60,11 @@
 
   .search-course-actions {
     margin-top: 1rem;
+  }
+
+  .course-results-actions {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-inline: 0.75rem;
   }
 }

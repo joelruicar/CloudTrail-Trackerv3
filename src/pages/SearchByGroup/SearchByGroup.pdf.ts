@@ -25,21 +25,24 @@ import type { StudentProgress } from '../../stores/interfaces/studentProgress'
 
 Chart.register(Title, Tooltip, Legend, BarElement, LineElement, CategoryScale, LinearScale, PointElement, Filler, ChartDataLabels)
 
-const CHART_WIDTH = 600
-const CHART_HEIGHT = 300
+const CHART_WIDTH = 900
+const CHART_HEIGHT = 420
 const PAGE_WIDTH = 600
 const PAGE_HEIGHT = 800
+const PAGE_MARGIN = 36
+const PDF_CHART_WIDTH = PAGE_WIDTH - PAGE_MARGIN * 2
+const PDF_CHART_HEIGHT = 220
 
 const colorPalette = [
-  'rgba(235, 54, 54, 1)',
-  'rgba(99, 232, 255, 1)',
-  'rgba(190, 145, 29, 1)',
-  'rgba(201, 87, 176, 1)',
-  'rgba(6, 27, 87, 1)',
-  'rgba(36, 189, 100, 1)',
-  'rgba(104, 141, 35, 1)',
-  'rgba(83, 64, 255, 1)',
-  'rgba(92, 6, 53, 1)',
+  'rgba(66, 133, 244, 1)',
+  'rgba(15, 157, 88, 1)',
+  'rgba(244, 180, 0, 1)',
+  'rgba(219, 68, 55, 1)',
+  'rgba(171, 71, 188, 1)',
+  'rgba(0, 172, 193, 1)',
+  'rgba(124, 179, 66, 1)',
+  'rgba(251, 140, 0, 1)',
+  'rgba(84, 110, 122, 1)',
 ]
 
 const waitForPaint = () => new Promise<void>((resolve) => {
@@ -107,29 +110,6 @@ const createChartImage = async (
     return bytes
   } finally {
     document.body.removeChild(canvas)
-  }
-}
-
-const drawCenteredText = (page: PDFPage, font: PDFFont, text: string, y: number, size = 16) => {
-  try {
-    const textWidth = font.widthOfTextAtSize(text, size)
-    const x = (PAGE_WIDTH - textWidth) / 2
-    page.drawText(text, {
-      x,
-      y,
-      size,
-      font,
-      color: rgb(0, 0, 0),
-    })
-  } catch (error) {
-    console.warn('Error drawing centered text:', error)
-    page.drawText(text, {
-      x: 10,
-      y,
-      size,
-      font,
-      color: rgb(0, 0, 0),
-    })
   }
 }
 
@@ -213,12 +193,14 @@ const buildProgressChartData = (rows: StudentProgress[]) => {
         label: 'Progress (%)',
         data,
         backgroundColor: data.map((value) => (
-          value >= 80 ? 'rgba(74,227,135,0.2)' : value > 50 ? 'rgba(206,193,83,0.2)' : 'rgba(255,51,0,0.2)'
+          value >= 80 ? 'rgba(80, 160, 105, 0.86)' : value > 40 ? 'rgba(225, 169, 70, 0.86)' : 'rgba(210, 92, 92, 0.86)'
         )),
         borderColor: data.map((value) => (
-          value >= 80 ? 'rgba(0,102,0,1)' : value > 50 ? 'rgba(197,167,67,1)' : 'rgba(173,39,6,1)'
+          value >= 80 ? 'rgba(58, 125, 80, 1)' : value > 40 ? 'rgba(183, 128, 37, 1)' : 'rgba(170, 66, 66, 1)'
         )),
-        borderWidth: 1,
+        borderWidth: 0,
+        borderRadius: 10,
+        maxBarThickness: 46,
       },
     ],
   }
@@ -244,12 +226,84 @@ const buildTimelineChartData = (rows: StudentProgress[], subjects: string[], cou
         }),
         fill: false,
         borderColor: colorPalette[index % colorPalette.length],
-        tension: 0.15,
-        pointRadius: 3,
-        pointHoverRadius: 4,
+        backgroundColor: colorPalette[index % colorPalette.length],
+        borderWidth: 2,
+        tension: 0.25,
+        pointRadius: 2,
+        pointHoverRadius: 3,
       }
     }),
   }
+}
+
+const baseScales = {
+  x: {
+    grid: { display: false },
+    ticks: {
+      color: '#4b5563',
+      font: { size: 11, family: 'Helvetica' },
+      maxRotation: 35,
+      minRotation: 0,
+      autoSkip: true,
+      maxTicksLimit: 10,
+    },
+  },
+  y: {
+    beginAtZero: true,
+    min: 0,
+    max: 100,
+    grid: { color: 'rgba(15, 23, 42, 0.08)' },
+    border: { display: false },
+    ticks: {
+      color: '#6b7280',
+      font: { size: 11, family: 'Helvetica' },
+      stepSize: 20,
+    },
+  },
+}
+
+const drawHeader = (
+  page: PDFPage,
+  font: PDFFont,
+  boldFont: PDFFont,
+  courseLabel: string,
+  studentName: string,
+  mark: string,
+) => {
+  page.drawText('Student progress report', {
+    x: PAGE_MARGIN,
+    y: PAGE_HEIGHT - 42,
+    size: 16,
+    font: boldFont,
+    color: rgb(0, 0, 0),
+  })
+
+  page.drawText(`${courseLabel} - ${studentName}`, {
+    x: PAGE_MARGIN,
+    y: PAGE_HEIGHT - 66,
+    size: 10,
+    font,
+    color: rgb(0.25, 0.25, 0.25),
+  })
+
+  const gradeText = `Grade: ${mark}/1`
+  page.drawText(gradeText, {
+    x: PAGE_WIDTH - PAGE_MARGIN - boldFont.widthOfTextAtSize(gradeText, 12),
+    y: PAGE_HEIGHT - 66,
+    size: 12,
+    font: boldFont,
+    color: rgb(0.2, 0.45, 0.28),
+  })
+}
+
+const drawSectionTitle = (page: PDFPage, font: PDFFont, text: string, y: number) => {
+  page.drawText(text, {
+    x: PAGE_MARGIN,
+    y,
+    size: 11,
+    font,
+    color: rgb(0.18, 0.18, 0.18),
+  })
 }
 
 
@@ -260,8 +314,25 @@ const buildPdfForStudent = async (courseLabel: string, studentRows: StudentProgr
   const studentName = studentRows[0]?.studentName || 'alucloud'
 
   const barImageBytes = await createChartImage('bar', buildProgressChartData(studentRows), {
-    scales: { y: { beginAtZero: true, min: 0, max: 100 } },
-    plugins: { legend: { display: false } },
+    layout: { padding: { top: 22, right: 12, bottom: 4, left: 4 } },
+    scales: baseScales,
+    datasets: {
+      bar: {
+        barPercentage: 0.58,
+        categoryPercentage: 0.78,
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      datalabels: {
+        align: 'end',
+        anchor: 'end',
+        offset: 4,
+        color: '#374151',
+        font: { size: 11, weight: 'bold' },
+        formatter: (value: number) => Math.round(value),
+      },
+    },
   })
 
   const timelineData = buildTimelineChartData(studentRows, subjects, courseLabel)
@@ -277,18 +348,34 @@ const buildPdfForStudent = async (courseLabel: string, studentRows: StudentProgr
 
   const timelineImageBytes = await createChartImage('line', timelineData, {
     spanGaps: true,
+    layout: {
+      padding: { top: 26, right: 12, bottom: 0, left: 4 },
+    },
     scales: {
-      y: {
-        beginAtZero: true,
-        min: 0,
-        max: 100,
+      ...baseScales,
+      x: {
+        ...baseScales.x,
+        ticks: {
+          ...baseScales.x.ticks,
+          maxTicksLimit: 8,
+          maxRotation: 30,
+        },
       },
     },
-    layout: {
-      padding: { top: 28 }, // extra room so labels above 100% line don't clip
-    },
     plugins: {
-      legend: { position: 'bottom' },
+      legend: {
+        position: 'bottom',
+        align: 'start',
+        labels: {
+          color: '#4b5563',
+          boxWidth: 10,
+          boxHeight: 10,
+          padding: 10,
+          usePointStyle: true,
+          pointStyle: 'line',
+          font: { size: 10 },
+        },
+      },
       datalabels: {
         display: (context: DataLabelsContext) => {
           const idx = firstAbove80.get(context.datasetIndex)
@@ -297,7 +384,7 @@ const buildPdfForStudent = async (courseLabel: string, studentRows: StudentProgr
         formatter: (value: number) => `${value}%`,
         anchor: 'end',
         align: 'top',
-        offset: 2, // closer to the line
+        offset: 3,
         font: { size: 9, weight: 'bold' },
         color: (context: DataLabelsContext) => darkenColor(colorPalette[context.datasetIndex % colorPalette.length], 0.6),
       },
@@ -309,11 +396,24 @@ const buildPdfForStudent = async (courseLabel: string, studentRows: StudentProgr
   const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT])
 
   const progressBySubject = Object.fromEntries(studentRows.map((r) => [r.subject, r.progress]))
-  const mark = subjects.length ? calculateFinalGrade(subjects, progressBySubject).toFixed(2) : '0.00'
-  drawCenteredText(page, boldFont, `${courseLabel} - ${studentName}: ${mark}`, PAGE_HEIGHT - 34, 16)
-  page.drawImage(barImage, { x: 0, y: PAGE_HEIGHT - 350, width: CHART_WIDTH, height: CHART_HEIGHT })
-  drawCenteredText(page, font, 'Time progression', PAGE_HEIGHT - 365, 14)
-  page.drawImage(lineImage, { x: 0, y: 120, width: CHART_WIDTH, height: CHART_HEIGHT })
+  const mark = subjects.length ? calculateFinalGrade(subjects, progressBySubject).toFixed(1) : '0.0'
+
+  drawHeader(page, font, boldFont, courseLabel, studentName, mark)
+  drawSectionTitle(page, font, 'Progress by practice', PAGE_HEIGHT - 98)
+  page.drawImage(barImage, {
+    x: PAGE_MARGIN,
+    y: PAGE_HEIGHT - 330,
+    width: PDF_CHART_WIDTH,
+    height: PDF_CHART_HEIGHT,
+  })
+
+  drawSectionTitle(page, font, 'Time progression', PAGE_HEIGHT - 366)
+  page.drawImage(lineImage, {
+    x: PAGE_MARGIN,
+    y: PAGE_HEIGHT - 600,
+    width: PDF_CHART_WIDTH,
+    height: PDF_CHART_HEIGHT,
+  })
 
   return pdfDoc.save()
 }

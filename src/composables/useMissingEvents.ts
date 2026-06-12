@@ -16,12 +16,6 @@ export interface MissingEventRow {
   eventLink?: string
 }
 
-export const missingEventColumns = [
-  { key: 'practice',  label: 'Practice',                sortable: true },
-  { key: 'eventName', label: 'Event',                   sortable: true },
-  { key: 'missing',   label: 'Number of missing events', sortable: true },
-]
-
 export function useMissingEvents(
   subjects: Ref<string[]>,
   studentProgressData: Ref<StudentProgressRow[]>,

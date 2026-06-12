@@ -43,6 +43,10 @@ function onBarClick(event) {
   if (label) emit('barClick', label)
 }
 
+const getCanvas = () => barRef.value?.chart?.canvas ?? null
+
+defineExpose({ getCanvas })
+
 const isLaboratoryChart = computed(() => props.title.toLowerCase().includes('laboratory'))
 const chartTextColor = computed(() => getColor('plainText'))
 const chartNumberColor = computed(() => getColor('chartColor'))

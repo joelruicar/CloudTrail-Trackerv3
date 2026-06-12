@@ -241,80 +241,72 @@ export const useAwsStore = defineStore('aws', {
         this.loading = false
       }
     },
-    async fetchStudentProgressByRangeForSubjects(
-      from: number,
-      to: number,
-      subjects: string[],
-      startDate?: string,
-      endDate?: string,
-    ) {
-      this.loading = true
+async fetchStudentProgressForUsers(
+  usernames: string[],
+  subjects: string[],
+  startDate?: string,
+  endDate?: string,
+) {
+  this.loading = true
+  try {
+    const to_date   = endDate   || formatLocal(new Date(), false)
+    const from_date = startDate || formatLocal(new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000), false)
+
+    const referDataBySubject  = (REFERDATA.REFERDATA || {}) as Record<string, Record<string, number>>
+    const normalizedSubjectsSet = new Set(subjects.filter(Boolean))
+    const subjectOrder          = Object.keys(referDataBySubject)
+    const progressDataList: StudentProgress[] = []
+
+    for (const username of usernames) {
       try {
-        const to_date = endDate || formatLocal(new Date(), false)
-        const from_date = startDate || formatLocal(new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000), false)
+        const eventsRes = await api.client.get(`/users/${username}`, {
+          params: { from: from_date, to: to_date },
+        })
 
-        const allUsersList = await this.getAllUsers(false)
-        const studentUsers = allUsersList.filter((u) => u.startsWith('alucloud')).slice(from, to)
+        const events        = (eventsRes.data || []) as AwsEvent[]
+        const studentIndex  = parseInt(username.replace('alucloud', '')) || 0
+        const remainingEventCounts = events.reduce<Record<string, number>>((acc, event) => {
+          acc[event.eventName] = (acc[event.eventName] || 0) + 1
+          return acc
+        }, {})
 
-        const referDataBySubject = (REFERDATA.REFERDATA || {}) as Record<string, Record<string, number>>
-        const normalizedSubjects = subjects.filter(Boolean)
-        const normalizedSubjectsSet = new Set(normalizedSubjects)
-        const subjectOrder = Object.keys(referDataBySubject)
-        const progressDataList: StudentProgress[] = []
+        for (const subject of subjectOrder) {
+          if (!normalizedSubjectsSet.has(subject)) continue
 
-        for (const username of studentUsers) {
-          try {
-            const eventsRes = await api.client.get(`/users/${username}`, {
-              params: { from: from_date, to: to_date },
-            })
+          const allowedEvents: Record<string, number> = referDataBySubject[subject] || {}
+          let completedPractices = 0
 
-            const events = (eventsRes.data || []) as AwsEvent[]
-            const studentIndex = parseInt(username.replace('alucloud', '')) || 0
-            const remainingEventCounts = events.reduce<Record<string, number>>((acc, event) => {
-              const eventName = event.eventName
-              acc[eventName] = (acc[eventName] || 0) + 1
-              return acc
-            }, {})
+          Object.entries(allowedEvents).forEach(([eventName, requiredCount]) => {
+            const observed = remainingEventCounts[eventName] || 0
+            const consumed = Math.min(observed, requiredCount)
+            completedPractices += consumed
+            remainingEventCounts[eventName] = Math.max(0, observed - consumed)
+          })
 
-            for (const subject of subjectOrder) {
-              const allowedEvents: Record<string, number> = referDataBySubject[subject] || {}
-              let completedPractices = 0
+          const totalPractices = Object.values(allowedEvents).reduce((sum, v) => sum + v, 0)
+          const progress       = totalPractices > 0 ? (completedPractices / totalPractices) * 100 : 0
 
-              Object.entries(allowedEvents).forEach(([eventName, requiredCount]) => {
-                const observedCount = remainingEventCounts[eventName] || 0
-                const consumed = Math.min(observedCount, requiredCount)
-                completedPractices += consumed
-                remainingEventCounts[eventName] = Math.max(0, observedCount - consumed)
-              })
-
-              const totalPractices = Object.values(allowedEvents).reduce((sum, val) => sum + val, 0)
-              const progress = totalPractices > 0 ? (completedPractices / totalPractices) * 100 : 0
-
-              if (!normalizedSubjectsSet.has(subject)) {
-                continue
-              }
-
-              progressDataList.push({
-                studentIndex,
-                studentName: username,
-                subject,
-                progress: Math.round(Math.min(progress, 100) * 100) / 100,
-                completedPractices,
-                totalPractices,
-                events: events.filter((e: AwsEvent) => e.eventName in allowedEvents),
-              })
-            }
-          } catch (error) {
-            console.error(`Error obteniendo datos del usuario ${username}:`, error)
-          }
+          progressDataList.push({
+            studentIndex,
+            studentName: username,
+            subject,
+            progress:            Math.round(Math.min(progress, 100) * 100) / 100,
+            completedPractices,
+            totalPractices,
+            events: events.filter((e: AwsEvent) => e.eventName in allowedEvents),
+          })
         }
-
-        this.studentProgressData = progressDataList
       } catch (error) {
-        console.error('Error fetching student progress by subjects:', error)
-      } finally {
-        this.loading = false
+        console.error(`Error obteniendo datos del usuario ${username}:`, error)
       }
-    },
+    }
+
+    this.studentProgressData = progressDataList
+  } catch (error) {
+    console.error('Error fetching student progress for users:', error)
+  } finally {
+    this.loading = false
+  }
+},
   },
 })
