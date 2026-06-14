@@ -53,7 +53,7 @@ export default {
       plainText: '#eef2f4',
       widgetMetric: '#0000001f',
       widgetZero: '#131313',
-      widgetText: '#ffffff',
+      widgetText: '#90a792',
       emptyState: '#64748b',
       chartColor: '#417B4E',
       chartTitle: '#35ba8a',

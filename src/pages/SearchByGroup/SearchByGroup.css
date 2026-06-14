@@ -1,6 +1,6 @@
 .stat-hero {
   border-radius: 8px;
-  background: linear-gradient(90deg, #3C684F 0%, #75A474 43%);
+background: linear-gradient(90deg, #3D5A4C 0%, #7FA88C 43%);
   color: #ffffff;
   display: grid;
   grid-template-columns: minmax(260px, 1.1fr) minmax(0, 0.9fr);

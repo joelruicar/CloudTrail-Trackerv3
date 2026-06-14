@@ -88,7 +88,7 @@ const formatName = (name) => name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toU
 
 .app-sidebar {
   min-height: 100vh;
-  background: linear-gradient(182deg, var(--va-background-card-secondary) 10%, var(--va-background-primary) 80%);
+  background: linear-gradient(182deg, var(--va-background-card-secondary) 70%, var(--va-background-primary) 80%);
   border-right: none;
 }
 

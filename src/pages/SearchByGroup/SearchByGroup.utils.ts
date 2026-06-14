@@ -21,7 +21,7 @@ export const calculateFinalGrade = (subjects: string[], values: Record<string, n
   return subjects.reduce((sum, subject) => {
     const progress = values[subject] ?? 0
     return sum + (progress >= 80 ? progress : 0)
-  }, 0) / subjects.length / 100
+  }, 0) / subjects.length / 10
 }
 
 export const formatPracticeRows = (rows: StudentProgress[]) =>

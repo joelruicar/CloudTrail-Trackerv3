@@ -13,7 +13,7 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        api: 'modern-compiler', // or "modern"
+        api: 'modern-compiler',
       },
     },
   },
@@ -24,13 +24,18 @@ export default defineConfig({
         global: true,
         process: true,
       },
-      //opcional
       protocolImports: true,
     }),
-    vuestic(),
+   vuestic({
+      devtools: false
+    }),
     vue(),
     VueI18nPlugin({
       include: resolve(dirname(fileURLToPath(import.meta.url)), './src/i18n/locales/**'),
     }),
   ],
+  define: {
+    __VUE_PROD_DEVTOOLS__: false,
+    'process.env.__VUE_PROD_DEVTOOLS__': false
+  }
 })

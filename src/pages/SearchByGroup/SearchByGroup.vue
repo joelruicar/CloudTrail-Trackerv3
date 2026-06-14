@@ -53,7 +53,7 @@
                       number-color="white"
                     />
                   </div>
-                  <span class="stat-value">{{ t('searchByGroup.grade') }} {{ singleStudentFinalGrade?.toFixed(1) }}/1</span>
+                  <span class="stat-value">{{ t('searchByGroup.grade') }} {{ singleStudentFinalGrade?.toFixed(1) }}/10</span>
                 </div>
               </div>
 
@@ -63,7 +63,7 @@
               >
                 <div class="stat-item stat-item--wide">
                   <span class="stat-label plain-text">
-                    {{ selectedStudentsRangeLabel }}
+                    {{ selectedStudentsRangeLabel }} {{ selectedCourseLabel }} {{ formattedDateRange.start }} - {{ formattedDateRange.end }}
                   </span>
                   <span class="stat-value">
                     {{ selectedUsersPreview }}
@@ -129,7 +129,7 @@
               </div>
 
               <h2 class="section-title">
-                AWS services used in the last hour
+                Average percentage of compliance with the laboratory practices
               </h2>
               <Chart
                 :chart-data="averageProgressChart"
@@ -266,6 +266,7 @@ const selectedCourseLabel = ref('')
 const selectedUsernames = ref<string[]>([])
 const selectedStudentsFrom = ref(0)
 const selectedStudentsTo = ref(0)
+const selectedDateRange = ref<{ start: string; end: string } | null>(null)
 const isExportingPdf = ref(false)
 const tableContainerRef = ref<HTMLElement | null>(null)
 
@@ -307,7 +308,7 @@ const singleStudentFinalGrade = computed(() =>
 )
 
 const singleStudentGradePercent = computed(() =>
-  singleStudentFinalGrade.value === null ? 0 : Math.round(singleStudentFinalGrade.value * 100)
+  singleStudentFinalGrade.value === null ? 0 : Math.round(singleStudentFinalGrade.value * 10)
 )
 
 const selectedStudentsRangeLabel = computed(() => {
@@ -316,6 +317,14 @@ const selectedStudentsRangeLabel = computed(() => {
 })
 
 const selectedUsersPreview = computed(() => formatSelectedUsersPreview(selectedUsernames.value))
+
+const formattedDateRange = computed(() => {
+  if (!selectedDateRange.value) return { start: '', end: '' }
+  return {
+    start: dayjs(selectedDateRange.value.start).format('DD/MM/YYYY'),
+    end: dayjs(selectedDateRange.value.end).format('DD/MM/YYYY'),
+  }
+})
 
 function formatSelectedUsersPreview(usernames: string[]) {
   if (usernames.length === 0) return ''
@@ -455,6 +464,8 @@ const handleFilterApplied = async (filter: {
   const startDate = dayjs(filter.dateRange?.start ?? defaultRange.start).format('YYYY-MM-DD')
   const endDate   = dayjs(filter.dateRange?.end   ?? defaultRange.end).format('YYYY-MM-DD')
   const subjects  = Array.from(new Set(courseSubjectsMap[filter.course] || []))
+
+  selectedDateRange.value = { start: startDate, end: endDate }
 
   let usernames: string[]
 

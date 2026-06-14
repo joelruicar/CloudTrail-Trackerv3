@@ -16,124 +16,124 @@
         />
       </div>
 
-      <template v-if="authStore.isProfessor">
-        <div class="filter-field search-field">
-          <label for="user-search">Usernames</label>
-          <div class="dropdown-wrapper user-list-search">
-            <div ref="inputWrapperEl">
-              <VaInput
-                id="user-search"
-                v-model="searchQuery"
-                placeholder="Search users"
-                background="textInput"
-                clearable
-                @focus="isDropdownOpen = true"
-                @click="isDropdownOpen = true"
-              >
-                <template #prepend>
-                  <VaIcon
-                    name="search"
-                    size="16px"
-                    color="secondary"
-                  />
-                </template>
-              </VaInput>
-            </div>
+      <div
+        v-if="authStore.isProfessor"
+        class="filter-field search-field"
+      >
+        <label for="user-search">Usernames</label>
+        <div class="dropdown-wrapper user-list-search">
+          <div ref="inputWrapperEl">
+            <VaInput
+              id="user-search"
+              v-model="searchQuery"
+              placeholder="Search users"
+              background="textInput"
+              clearable
+              @focus="isDropdownOpen = true"
+            >
+              <template #prepend>
+                <VaIcon
+                  name="search"
+                  size="16px"
+                  color="secondary"
+                />
+              </template>
+            </VaInput>
+          </div>
 
-            <div
-              v-if="isDropdownOpen"
-              class="dropdown-overlay"
-              @mousedown.stop="isDropdownOpen = false"
-            />
+          <div
+            v-if="isDropdownOpen"
+            class="dropdown-overlay"
+            @mousedown.stop="isDropdownOpen = false"
+          />
 
+          <div
+            v-show="isDropdownOpen"
+            class="dropdown-panel"
+          >
             <div
-              v-show="isDropdownOpen"
-              class="dropdown-panel"
+              class="user-list"
+              @mouseleave="drag.active = false"
             >
               <div
-                class="user-list"
-                @mouseleave="drag.active = false"
+                v-for="user in filteredUsers"
+                :key="user"
+                class="user-item"
+                :class="{
+                  'user-item--selected': selectedSet.has(user),
+                  'user-item--in-range': isInDragRange(user),
+                }"
+                @mousedown.prevent="onMouseDown(user, $event)"
+                @mouseenter="onMouseEnter(user)"
+                @mouseup="onMouseUp"
               >
-                <div
-                  v-for="user in filteredUsers"
-                  :key="user"
-                  class="user-item"
-                  :class="{
-                    'user-item--selected': selectedSet.has(user),
-                    'user-item--in-range': isInDragRange(user),
-                  }"
-                  @mousedown.prevent="onMouseDown(user, $event)"
-                  @mouseenter="onMouseEnter(user)"
-                  @mouseup="onMouseUp"
+                <span
+                  class="user-checkbox"
+                  aria-hidden="true"
                 >
-                  <span
-                    class="user-checkbox"
-                    aria-hidden="true"
+                  <svg
+                    v-if="selectedSet.has(user)"
+                    viewBox="0 0 12 10"
+                    fill="none"
                   >
-                    <svg
-                      v-if="selectedSet.has(user)"
-                      viewBox="0 0 12 10"
-                      fill="none"
-                    >
-                      <path
-                        d="M1 5l3.5 3.5L11 1"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
-                  </span>
-                  <span class="user-label">
-                    <template
-                      v-for="(part, i) in getHighlightedParts(user)"
-                      :key="i"
-                    >
-                      <mark
-                        v-if="part.match"
-                        class="user-match"
-                      >{{ part.text }}</mark>
-                      <span v-else>{{ part.text }}</span>
-                    </template>
-                  </span>
-                </div>
-
-                <div
-                  v-if="filteredUsers.length === 0"
-                  class="user-empty"
-                >
-                  Sin resultados para "{{ searchQuery }}"
-                </div>
+                    <path
+                      d="M1 5l3.5 3.5L11 1"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+                <span class="user-label">
+                  <template
+                    v-for="(part, i) in getHighlightedParts(user)"
+                    :key="i"
+                  >
+                    <mark
+                      v-if="part.match"
+                      class="user-match"
+                    >{{ part.text }}</mark>
+                    <span v-else>{{ part.text }}</span>
+                  </template>
+                </span>
               </div>
 
-              <div class="user-list-actions">
-                <button
-                  class="action-btn"
-                  :disabled="selectedUsernames.length === 0"
-                  @click="clearAll"
-                >
-                  Limpiar selección
-                </button>
-                <button
-                  class="action-btn"
-                  @click="selectAll"
-                >
-                  Seleccionar todos
-                </button>
+              <div
+                v-if="filteredUsers.length === 0"
+                class="user-empty"
+              >
+                Sin resultados para "{{ searchQuery }}"
               </div>
             </div>
 
-            <div class="user-list-header">
-              <span
-                v-if="selectedUsernames.length > 0"
-                class="user-list-count"
+            <div class="user-list-actions">
+              <button
+                class="action-btn"
+                :disabled="selectedUsernames.length === 0"
+                @click="clearAll"
               >
-                {{ selectedUsernamesLabel }} seleccionado{{ selectedUsernames.length !== 1 ? 's' : '' }}
-              </span>
+                Limpiar selección
+              </button>
+              <button
+                class="action-btn"
+                @click="selectAll"
+              >
+                Seleccionar todos
+              </button>
             </div>
           </div>
+
+          <div class="user-list-header">
+            <span
+              v-if="selectedUsernames.length > 0"
+              class="user-list-count"
+            >
+              {{ selectedUsernamesLabel }} seleccionado{{ selectedUsernames.length !== 1 ? 's' : '' }}
+            </span>
+          </div>
         </div>
-      </template>
+      </div>
 
       <div class="filter-field date-field">
         <DateFilter v-model="selectedDateRange" />
@@ -223,7 +223,7 @@ function getHighlightedParts(user: string) {
   return user
     .split(new RegExp(`(${q})`, 'i'))
     .filter(s => s.length)
-    .map(text => ({ text, match: text.toLowerCase() === q.toLowerCase() }))
+    .map((text, i) => ({ text, match: i % 2 === 1 }))
 }
 
 const selectedUsernames = ref<string[]>([])
@@ -242,10 +242,14 @@ function getRangeBetween(a: string, b: string): string[] {
   return list.slice(lo, hi + 1)
 }
 
-function isInDragRange(user: string): boolean {
+const dragRangeSet = computed(() => {
   const { active, anchor, current } = drag.value
-  if (!active || !anchor || !current) return false
-  return getRangeBetween(anchor, current).includes(user)
+  if (!active || !anchor || !current) return new Set<string>()
+  return new Set(getRangeBetween(anchor, current))
+})
+
+function isInDragRange(user: string): boolean {
+  return dragRangeSet.value.has(user)
 }
 
 function applyRangeToggle(range: string[]) {
@@ -273,23 +277,9 @@ function onMouseEnter(user: string) {
 
 function onMouseUp() {
   const { active, anchor, current } = drag.value
-  if (!active) return
-
-  if (anchor && current) {
-    const range = getRangeBetween(anchor, current)
-    const next  = new Set(selectedUsernames.value)
-    if (range.length === 1) {
-      if (next.has(range[0])) {
-        next.delete(range[0])
-      } else {
-        next.add(range[0])
-      }
-    } else {
-      range.forEach(u => next.add(u))
-    }
-    selectedUsernames.value = [...next]
+  if (active && anchor && current) {
+    applyRangeToggle(getRangeBetween(anchor, current))
   }
-
   drag.value = { active: false, anchor: null, current: null }
 }
 
@@ -360,25 +350,20 @@ function applyFilter() {
 
 .range-inputs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(130px, 1fr));
+  grid-template-columns: repeat(3, minmax(200px, 1fr));
   gap: 0.7rem 0.9rem;
   align-items: end;
   width: 100%;
+  justify-content: start;
 }
-
 .filter-field {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   min-width: 200px;
-  width: 50%;
+  max-width: 320px;
 }
 
-.filter-field > label {
-  font-weight: 600;
-  font-size: 0.72rem;
-  color: var(--va-plain-text);
-}
 
 .course-field {
   flex: 1;
@@ -392,33 +377,11 @@ function applyFilter() {
 .date-field {
   width: auto;
   min-width: 0;
+  max-width: none;
   justify-content: flex-end;
 }
 
-.date-field :deep(> div) {
-  width: auto;
-  align-items: center;
-}
 
-.search-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  width: 100%;
-  flex-wrap: wrap;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.input-group label {
-  font-weight: 600;
-  font-size: 0.72rem;
-  color: var(--va-plain-text);
-}
 
 .apply-btn {
   grid-column: 1 / -1;

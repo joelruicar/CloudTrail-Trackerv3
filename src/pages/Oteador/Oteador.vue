@@ -120,6 +120,10 @@ let refreshInProgress = false
 const linkColumnKey = computed(() => store.currentColumns[0]?.key ?? '')
 
 function onBarClick(label: string) {
+  if (store.chartXAxis === 'Number') {
+    display.value = false
+    return
+  }
   searchQuery.value = searchQuery.value === label ? '' : label
   display.value = false
 }

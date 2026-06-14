@@ -53,30 +53,15 @@ const waitForPaint = () => new Promise<void>((resolve) => {
   }
 })
 
-const canvasToBytes = async (canvas: HTMLCanvasElement): Promise<ArrayBuffer> => {
-  return new Promise<ArrayBuffer>((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      reject(new Error('Canvas blob conversion timeout'))
-    }, 5000)
-
+const canvasToBytes = (canvas: HTMLCanvasElement): Promise<ArrayBuffer> =>
+  new Promise((resolve, reject) => {
     canvas.toBlob(
-      async (blob) => {
-        clearTimeout(timeout)
-        if (!blob) {
-          reject(new Error('Unable to render chart image'))
-          return
-        }
-        try {
-          const buffer = await blob.arrayBuffer()
-          resolve(buffer)
-        } catch (error) {
-          reject(error)
-        }
-      },
+      (blob) => blob
+        ? blob.arrayBuffer().then(resolve).catch(reject)
+        : reject(new Error('Unable to render chart image')),
       'image/png',
     )
   })
-}
 
 type ReportChartType = 'bar' | 'line'
 type ReportChartData = ChartData<ReportChartType, number[], string>
@@ -172,7 +157,6 @@ const buildCompletionTimeline = (rows: StudentProgress[], subjects: string[], co
     }
 
     subjectToDayProgress[subject] = dayProgress
-    Object.keys(dayProgress).forEach((day) => allDays.add(day))
   }
 
   return {
@@ -286,7 +270,7 @@ const drawHeader = (
     color: rgb(0.25, 0.25, 0.25),
   })
 
-  const gradeText = `Grade: ${mark}/1`
+  const gradeText = `Grade: ${mark}/10`
   page.drawText(gradeText, {
     x: PAGE_WIDTH - PAGE_MARGIN - boldFont.widthOfTextAtSize(gradeText, 12),
     y: PAGE_HEIGHT - 66,
@@ -311,7 +295,7 @@ const buildPdfForStudent = async (courseLabel: string, studentRows: StudentProgr
   const pdfDoc = await PDFDocument.create()
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
-  const studentName = studentRows[0]?.studentName || 'alucloud'
+  const studentName = studentRows[0]?.studentName ?? 'Unknown'
 
   const barImageBytes = await createChartImage('bar', buildProgressChartData(studentRows), {
     layout: { padding: { top: 22, right: 12, bottom: 4, left: 4 } },
@@ -451,6 +435,6 @@ export async function downloadStudentProgressReports(
   }
 
   const [studentName, pdfBytes] = pdfsByStudent[0]
-  const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' })
+  const blob = new Blob([pdfBytes as unknown as Uint8Array<ArrayBuffer>], { type: 'application/pdf' })
   saveAs(blob, `${courseLabel}-${studentName}-reporte.pdf`)
 }

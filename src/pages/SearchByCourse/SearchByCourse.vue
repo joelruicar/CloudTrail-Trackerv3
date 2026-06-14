@@ -179,7 +179,7 @@ const studentFinalGrade = computed(() =>
 )
 
 const studentFinalGradeLabel = computed(() =>
-  studentFinalGrade.value === null ? '-' : `${studentFinalGrade.value.toFixed(1)}/1`
+  studentFinalGrade.value === null ? '-' : `${studentFinalGrade.value.toFixed(1)}/10`
 )
 
 const hasChartData = computed(() =>
