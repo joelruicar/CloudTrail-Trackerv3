@@ -170,7 +170,6 @@ const getServiceIcon = (serviceKey) => {
   justify-content: center;
   background-color: var(--va-background-element); 
   color: var(--va-primary);
-  cursor: default;
 }
 
 .card-content-compact.card-clickable .icon-container,
@@ -196,7 +195,6 @@ const getServiceIcon = (serviceKey) => {
 .text-container {
   display: flex;
   flex-direction: column;
-  cursor: default;
 }
 
 .stats-label {
@@ -204,7 +202,6 @@ const getServiceIcon = (serviceKey) => {
   color: var(--va-text-secondary);
   font-weight: 500;  
   text-transform: capitalize;
-  cursor: default;
 }
 
 .value-row {
@@ -217,18 +214,15 @@ const getServiceIcon = (serviceKey) => {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--va-text-primary);
-  cursor: default;
 }
 
 .stats-price {
   font-size: 0.8rem;
   color: var(--va-text-secondary);
   font-family: monospace;
-  cursor: default;
 }
 
 .currency {
   font-size: 0.7rem;
-  cursor: default;
 }
 </style>

@@ -14,6 +14,7 @@
               placeholder="Search..."
               clearable
             />
+            <slot name="search-extra" />
           </div>
           <label class="per-page-label">
             Show
@@ -184,6 +185,12 @@ defineExpose({ scrollToTable })
 .full-height-card {
   height: 100%;
   border-radius: 15px;
+}
+
+.search-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .search-input {

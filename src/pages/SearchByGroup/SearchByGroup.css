@@ -98,6 +98,10 @@ background: linear-gradient(90deg, #3D5A4C 0%, #7FA88C 43%);
   outline: none;
 }
 
+.mini-stat--active {
+  box-shadow: 0 0 0 2px var(--va-primary) !important;
+}
+
 .mini-count--success { background: rgba(126, 194, 151, 0.34); color: var(--va-heatmap-success); }
 .mini-count--danger  { background: rgba(197, 76, 101, 0.16); color: var(--va-heatmap-danger); }
 .mini-count--warning { background: rgba(247, 190, 119, 0.24); color: var(--va-heatmap-warning); }
@@ -143,3 +147,5 @@ background: linear-gradient(90deg, #3D5A4C 0%, #7FA88C 43%);
   .stat-hero :deep(.stat-item--avg .stat-value) { font-size: 0.95rem; }
   .learning-band-subtitle { margin-left: 0.75rem; font-size: 0.84rem; }
 }
+
+

@@ -30,7 +30,10 @@
             />
           </div>
           <div class="date-filter-fixed">
-            <DateFilter v-model="range" />
+            <DateFilter
+              v-model="range"
+              v-model:enabled="dateFilterEnabled"
+            />
           </div>
           <VaButton
             icon="search"
@@ -115,7 +118,7 @@ const WIDGET_EVENT_MAP: Record<string, string> = {
 const authStore  = useAuthStore()
 const awsStore   = useAwsStore()
 const route      = useRoute()
-const { range }  = useAcademicYear()
+const { range, calculateRange } = useAcademicYear()
 const currentUser = authStore.username
 
 const user_name   = ref(currentUser)
@@ -123,15 +126,19 @@ const appliedUserName = ref(currentUser)
 const display     = ref(true)
 const searchQuery = ref('')
 const eventsTable = ref<InstanceType<typeof Table> | null>(null)
+const dateFilterEnabled = ref(true)
 
-const getDateStrings = () => ({
-  startStr: dayjs(range.value.start).format('YYYY-MM-DDTHH:mm:ss'),
-  endStr:   dayjs(range.value.end).format('YYYY-MM-DDTHH:mm:ss'),
-})
+const getDateStrings = () => {
+  const activeRange = dateFilterEnabled.value ? range.value : calculateRange()
+  return {
+    startStr: dayjs(activeRange.start).format('YYYY-MM-DDTHH:mm:ss'),
+    endStr:   dayjs(activeRange.end).format('YYYY-MM-DDTHH:mm:ss'),
+  }
+}
 
 const search = () => {
-  const { startStr, endStr } = getDateStrings()
   appliedUserName.value = user_name.value || currentUser
+  const { startStr, endStr } = getDateStrings()
   awsStore.fetchUserDashboardData(user_name.value || currentUser, startStr, endStr)
 }
 

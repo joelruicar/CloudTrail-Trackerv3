@@ -59,10 +59,12 @@
     "insightStuck": "%s tiene %d% de usuarios atascados",
     "insightNotStarted": "%d usuario(s) no han empezado ninguna práctica",
     "learningBandTitle": "Ritmo de aprendizaje del grupo",
-    "learningBandSubtitle": "Mediana y banda intercuartil (P25-P75) del progreso acumulado por estudiante.",
+    "learningBandSubtitle": "Rango de progeso de la clase",
     "learningBandXAxis": "Fecha",
     "learningBandYAxis": "Progreso medio (%)",
     "generatingPdf": "Generando PDF",
-    "downloadPdf": "Descargar PDF"
+    "downloadPdf": "Descargar PDF",
+    "filteringNotStarted": "Filtrando por: Alumnos sin empezar ninguna práctica",
+    "clearFilter": "Limpiar filtro"
   }
 }

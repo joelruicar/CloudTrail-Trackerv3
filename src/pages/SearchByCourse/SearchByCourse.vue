@@ -28,7 +28,10 @@
             />
           </div>
 
-          <DateFilter v-model="selectedDateRange" />
+          <DateFilter
+            v-model="selectedDateRange"
+            v-model:enabled="dateFilterEnabled"
+          />
         </div>
 
         <div class="search-course-actions">
@@ -153,6 +156,7 @@ const display = ref(true)
 const user_name = ref(authStore.username)
 const selectedCourse = ref(courseOptions[0] ?? '')
 const selectedDateRange = ref<{ start: Date; end: Date } | null>(calculateRange())
+const dateFilterEnabled = ref(true)
 const searchQuery = ref('')
 const tableContainerRef = ref<HTMLElement | null>(null)
 const practiceChartRef = ref<InstanceType<typeof Chart> | null>(null)
@@ -275,8 +279,9 @@ const performSearch = async () => {
   selectedCourseLabel.value = selectedCourse.value
 
   const defaultRange = calculateRange()
-  const startDate = dayjs(selectedDateRange.value?.start ?? defaultRange.start).format('YYYY-MM-DD')
-  const endDate   = dayjs(selectedDateRange.value?.end   ?? defaultRange.end).format('YYYY-MM-DD')
+  const activeRange = dateFilterEnabled.value ? selectedDateRange.value : null
+  const startDate = dayjs(activeRange?.start ?? defaultRange.start).format('YYYY-MM-DD')
+  const endDate   = dayjs(activeRange?.end   ?? defaultRange.end).format('YYYY-MM-DD')
   const subjects  = Array.from(new Set(courseSubjectsMap[selectedCourse.value] || []))
 
   await awsStore.fetchStudentProgressForUsers([user_name.value], subjects, startDate, endDate)

@@ -136,7 +136,10 @@
       </div>
 
       <div class="filter-field date-field">
-        <DateFilter v-model="selectedDateRange" />
+        <DateFilter
+          v-model="localRange"
+          v-model:enabled="localDateFilterEnabled"
+        />
       </div>
 
       <VaButton
@@ -164,11 +167,12 @@ const awsStore  = useAwsStore()
 const props = defineProps<{ courses: string[] }>()
 
 const emit = defineEmits<{
-  filterApplied: [{
+  (e: 'filterApplied', payload: { 
     usernames: string[]
     course: string
     dateRange: { start: Date; end: Date } | null
-  }]
+    dateFilterEnabled: boolean 
+  }): void
 }>()
 
 const { calculateRange } = useAcademicYear()
@@ -177,13 +181,24 @@ const { calculateRange } = useAcademicYear()
 const selectedCourse    = ref('')
 const selectedDateRange = ref<{ start: Date; end: Date } | null>(calculateRange())
 
+
+const localRange = ref(calculateRange())
+const localDateFilterEnabled = ref(true)
+
+const applyFilter = () => {
+  emit('filterApplied', {
+    usernames: selectedUsernames.value,
+    course: selectedCourse.value,
+    dateRange: localRange.value,
+    dateFilterEnabled: localDateFilterEnabled.value // <-- Propagación al padre
+  })
+}
 watch(() => props.courses, (courses) => {
   if (!selectedCourse.value && courses.length) selectedCourse.value = courses[0]
 }, { immediate: true })
 
 
 const rootEl         = ref<HTMLElement | null>(null)
-const inputWrapperEl = ref<HTMLElement | null>(null)
 const searchQuery    = ref('')
 const isDropdownOpen = ref(false)
 const users          = ref<string[]>([])
@@ -230,8 +245,8 @@ const selectedUsernames = ref<string[]>([])
 const selectedSet = computed(() => new Set(selectedUsernames.value))
 const selectedUsernamesLabel = computed(() => formatSelectedUsernames(selectedUsernames.value))
 
-const drag = ref({ active: false, anchor: null as string | null, current: null as string | null })
-const shiftAnchor = ref<string | null>(null)
+const drag = ref({ active: false, current: null as string | null })
+const anchor = ref<string | null>(null)
 
 function getRangeBetween(a: string, b: string): string[] {
   const list = filteredUsers.value
@@ -243,9 +258,9 @@ function getRangeBetween(a: string, b: string): string[] {
 }
 
 const dragRangeSet = computed(() => {
-  const { active, anchor, current } = drag.value
-  if (!active || !anchor || !current) return new Set<string>()
-  return new Set(getRangeBetween(anchor, current))
+  const { active, current } = drag.value
+  if (!active || !anchor.value || !current) return new Set<string>()
+  return new Set(getRangeBetween(anchor.value, current))
 })
 
 function isInDragRange(user: string): boolean {
@@ -261,13 +276,13 @@ function applyRangeToggle(range: string[]) {
 }
 
 function onMouseDown(user: string, e: MouseEvent) {
-  if (e.shiftKey && shiftAnchor.value) {
-    applyRangeToggle(getRangeBetween(shiftAnchor.value, user))
+  if (e.shiftKey && anchor.value) {
+    applyRangeToggle(getRangeBetween(anchor.value, user))
     return
   }
 
-  drag.value    = { active: true, anchor: user, current: user }
-  shiftAnchor.value = user
+  drag.value = { active: true, current: user }
+  anchor.value = user
   window.addEventListener('mouseup', onMouseUp, { once: true })
 }
 
@@ -276,11 +291,11 @@ function onMouseEnter(user: string) {
 }
 
 function onMouseUp() {
-  const { active, anchor, current } = drag.value
-  if (active && anchor && current) {
-    applyRangeToggle(getRangeBetween(anchor, current))
+  const { active, current } = drag.value
+  if (active && anchor.value && current) {
+    applyRangeToggle(getRangeBetween(anchor.value, current))
   }
-  drag.value = { active: false, anchor: null, current: null }
+  drag.value = { active: false, current: null }
 }
 
 function clearAll() { selectedUsernames.value = [] }
@@ -321,13 +336,6 @@ const hasValidSelection = computed(() =>
   !authStore.isProfessor || selectedUsernames.value.length > 0
 )
 
-function applyFilter() {
-  emit('filterApplied', {
-    usernames: selectedUsernames.value,
-    course:    selectedCourse.value,
-    dateRange: selectedDateRange.value,
-  })
-}
 </script>
 
 <style scoped>
@@ -363,25 +371,16 @@ function applyFilter() {
   min-width: 200px;
   max-width: 320px;
 }
-
-
-.course-field {
-  flex: 1;
-}
-
 .course-field :deep(.va-select),
 .search-field :deep(.va-input-wrapper) {
   width: 100%;
 }
 
 .date-field {
-  width: auto;
   min-width: 0;
   max-width: none;
   justify-content: flex-end;
 }
-
-
 
 .apply-btn {
   grid-column: 1 / -1;
@@ -442,7 +441,6 @@ function applyFilter() {
   background: var(--va-background-element, rgba(0,0,0,0.03));
   border-radius: 6px;
   user-select: none;
-  cursor: default;
 }
 
 .user-list::-webkit-scrollbar        { width: 8px; display: block; }

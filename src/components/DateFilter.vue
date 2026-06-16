@@ -9,7 +9,6 @@
       style="color: var(--va-plain-text)"
       class="whitespace-nowrap date-checkbox flex-none"
     />
-
     <div
       class="w-72 flex-none overflow-hidden flex items-center transition-opacity duration-300 ease-in-out"
       :class="showInput ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'"
@@ -32,7 +31,6 @@
         </template>
       </VaInput>
     </div>
-
     <Teleport to="body">
       <div
         v-if="open && showInput"
@@ -47,10 +45,8 @@
             class="w-64 hidden md:block"
           />
         </div>
-
         <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
           <span class="text-xs font-mono text-gray-500">{{ inputText }}</span>
-
           <div class="flex gap-2">
             <VaButton
               preset="secondary"
@@ -89,24 +85,25 @@
     </Teleport>
   </div>
 </template>
-
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useAcademicYear } from '../composables/useAcademicYear'
 
 const props = defineProps<{
   modelValue: { start: Date; end: Date } | null
+  enabled?: boolean
 }>()
 
 type DateRange = { start: Date; end: Date }
 
 const emit = defineEmits<{
   'update:modelValue': [value: DateRange | null]
+  'update:enabled': [value: boolean]
 }>()
 const { calculateRange } = useAcademicYear()
 
 const open = ref(false)
-const showInput = ref(true)
+const showInput = ref(props.enabled ?? true)
 const container = ref<HTMLElement | null>(null)
 const popup = ref<HTMLElement | null>(null)
 const popupStyle = ref<Record<string, string>>({ top: '0px', left: '0px' })
@@ -114,16 +111,29 @@ const popupStyle = ref<Record<string, string>>({ top: '0px', left: '0px' })
 const internalRange = ref(props.modelValue ? { ...props.modelValue } : null)
 const appliedText = ref(formatRange(props.modelValue))
 
-// inputText refleja internalRange en tiempo real (durante edición)
 const inputText = computed(() => formatRange(internalRange.value))
 
-// pickerProps separados para controlar el mes visible de cada picker
 function toView(date: Date) {
   return { type: 'day' as const, year: date.getFullYear(), month: date.getMonth() }
 }
 
+function monthIndex(view: { year: number; month: number }) {
+  return view.year * 12 + view.month
+}
+
+function addMonths(view: { type: 'day'; year: number; month: number }, n: number) {
+  const total = view.year * 12 + view.month + n
+  return { type: 'day' as const, year: Math.floor(total / 12), month: ((total % 12) + 12) % 12 }
+}
+
 const viewLeft  = ref(toView(internalRange.value?.start ?? new Date()))
 const viewRight = ref(toView(internalRange.value?.end   ?? new Date()))
+
+function ensureRightAfterLeft() {
+  if (monthIndex(viewRight.value) <= monthIndex(viewLeft.value)) {
+    viewRight.value = addMonths(viewLeft.value, 1)
+  }
+}
 
 const pickerPropsLeft = computed(() => ({
   modelValue: internalRange.value,
@@ -131,7 +141,10 @@ const pickerPropsLeft = computed(() => ({
   mode: 'range' as const,
   class: 'w-64',
   view: viewLeft.value,
-  'onUpdate:view': (v: typeof viewLeft.value) => { viewLeft.value = v },
+  'onUpdate:view': (v: typeof viewLeft.value) => {
+    viewLeft.value = v
+    ensureRightAfterLeft()
+  },
 }))
 
 const pickerPropsRight = computed(() => ({
@@ -140,18 +153,26 @@ const pickerPropsRight = computed(() => ({
   mode: 'range' as const,
   class: 'w-64',
   view: viewRight.value,
-  'onUpdate:view': (v: typeof viewRight.value) => { viewRight.value = v },
+  'onUpdate:view': (v: typeof viewRight.value) => {
+    if (monthIndex(v) <= monthIndex(viewLeft.value)) {
+      viewRight.value = addMonths(viewLeft.value, 1)
+    } else {
+      viewRight.value = v
+    }
+  },
 }))
 
 function syncViews(range: { start: Date; end: Date } | null) {
   const now = new Date()
   viewLeft.value  = toView(range?.start ?? now)
   viewRight.value = toView(range?.end   ?? now)
+  ensureRightAfterLeft()
 }
 
 watch(() => internalRange.value?.start, (start) => {
   if (!start) return
   const nextMonth = new Date(start.getFullYear(), start.getMonth() + 1, 1)
+  viewLeft.value = toView(start)
   viewRight.value = toView(nextMonth)
 })
 
@@ -163,6 +184,10 @@ function formatDate(date: Date | null) {
 function formatRange(range: DateRange | null) {
   return range?.start && range?.end ? `${formatDate(range.start)} - ${formatDate(range.end)}` : ''
 }
+
+watch(showInput, (value) => {
+  emit('update:enabled', value)
+})
 
 watch(open, (isOpen) => {
   if (isOpen) {
@@ -252,17 +277,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.expand-width-enter-active,
-.expand-width-leave-active {
-  transition: all 0.3s ease-in-out;
-  max-width: 400px;
-}
-.expand-width-enter-from,
-.expand-width-leave-to {
-  max-width: 0;
-  opacity: 0;
-}
-
 :deep(.date-checkbox .va-checkbox__square) {
   background-color: #ffffff;
   border: 1px solid rgb(15, 23, 42);

@@ -167,8 +167,15 @@ const handleItemClick = async (item: ProfileListItem) => {
     max-width: calc(100vw - 1rem);
     overflow-x: hidden;
 
-    .menu-item:hover {
-      background: var(--hover-color);
+    .menu-item {
+      display: flex !important;
+      align-items: center !important;
+      flex-direction: row !important;
+      white-space: nowrap;
+
+      &:hover {
+        background: var(--hover-color);
+      }
     }
   }
 

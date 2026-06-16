@@ -81,7 +81,6 @@
                 </div>
               </div>
 
-              <!-- Mini stats -->
               <div
                 v-if="!singleStudentSelected && miniStats.length"
                 class="mini-stat-row"
@@ -93,6 +92,7 @@
                   :class="{
                     'mini-stat--center': !stat.hasDonut,
                     'mini-stat--clickable': stat.id === 'not-started',
+                    'mini-stat--active': stat.id === 'not-started' && filterOnlyNotStartedStudents,
                   }"
                   :role="stat.id === 'not-started' ? 'button' : undefined"
                   :tabindex="stat.id === 'not-started' ? 0 : undefined"
@@ -157,7 +157,6 @@
               </div>
             </div>
 
-            <!-- Heatmap -->
             <div
               v-if="heatmapData.students.length && !singleStudentSelected"
               class="heatmap-section"
@@ -206,6 +205,16 @@
                   :columns="singleStudentSelected ? missingEventColumns : practiceColumns"
                   :enable-event-link="singleStudentSelected"
                 >
+                  <template #search-extra>
+                    <VaButton
+                      v-if="filterOnlyNotStartedStudents"
+                      color="danger"
+                      size="small"
+                      @click="filterOnlyNotStartedStudents = false"
+                    >
+                      {{ t('searchByGroup.clearFilter') }}
+                    </VaButton>
+                  </template>
                   <template #cell(completionPercent)="{ rowData }">
                     {{ rowData.completionPercent?.toFixed(2) }}%
                   </template>
@@ -229,13 +238,11 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
 import { AtomSpinner } from 'epic-spinners'
-
 import { useAcademicYear } from '../../composables/useAcademicYear'
 import { useMissingEvents } from '../../composables/useMissingEvents'
 import { courseSubjectsMap, courseOptions } from '../../data/courseSubjectsMap'
 import { useAuthStore } from '../../stores/auth'
 import { useAwsStore } from '../../stores/aws'
-
 import Chart from '../../components/Chart.vue'
 import Doughnut from '../../components/Doughnut.vue'
 import HeatmapChart from '../../components/HeatmapChart.vue'
@@ -251,24 +258,25 @@ import {
   formatPracticeRows,
 } from './SearchByGroup.utils'
 import { downloadStudentProgressReports } from './SearchByGroup.pdf'
+type MiniStat = {
+  id: string
+  hasDonut: boolean
+  valueLabel: string
+  label: string
+  caption: string
+  tone: 'success' | 'danger' | 'warning'
+  color?: string
+  icon?: string
+}
+
 
 const awsStore = useAwsStore()
 const authStore = useAuthStore()
 const router = useRouter()
 const { getColor } = useColors()
-const { calculateRange } = useAcademicYear()
 const { t } = useI18n()
+const { calculateRange } = useAcademicYear()
 
-const display = ref(true)
-const hasSearched = ref(false)
-const searchQuery = ref('')
-const selectedCourseLabel = ref('')
-const selectedUsernames = ref<string[]>([])
-const selectedStudentsFrom = ref(0)
-const selectedStudentsTo = ref(0)
-const selectedDateRange = ref<{ start: string; end: string } | null>(null)
-const isExportingPdf = ref(false)
-const tableContainerRef = ref<HTMLElement | null>(null)
 
 const practiceColumns = [
   { key: 'practiceName',         label: t('searchByGroup.practiceColumn'),        sortable: true },
@@ -276,39 +284,31 @@ const practiceColumns = [
   { key: 'completionPercent',    label: t('searchByGroup.stateColumn'),           sortable: true },
   { key: 'lastRelatedEventDate', label: t('searchByGroup.timestampColumn'),       sortable: true },
 ]
-
 const missingEventColumns = [
   { key: 'practice',  label: t('searchByGroup.practiceColumn'),      sortable: true },
   { key: 'eventName', label: t('searchByGroup.eventColumn'),         sortable: true },
   { key: 'missing',   label: t('searchByGroup.missingEventsColumn'), sortable: true },
 ]
 
+const selectedDateRange = ref<{ start: string; end: string } | null>(null)
+const currentRange = ref<{ start: Date; end: Date } | null>(null)
+const tableContainerRef = ref<HTMLElement | null>(null)
+const filterOnlyNotStartedStudents = ref(false)
+const selectedUsernames = ref<string[]>([])
+const selectedCourseLabel = ref('')
+const selectedStudentsFrom = ref(0)
+const dateFilterEnabled = ref(true)
+const isExportingPdf = ref(false)
+const selectedStudentsTo = ref(0)
+const hasSearched = ref(false)
+const searchQuery = ref('')
+const display = ref(true)
 const courseSubjects = computed(() =>
   Array.from(new Set(courseSubjectsMap[selectedCourseLabel.value] || []))
 )
-
 const hasResults = computed(() => awsStore.studentProgressData.length > 0)
-
 const singleStudentSelected = computed(() =>
   selectedStudentsFrom.value === selectedStudentsTo.value && hasResults.value
-)
-
-const practiceRows = computed(() => formatPracticeRows(awsStore.studentProgressData))
-
-const { missingEventsRows } = useMissingEvents(
-  courseSubjects,
-  computed(() => awsStore.studentProgressData),
-  selectedCourseLabel,
-)
-
-const heatmapData = computed(() => buildHeatmapData(awsStore.studentProgressData, courseSubjects.value))
-
-const singleStudentFinalGrade = computed(() =>
-  buildSingleStudentFinalGrade(awsStore.studentProgressData, courseSubjects.value)
-)
-
-const singleStudentGradePercent = computed(() =>
-  singleStudentFinalGrade.value === null ? 0 : Math.round(singleStudentFinalGrade.value * 10)
 )
 
 const selectedStudentsRangeLabel = computed(() => {
@@ -326,49 +326,55 @@ const formattedDateRange = computed(() => {
   }
 })
 
-function formatSelectedUsersPreview(usernames: string[]) {
-  if (usernames.length === 0) return ''
-  if (usernames.length === 1) return usernames[0]
-
-  type ParsedEntry = { raw: string; prefix: string; number: number; width: number }
-
-  const parsed = usernames
-    .map((username): ParsedEntry | null => {
-      const match = username.match(/^(.*?)(\d+)$/)
-      if (!match) return null
-      return { raw: username, prefix: match[1], number: Number(match[2]), width: match[2].length }
-    })
-
-  const allParsed = parsed.every((entry): entry is ParsedEntry => entry !== null)
-  if (allParsed) {
-    const sorted = [...parsed].sort((a, b) => a.prefix.localeCompare(b.prefix) || a.number - b.number)
-    const samePrefix = sorted.every(entry => entry.prefix === sorted[0].prefix)
-    const consecutive = sorted.every((entry, index) => index === 0 || entry.number === sorted[index - 1].number + 1)
-
-    if (samePrefix && consecutive) {
-      const first = sorted[0]
-      const last = sorted[sorted.length - 1]
-      const pad = (value: number) => String(value).padStart(Math.max(first.width, last.width), '0')
-      return `${first.prefix}${pad(first.number)} al ${last.prefix}${pad(last.number)}`
-    }
-  }
-
-  if (usernames.length <= 3) return usernames.join(', ')
-  return `${usernames.slice(0, 3).join(', ')}...`
-}
-
-type MiniStat = {
-  id: string
-  hasDonut: boolean
-  valueLabel: string
-  label: string
-  caption: string
-  tone: 'success' | 'danger' | 'warning'
-  color?: string
-  icon?: string
-}
+const singleStudentFinalGrade = computed(() =>
+  buildSingleStudentFinalGrade(awsStore.studentProgressData, courseSubjects.value)
+)
+const singleStudentGradePercent = computed(() =>
+  singleStudentFinalGrade.value === null ? 0 : Math.round(singleStudentFinalGrade.value * 10)
+)
 
 const groupMetrics = computed(() => buildGroupMetrics(awsStore.studentProgressData, courseSubjects.value))
+const groupAveragePercent = computed(() => {
+  const practicePoints = heatmapData.value.points.filter(point => point.x !== 'Nota')
+  if (!practicePoints.length) return 0
+  const resolvedCount = practicePoints.filter(point => point.v >= 80).length
+  return Math.round((resolvedCount / practicePoints.length) * 100)
+})
+
+const practiceRows = computed(() => {
+  const rows = formatPracticeRows(awsStore.studentProgressData)
+  if (filterOnlyNotStartedStudents.value) {
+    const subjectsSet = new Set(courseSubjects.value)
+    const startedStudents = new Set(
+      awsStore.studentProgressData
+        .filter((row) => subjectsSet.has(row.subject) && row.progress > 0)
+        .map((row) => row.studentName)
+    )
+    return rows.filter((row) => !startedStudents.has(row.user))
+  }
+  return rows
+})
+const { missingEventsRows } = useMissingEvents(
+  courseSubjects,
+  computed(() => awsStore.studentProgressData),
+  selectedCourseLabel,
+)
+
+const heatmapData = computed(() => buildHeatmapData(awsStore.studentProgressData, courseSubjects.value))
+
+const averageProgressChart = computed(() => {
+  const labels = courseSubjects.value
+  return buildAverageProgressChart(awsStore.studentProgressData, labels, {
+    success: getColor('heatmapSuccess'),
+    warning: getColor('heatmapWarning'),
+    danger: getColor('heatmapDanger'),
+    empty: getColor('heatmapEmpty'),
+  })
+})
+
+const learningBandChart = computed(() =>
+  buildLearningBandChart(awsStore.studentProgressData, courseSubjects.value, selectedCourseLabel.value)
+)
 
 const miniStats = computed<MiniStat[]>(() => {
   const metrics = groupMetrics.value
@@ -411,28 +417,83 @@ const miniStats = computed<MiniStat[]>(() => {
   ]
 })
 
-const groupAveragePercent = computed(() => {
-  const practicePoints = heatmapData.value.points.filter(point => point.x !== 'Nota')
-  if (!practicePoints.length) return 0
+function formatSelectedUsersPreview(usernames: string[]) {
+  if (usernames.length === 0) return ''
+  if (usernames.length === 1) return usernames[0]
 
-  const resolvedCount = practicePoints.filter(point => point.v >= 80).length
+  type ParsedEntry = { raw: string; prefix: string; number: number; width: number }
 
-  return Math.round((resolvedCount / practicePoints.length) * 100)
-})
+  const parsed = usernames
+    .map((username): ParsedEntry | null => {
+      const match = username.match(/^(.*?)(\d+)$/)
+      if (!match) return null
+      return { raw: username, prefix: match[1], number: Number(match[2]), width: match[2].length }
+    })
 
-const averageProgressChart = computed(() => {
-  const labels = courseSubjects.value
-  return buildAverageProgressChart(awsStore.studentProgressData, labels, {
-    success: getColor('heatmapSuccess'),
-    warning: getColor('heatmapWarning'),
-    danger: getColor('heatmapDanger'),
-    empty: getColor('heatmapEmpty'),
-  })
-})
+  const allParsed = parsed.every((entry): entry is ParsedEntry => entry !== null)
+  if (allParsed) {
+    const sorted = [...parsed].sort((a, b) => a.prefix.localeCompare(b.prefix) || a.number - b.number)
+    const samePrefix = sorted.every(entry => entry.prefix === sorted[0].prefix)
+    const consecutive = sorted.every((entry, index) => index === 0 || entry.number === sorted[index - 1].number + 1)
 
-const learningBandChart = computed(() =>
-  buildLearningBandChart(awsStore.studentProgressData, courseSubjects.value, selectedCourseLabel.value)
-)
+    if (samePrefix && consecutive) {
+      const first = sorted[0]
+      const last = sorted[sorted.length - 1]
+      const pad = (value: number) => String(value).padStart(Math.max(first.width, last.width), '0')
+      return `${first.prefix}${pad(first.number)} al ${last.prefix}${pad(last.number)}`
+    }
+  }
+
+  if (usernames.length <= 3) return usernames.join(', ')
+  return `${usernames.slice(0, 3).join(', ')}...`
+}
+
+const getDateStrings = (
+  rangeFromFilter: { start: Date; end: Date } | null, 
+  isEnabled: boolean
+) => {
+  const activeRange = isEnabled && rangeFromFilter ? rangeFromFilter : calculateRange()
+  return {
+    startStr: dayjs(activeRange.start).format('YYYY-MM-DD'),
+    endStr:   dayjs(activeRange.end).format('YYYY-MM-DD'),
+  }
+}
+
+
+const handleFilterApplied = async (filter: {
+  usernames: string[]
+  course: string
+  dateRange: { start: Date; end: Date } | null
+  dateFilterEnabled: boolean 
+}) => {
+  hasSearched.value = true
+  filterOnlyNotStartedStudents.value = false
+  searchQuery.value = ''
+  selectedCourseLabel.value = filter.course
+  dateFilterEnabled.value = filter.dateFilterEnabled
+  currentRange.value = filter.dateRange
+
+  const { startStr, endStr } = getDateStrings(filter.dateRange, filter.dateFilterEnabled)
+  const subjects = Array.from(new Set(courseSubjectsMap[filter.course] || []))
+
+  selectedDateRange.value = { start: startStr, end: endStr }
+
+  let usernames: string[]
+  if (authStore.isProfessor) {
+    usernames = filter.usernames
+  } else {
+    usernames = [authStore.username]
+  }
+
+  selectedUsernames.value = usernames
+
+  const allStudents = awsStore.allUsers.filter((u) => u.startsWith('alucloud'))
+  const indices = usernames.map(u => allStudents.indexOf(u)).filter(i => i >= 0)
+  selectedStudentsFrom.value = indices.length ? Math.min(...indices) : 0
+  selectedStudentsTo.value = indices.length ? Math.max(...indices) : 0
+
+  await awsStore.fetchStudentProgressForUsers(usernames, subjects, startStr, endStr)
+}
 
 const scrollToTable = () =>
   tableContainerRef.value?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -447,45 +508,14 @@ const handleBarClick = (label: string) => {
 
 const handleMiniStatClick = (statId: string) => {
   if (statId !== 'not-started') return
-  searchQuery.value = '0.00%'
-  display.value = false
-  nextTick(scrollToTable)
-}
-
-const handleFilterApplied = async (filter: {
-  usernames: string[]
-  course: string
-  dateRange: { start: Date; end: Date } | null
-}) => {
-  hasSearched.value        = true
-  selectedCourseLabel.value = filter.course
-
-  const defaultRange = calculateRange()
-  const startDate = dayjs(filter.dateRange?.start ?? defaultRange.start).format('YYYY-MM-DD')
-  const endDate   = dayjs(filter.dateRange?.end   ?? defaultRange.end).format('YYYY-MM-DD')
-  const subjects  = Array.from(new Set(courseSubjectsMap[filter.course] || []))
-
-  selectedDateRange.value = { start: startDate, end: endDate }
-
-  let usernames: string[]
-
-  if (authStore.isProfessor) {
-    usernames = filter.usernames
-  } else {
-    usernames = [authStore.username]
+  filterOnlyNotStartedStudents.value = !filterOnlyNotStartedStudents.value
+  searchQuery.value = ''
+  if (filterOnlyNotStartedStudents.value) {
+    display.value = false
+    nextTick(scrollToTable)
   }
-
-  selectedUsernames.value = usernames
-
-  // Conservar compatibilidad con las refs que muestran el rango seleccionado en la UI,
-  // si las hubiera (se pueden eliminar si ya no se usan)
-  const allStudents = awsStore.allUsers.filter((u) => u.startsWith('alucloud'))
-  const indices     = usernames.map(u => allStudents.indexOf(u)).filter(i => i >= 0)
-  selectedStudentsFrom.value = indices.length ? Math.min(...indices) : 0
-  selectedStudentsTo.value   = indices.length ? Math.max(...indices) : 0
-
-  await awsStore.fetchStudentProgressForUsers(usernames, subjects, startDate, endDate)
 }
+
 const handleStudentRowClick = (student: string) => {
   if (!student) return
   router.push({ name: 'search-by-course', query: { user: student, course: selectedCourseLabel.value } })
@@ -511,10 +541,20 @@ const handlePdfExport = async () => {
 }
 
 onMounted(async () => {
-  if (authStore.isProfessor && awsStore.allUsers.length === 0) await awsStore.getAllUsers()
+  if (authStore.isProfessor && awsStore.allUsers.length === 0) {
+    await awsStore.getAllUsers()
+  }
 })
 
-watch(singleStudentSelected, () => { searchQuery.value = '' })
+watch(singleStudentSelected, () => { 
+  searchQuery.value = '' 
+})
+
+watch(searchQuery, (newVal) => {
+  if (newVal !== '') {
+    filterOnlyNotStartedStudents.value = false
+  }
+})
 </script>
 
 <style src="./SearchByGroup.css" scoped></style>

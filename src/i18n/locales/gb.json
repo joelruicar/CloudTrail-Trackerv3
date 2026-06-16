@@ -61,10 +61,12 @@
     "insightStuck": "%s has %d% of users stuck",
     "insightNotStarted": "%d user(s) have not started any practice",
     "learningBandTitle": "Group learning pace",
-    "learningBandSubtitle": "Median and interquartile range (P25-P75) of cumulative progress per student.",
+    "learningBandSubtitle": "Class progress range",
     "learningBandXAxis": "Date",
     "learningBandYAxis": "Average progress (%)",
     "generatingPdf": "Generating PDF",
-    "downloadPdf": "Download PDF"
+    "downloadPdf": "Download PDF",
+    "filteringNotStarted": "Filtering by: Students who have not started any practice",
+    "clearFilter": "Clear filter"
   }
 }
